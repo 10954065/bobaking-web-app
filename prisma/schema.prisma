@@ -1,0 +1,286 @@
+// Flicks & Licks Restaurant OS — Phase 1: Foundation
+// Identity, RBAC, multi-branch structure, audit logging.
+// Later phases extend this file with orders, inventory, delivery, marketing, etc.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Geography / Branch structure
+// ---------------------------------------------------------------------------
+
+model Country {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  isoCode   String   @unique
+  currency  String   @default("GHS")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  regions Region[]
+
+  @@map("countries")
+}
+
+model Region {
+  id        String   @id @default(uuid())
+  name      String
+  countryId String   @map("country_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  country Country @relation(fields: [countryId], references: [id], onDelete: Restrict)
+  cities  City[]
+
+  @@unique([countryId, name])
+  @@map("regions")
+}
+
+model City {
+  id        String   @id @default(uuid())
+  name      String
+  regionId  String   @map("region_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  region   Region   @relation(fields: [regionId], references: [id], onDelete: Restrict)
+  branches Branch[]
+
+  @@unique([regionId, name])
+  @@map("cities")
+}
+
+enum BranchStatus {
+  ACTIVE
+  INACTIVE
+  COMING_SOON
+  TEMPORARILY_CLOSED
+}
+
+model Branch {
+  id        String       @id @default(uuid())
+  name      String
+  slug      String       @unique
+  cityId    String       @map("city_id")
+  address   String
+  latitude  Decimal?     @db.Decimal(10, 7)
+  longitude Decimal?     @db.Decimal(10, 7)
+  phone     String?
+  email     String?
+  status    BranchStatus @default(ACTIVE)
+  timezone  String       @default("Africa/Accra")
+  currency  String       @default("GHS")
+
+  // JSON schedule: { mon: {open, close}, tue: {...}, ... }. Configurable per branch, not hard-coded.
+  openingHours Json? @map("opening_hours")
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  city      City       @relation(fields: [cityId], references: [id], onDelete: Restrict)
+  userRoles UserRole[]
+  auditLogs AuditLog[]
+
+  @@index([cityId])
+  @@index([status])
+  @@map("branches")
+}
+
+// ---------------------------------------------------------------------------
+// Identity
+// ---------------------------------------------------------------------------
+
+enum UserStatus {
+  ACTIVE
+  INVITED
+  SUSPENDED
+  DEACTIVATED
+}
+
+model User {
+  id            String     @id @default(uuid())
+  email         String?    @unique
+  emailVerified DateTime?  @map("email_verified")
+  phone         String?    @unique
+  phoneVerified DateTime?  @map("phone_verified")
+  passwordHash  String?    @map("password_hash")
+
+  // Auth.js convenience fields (kept alongside the structured name/avatar fields below).
+  name  String?
+  image String?
+
+  firstName String @map("first_name")
+  lastName  String @map("last_name")
+
+  status UserStatus @default(ACTIVE)
+
+  failedLoginAttempts Int       @default(0) @map("failed_login_attempts")
+  lockedUntil          DateTime? @map("locked_until")
+  lastLoginAt          DateTime? @map("last_login_at")
+  lastLoginIp          String?   @map("last_login_ip")
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  accounts  Account[]
+  sessions  Session[]
+  userRoles UserRole[]
+  auditLogs AuditLog[] @relation("AuditActor")
+
+  @@index([status])
+  @@index([email])
+  @@index([phone])
+  @@map("users")
+}
+
+// Reserved for future OAuth / SSO providers. Credentials auth does not use this table today.
+model Account {
+  id                String  @id @default(uuid())
+  userId            String  @map("user_id")
+  type              String
+  provider          String
+  providerAccountId String  @map("provider_account_id")
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(uuid())
+  sessionToken String   @unique @map("session_token")
+  userId       String   @map("user_id")
+  expires      DateTime
+
+  // Device/session tracking (security requirement: visibility into active sessions).
+  ipAddress String? @map("ip_address")
+  userAgent String? @map("user_agent")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+// ---------------------------------------------------------------------------
+// RBAC — roles and permissions are data, not hard-coded enums, so new roles
+// or permissions can be introduced without a migration touching application code.
+// ---------------------------------------------------------------------------
+
+model Role {
+  id          String  @id @default(uuid())
+  name        String  @unique
+  description String?
+  isSystem    Boolean @default(false) @map("is_system")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  rolePermissions RolePermission[]
+  userRoles       UserRole[]
+
+  @@map("roles")
+}
+
+model Permission {
+  id          String  @id @default(uuid())
+  resource    String
+  action      String
+  description String?
+
+  rolePermissions RolePermission[]
+
+  @@unique([resource, action])
+  @@map("permissions")
+}
+
+model RolePermission {
+  roleId       String @map("role_id")
+  permissionId String @map("permission_id")
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+// A user can hold multiple roles. branchId = null means the role applies
+// globally across all branches (e.g. SUPER_ADMIN); a set branchId scopes
+// that role assignment to a single branch (e.g. ADMIN for East Legon only).
+model UserRole {
+  id       String  @id @default(uuid())
+  userId   String  @map("user_id")
+  roleId   String  @map("role_id")
+  branchId String? @map("branch_id")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role   Role    @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  branch Branch? @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, roleId, branchId])
+  @@index([userId])
+  @@index([branchId])
+  @@map("user_roles")
+}
+
+// ---------------------------------------------------------------------------
+// Audit — append-only from the application's perspective. No update/delete
+// helpers are exposed anywhere in the service layer.
+// ---------------------------------------------------------------------------
+
+model AuditLog {
+  id           String  @id @default(uuid())
+  actorUserId  String? @map("actor_user_id")
+  action       String
+  resourceType String  @map("resource_type")
+  resourceId   String? @map("resource_id")
+  branchId     String? @map("branch_id")
+
+  before   Json?
+  after    Json?
+  metadata Json?
+
+  ipAddress String? @map("ip_address")
+  userAgent String? @map("user_agent")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  actor  User?   @relation("AuditActor", fields: [actorUserId], references: [id], onDelete: SetNull)
+  branch Branch? @relation(fields: [branchId], references: [id], onDelete: SetNull)
+
+  @@index([actorUserId])
+  @@index([resourceType, resourceId])
+  @@index([branchId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}

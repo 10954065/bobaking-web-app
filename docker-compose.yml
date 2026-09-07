@@ -1,0 +1,38 @@
+name: flicks-licks
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: flicks-licks-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: flicks_dev
+      POSTGRES_PASSWORD: flicks_dev_password
+      POSTGRES_DB: flicks_licks_dev
+    ports:
+      - "5434:5432"
+    volumes:
+      - flicks_licks_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U flicks_dev -d flicks_licks_dev"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: flicks-licks-redis
+    restart: unless-stopped
+    ports:
+      - "6382:6379"
+    volumes:
+      - flicks_licks_redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  flicks_licks_postgres_data:
+  flicks_licks_redis_data:
