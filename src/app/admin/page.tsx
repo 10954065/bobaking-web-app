@@ -1,9 +1,9 @@
 import { redirect } from "next/navigation";
-import { signOut } from "@/auth";
 import { getCurrentSession } from "@/modules/auth/services/current-session.service";
 import { getUserAccessProfile, getAccessibleBranchIds } from "@/modules/auth/services/authorization.service";
 import { listBranches } from "@/modules/branches/services/branch.service";
 import { prisma } from "@/db/client";
+import { AdminHeader } from "@/components/AdminHeader";
 
 export default async function AdminDashboardPage() {
   const session = await getCurrentSession();
@@ -20,27 +20,7 @@ export default async function AdminDashboardPage() {
 
   return (
     <div className="min-h-screen bg-stone-100 dark:bg-stone-950">
-      <header className="border-b border-stone-200 bg-white px-6 py-4 dark:border-stone-800 dark:bg-stone-900">
-        <div className="mx-auto flex max-w-5xl items-center justify-between">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-orange-600">Flicks &amp; Licks</p>
-            <h1 className="text-lg font-semibold text-stone-900 dark:text-stone-50">Admin</h1>
-          </div>
-          <form
-            action={async () => {
-              "use server";
-              await signOut({ redirectTo: "/login" });
-            }}
-          >
-            <button
-              type="submit"
-              className="rounded-lg border border-stone-300 px-3.5 py-2 text-sm font-medium text-stone-700 transition-colors hover:bg-stone-100 dark:border-stone-700 dark:text-stone-200 dark:hover:bg-stone-800"
-            >
-              Sign out
-            </button>
-          </form>
-        </div>
-      </header>
+      <AdminHeader />
 
       <main className="mx-auto max-w-5xl px-6 py-8">
         <section className="mb-8 rounded-xl border border-stone-200 bg-white p-6 dark:border-stone-800 dark:bg-stone-900">

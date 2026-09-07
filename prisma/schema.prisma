@@ -84,9 +84,10 @@ model Branch {
   updatedAt DateTime  @updatedAt @map("updated_at")
   deletedAt DateTime? @map("deleted_at")
 
-  city      City       @relation(fields: [cityId], references: [id], onDelete: Restrict)
-  userRoles UserRole[]
-  auditLogs AuditLog[]
+  city             City                    @relation(fields: [cityId], references: [id], onDelete: Restrict)
+  userRoles        UserRole[]
+  auditLogs        AuditLog[]
+  productOverrides ProductBranchOverride[]
 
   @@index([cityId])
   @@index([status])
@@ -105,12 +106,12 @@ enum UserStatus {
 }
 
 model User {
-  id            String     @id @default(uuid())
-  email         String?    @unique
-  emailVerified DateTime?  @map("email_verified")
-  phone         String?    @unique
-  phoneVerified DateTime?  @map("phone_verified")
-  passwordHash  String?    @map("password_hash")
+  id            String    @id @default(uuid())
+  email         String?   @unique
+  emailVerified DateTime? @map("email_verified")
+  phone         String?   @unique
+  phoneVerified DateTime? @map("phone_verified")
+  passwordHash  String?   @map("password_hash")
 
   // Auth.js convenience fields (kept alongside the structured name/avatar fields below).
   name  String?
@@ -122,9 +123,9 @@ model User {
   status UserStatus @default(ACTIVE)
 
   failedLoginAttempts Int       @default(0) @map("failed_login_attempts")
-  lockedUntil          DateTime? @map("locked_until")
-  lastLoginAt          DateTime? @map("last_login_at")
-  lastLoginIp          String?   @map("last_login_ip")
+  lockedUntil         DateTime? @map("locked_until")
+  lastLoginAt         DateTime? @map("last_login_at")
+  lastLoginIp         String?   @map("last_login_ip")
 
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime  @updatedAt @map("updated_at")
@@ -283,4 +284,181 @@ model AuditLog {
   @@index([branchId])
   @@index([createdAt])
   @@map("audit_logs")
+}
+
+// ---------------------------------------------------------------------------
+// Catalog — products/categories/modifiers are global by default. A branch can
+// override price and/or availability per product without duplicating it (see
+// ProductBranchOverride) — this is what lets one branch sell an item another
+// doesn't, or price it differently, without forking the catalog.
+// ---------------------------------------------------------------------------
+
+model Category {
+  id          String  @id @default(uuid())
+  name        String
+  slug        String  @unique
+  description String?
+  imageUrl    String? @map("image_url")
+  sortOrder   Int     @default(0) @map("sort_order")
+  isActive    Boolean @default(true) @map("is_active")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  products Product[]
+
+  @@index([isActive])
+  @@map("categories")
+}
+
+model Product {
+  id          String  @id @default(uuid())
+  categoryId  String  @map("category_id")
+  name        String
+  slug        String  @unique
+  description String?
+  basePrice   Decimal @map("base_price") @db.Decimal(10, 2)
+  imageUrl    String? @map("image_url")
+  sortOrder   Int     @default(0) @map("sort_order")
+  isActive    Boolean @default(true) @map("is_active")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  category        Category                @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  branchOverrides ProductBranchOverride[]
+  modifierGroups  ProductModifierGroup[]
+
+  @@index([categoryId])
+  @@index([isActive])
+  @@map("products")
+}
+
+/// price = null means "use the product's basePrice at this branch" — only set
+/// a value here when this branch genuinely charges a different price.
+model ProductBranchOverride {
+  id          String   @id @default(uuid())
+  productId   String   @map("product_id")
+  branchId    String   @map("branch_id")
+  price       Decimal? @db.Decimal(10, 2)
+  isAvailable Boolean  @default(true) @map("is_available")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  branch  Branch  @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, branchId])
+  @@map("product_branch_overrides")
+}
+
+enum ModifierSelectionType {
+  SINGLE
+  MULTIPLE
+}
+
+model ModifierGroup {
+  id            String                @id @default(uuid())
+  name          String
+  selectionType ModifierSelectionType @default(SINGLE) @map("selection_type")
+  isRequired    Boolean               @default(false) @map("is_required")
+  minSelect     Int                   @default(0) @map("min_select")
+  maxSelect     Int?                  @map("max_select")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  options  ModifierOption[]
+  products ProductModifierGroup[]
+
+  @@map("modifier_groups")
+}
+
+model ModifierOption {
+  id              String  @id @default(uuid())
+  modifierGroupId String  @map("modifier_group_id")
+  name            String
+  priceDelta      Decimal @default(0) @map("price_delta") @db.Decimal(10, 2)
+  isActive        Boolean @default(true) @map("is_active")
+  sortOrder       Int     @default(0) @map("sort_order")
+
+  modifierGroup ModifierGroup @relation(fields: [modifierGroupId], references: [id], onDelete: Cascade)
+
+  @@index([modifierGroupId])
+  @@map("modifier_options")
+}
+
+model ProductModifierGroup {
+  productId       String @map("product_id")
+  modifierGroupId String @map("modifier_group_id")
+  sortOrder       Int    @default(0) @map("sort_order")
+
+  product       Product       @relation(fields: [productId], references: [id], onDelete: Cascade)
+  modifierGroup ModifierGroup @relation(fields: [modifierGroupId], references: [id], onDelete: Cascade)
+
+  @@id([productId, modifierGroupId])
+  @@map("product_modifier_groups")
+}
+
+// ---------------------------------------------------------------------------
+// Customers — deliberately separate from User: customers are never granted
+// RBAC roles, and passwordHash is optional so guest customers created by
+// staff (POS walk-ins) don't need an account at all.
+// ---------------------------------------------------------------------------
+
+enum CustomerStatus {
+  ACTIVE
+  GUEST
+  SUSPENDED
+}
+
+model Customer {
+  id            String         @id @default(uuid())
+  email         String?        @unique
+  emailVerified DateTime?      @map("email_verified")
+  phone         String?        @unique
+  phoneVerified DateTime?      @map("phone_verified")
+  passwordHash  String?        @map("password_hash")
+  firstName     String         @map("first_name")
+  lastName      String         @map("last_name")
+  status        CustomerStatus @default(GUEST)
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  addresses CustomerAddress[]
+
+  @@index([status])
+  @@index([email])
+  @@index([phone])
+  @@map("customers")
+}
+
+/// area/city are free-text (not FK'd to City) because customer-entered
+/// delivery addresses rarely align cleanly to administrative boundaries —
+/// geographic analytics (Phase 8) normalizes/aggregates this text rather
+/// than requiring clean input at capture time.
+model CustomerAddress {
+  id           String   @id @default(uuid())
+  customerId   String   @map("customer_id")
+  label        String?
+  addressLine1 String   @map("address_line_1")
+  addressLine2 String?  @map("address_line_2")
+  area         String?
+  city         String?
+  landmark     String?
+  latitude     Decimal? @db.Decimal(10, 7)
+  longitude    Decimal? @db.Decimal(10, 7)
+  isDefault    Boolean  @default(false) @map("is_default")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([customerId])
+  @@index([area])
+  @@map("customer_addresses")
 }
