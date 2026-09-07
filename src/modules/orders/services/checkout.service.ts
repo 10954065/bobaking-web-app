@@ -1,0 +1,164 @@
+import { prisma } from "@/db/client";
+import { Prisma } from "@prisma/client";
+import { generateOrderNumber } from "@/modules/orders/services/order-number.service";
+import { getOrderByIdempotencyKey, getOrderById, type OrderWithDetails } from "@/modules/orders/services/order.service";
+import { recordAuditLog } from "@/modules/audit/services/audit.service";
+
+export class EmptyCartError extends Error {
+  constructor() {
+    super("Cannot check out an empty cart.");
+    this.name = "EmptyCartError";
+  }
+}
+
+export class ProductUnavailableError extends Error {
+  constructor(productName: string) {
+    super(`${productName} is not available at this branch right now.`);
+    this.name = "ProductUnavailableError";
+  }
+}
+
+export interface CheckoutInput {
+  cartId: string;
+  idempotencyKey: string;
+  deliveryAddressId?: string;
+  scheduledFor?: Date;
+  placedByUserId?: string;
+  notes?: string;
+}
+
+/**
+ * Converts a cart into an order. Idempotent: replaying the same
+ * idempotencyKey (e.g. a retried checkout request after a dropped response)
+ * returns the already-created order instead of creating a duplicate.
+ *
+ * Price resolution happens inside the transaction against `tx`, not through
+ * product.service's branch-resolution helper (which uses the module-level
+ * prisma client) — reusing it here would run outside the transaction and
+ * could read state that changes before this transaction commits.
+ */
+export async function checkout(input: CheckoutInput): Promise<OrderWithDetails> {
+  const existing = await getOrderByIdempotencyKey(input.idempotencyKey);
+  if (existing) {
+    return (await getOrderById(existing.id))!;
+  }
+
+  const orderId = await prisma.$transaction(async (tx) => {
+    const cart = await tx.cart.findUniqueOrThrow({
+      where: { id: input.cartId },
+      include: {
+        items: {
+          include: { product: true, modifiers: { include: { modifierOption: true } } },
+        },
+        branch: true,
+      },
+    });
+
+    if (cart.status !== "ACTIVE") {
+      throw new Error(`Cart is ${cart.status.toLowerCase()}, not active.`);
+    }
+    if (cart.items.length === 0) {
+      throw new EmptyCartError();
+    }
+
+    let subtotal = new Prisma.Decimal(0);
+    const itemsToCreate: {
+      productId: string;
+      productName: string;
+      unitPrice: Prisma.Decimal;
+      quantity: number;
+      lineSubtotal: Prisma.Decimal;
+      notes: string | null;
+      modifiers: { modifierOptionId: string; optionName: string; priceDelta: Prisma.Decimal }[];
+    }[] = [];
+
+    for (const item of cart.items) {
+      const override = await tx.productBranchOverride.findUnique({
+        where: { productId_branchId: { productId: item.productId, branchId: cart.branchId } },
+      });
+      const isAvailable = item.product.isActive && (override?.isAvailable ?? true);
+      if (!isAvailable) {
+        throw new ProductUnavailableError(item.product.name);
+      }
+
+      const unitPrice = override?.price ?? item.product.basePrice;
+      const modifiersTotal = item.modifiers.reduce(
+        (sum, m) => sum.plus(m.modifierOption.priceDelta),
+        new Prisma.Decimal(0)
+      );
+      const lineSubtotal = unitPrice.plus(modifiersTotal).times(item.quantity);
+      subtotal = subtotal.plus(lineSubtotal);
+
+      itemsToCreate.push({
+        productId: item.productId,
+        productName: item.product.name,
+        unitPrice,
+        quantity: item.quantity,
+        lineSubtotal,
+        notes: item.notes,
+        modifiers: item.modifiers.map((m) => ({
+          modifierOptionId: m.modifierOptionId,
+          optionName: m.modifierOption.name,
+          priceDelta: m.modifierOption.priceDelta,
+        })),
+      });
+    }
+
+    // Discounts (Phase 7 promotions engine) and delivery fees (Phase 6 zones)
+    // aren't built yet — both are explicit zero stubs, not silently omitted.
+    const discountTotal = new Prisma.Decimal(0);
+    const deliveryFee = new Prisma.Decimal(0);
+    const taxTotal = subtotal.times(cart.branch.taxRate);
+    const total = subtotal.plus(taxTotal).plus(deliveryFee).minus(discountTotal);
+
+    const orderNumber = await generateOrderNumber();
+
+    const order = await tx.order.create({
+      data: {
+        orderNumber,
+        branchId: cart.branchId,
+        customerId: cart.customerId,
+        type: cart.type,
+        status: "DRAFT",
+        subtotal,
+        discountTotal,
+        taxTotal,
+        deliveryFee,
+        total,
+        notes: input.notes ?? cart.notes,
+        deliveryAddressId: input.deliveryAddressId,
+        scheduledFor: input.scheduledFor,
+        placedByUserId: input.placedByUserId,
+        idempotencyKey: input.idempotencyKey,
+        items: {
+          create: itemsToCreate.map((item) => ({
+            productId: item.productId,
+            productName: item.productName,
+            unitPrice: item.unitPrice,
+            quantity: item.quantity,
+            lineSubtotal: item.lineSubtotal,
+            notes: item.notes,
+            modifiers: { create: item.modifiers },
+          })),
+        },
+      },
+    });
+
+    await tx.orderStatusHistory.create({
+      data: { orderId: order.id, fromStatus: null, toStatus: "DRAFT", changedByUserId: input.placedByUserId ?? null },
+    });
+
+    await tx.cart.update({ where: { id: cart.id }, data: { status: "CONVERTED" } });
+
+    return order.id;
+  });
+
+  await recordAuditLog({
+    actorUserId: input.placedByUserId ?? null,
+    action: "order.created",
+    resourceType: "Order",
+    resourceId: orderId,
+  });
+
+  return (await getOrderById(orderId))!;
+}

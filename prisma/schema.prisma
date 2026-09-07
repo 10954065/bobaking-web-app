@@ -77,6 +77,9 @@ model Branch {
   timezone  String       @default("Africa/Accra")
   currency  String       @default("GHS")
 
+  /// Configurable, not hard-coded — see CRITICAL rule against hard-coded tax rates. Defaults to 0 until finance configures it.
+  taxRate Decimal @default(0) @map("tax_rate") @db.Decimal(5, 4)
+
   // JSON schedule: { mon: {open, close}, tue: {...}, ... }. Configurable per branch, not hard-coded.
   openingHours Json? @map("opening_hours")
 
@@ -88,6 +91,8 @@ model Branch {
   userRoles        UserRole[]
   auditLogs        AuditLog[]
   productOverrides ProductBranchOverride[]
+  carts            Cart[]
+  orders           Order[]
 
   @@index([cityId])
   @@index([status])
@@ -135,6 +140,11 @@ model User {
   sessions  Session[]
   userRoles UserRole[]
   auditLogs AuditLog[] @relation("AuditActor")
+
+  placedOrders       Order[]              @relation("OrderPlacedBy")
+  orderStatusChanges OrderStatusHistory[]
+  paymentsInitiated  Payment[]
+  refundsInitiated   Refund[]
 
   @@index([status])
   @@index([email])
@@ -328,6 +338,8 @@ model Product {
   category        Category                @relation(fields: [categoryId], references: [id], onDelete: Restrict)
   branchOverrides ProductBranchOverride[]
   modifierGroups  ProductModifierGroup[]
+  cartItems       CartItem[]
+  orderItems      OrderItem[]
 
   @@index([categoryId])
   @@index([isActive])
@@ -383,7 +395,9 @@ model ModifierOption {
   isActive        Boolean @default(true) @map("is_active")
   sortOrder       Int     @default(0) @map("sort_order")
 
-  modifierGroup ModifierGroup @relation(fields: [modifierGroupId], references: [id], onDelete: Cascade)
+  modifierGroup  ModifierGroup       @relation(fields: [modifierGroupId], references: [id], onDelete: Cascade)
+  cartItemLinks  CartItemModifier[]
+  orderItemLinks OrderItemModifier[]
 
   @@index([modifierGroupId])
   @@map("modifier_options")
@@ -429,6 +443,8 @@ model Customer {
   deletedAt DateTime? @map("deleted_at")
 
   addresses CustomerAddress[]
+  carts     Cart[]
+  orders    Order[]
 
   @@index([status])
   @@index([email])
@@ -457,8 +473,280 @@ model CustomerAddress {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  orders   Order[]
 
   @@index([customerId])
   @@index([area])
   @@map("customer_addresses")
+}
+
+// ---------------------------------------------------------------------------
+// Cart — pre-checkout only. Cart items hold live references to Product/
+// ModifierOption (prices are resolved at checkout time); once converted into
+// an Order, everything is snapshotted and the cart no longer matters.
+// ---------------------------------------------------------------------------
+
+enum OrderType {
+  DELIVERY
+  PICKUP
+  DINE_IN
+}
+
+enum CartStatus {
+  ACTIVE
+  CONVERTED
+  ABANDONED
+}
+
+model Cart {
+  id         String     @id @default(uuid())
+  branchId   String     @map("branch_id")
+  customerId String     @map("customer_id")
+  type       OrderType  @default(PICKUP)
+  status     CartStatus @default(ACTIVE)
+  notes      String?
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  branch   Branch     @relation(fields: [branchId], references: [id], onDelete: Restrict)
+  customer Customer   @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  items    CartItem[]
+
+  @@index([customerId])
+  @@index([branchId])
+  @@map("carts")
+}
+
+model CartItem {
+  id        String  @id @default(uuid())
+  cartId    String  @map("cart_id")
+  productId String  @map("product_id")
+  quantity  Int     @default(1)
+  notes     String?
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  cart      Cart               @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  product   Product            @relation(fields: [productId], references: [id], onDelete: Restrict)
+  modifiers CartItemModifier[]
+
+  @@index([cartId])
+  @@map("cart_items")
+}
+
+model CartItemModifier {
+  id               String @id @default(uuid())
+  cartItemId       String @map("cart_item_id")
+  modifierOptionId String @map("modifier_option_id")
+
+  cartItem       CartItem       @relation(fields: [cartItemId], references: [id], onDelete: Cascade)
+  modifierOption ModifierOption @relation(fields: [modifierOptionId], references: [id], onDelete: Restrict)
+
+  @@unique([cartItemId, modifierOptionId])
+  @@map("cart_item_modifiers")
+}
+
+// ---------------------------------------------------------------------------
+// Orders — the state machine is enforced entirely in application code
+// (order.state-machine.ts), never by CHECK constraints, since valid
+// transitions depend on order type. This table only ever *records* the
+// result. OrderItem/OrderItemModifier snapshot product name, price, and
+// modifier price at the moment of order — a later price change must never
+// alter historical orders.
+// ---------------------------------------------------------------------------
+
+enum OrderStatus {
+  DRAFT
+  PENDING_PAYMENT
+  PAYMENT_FAILED
+  CONFIRMED
+  ACCEPTED
+  SENT_TO_KITCHEN
+  PREPARING
+  READY
+  ASSIGNED_TO_RIDER
+  PICKED_UP
+  OUT_FOR_DELIVERY
+  DELIVERED
+  COMPLETED
+  CANCELLED
+  REFUNDED
+  REJECTED
+}
+
+model Order {
+  id          String      @id @default(uuid())
+  orderNumber String      @unique @map("order_number")
+  branchId    String      @map("branch_id")
+  customerId  String      @map("customer_id")
+  type        OrderType
+  status      OrderStatus @default(DRAFT)
+
+  subtotal      Decimal @db.Decimal(10, 2)
+  discountTotal Decimal @default(0) @map("discount_total") @db.Decimal(10, 2)
+  taxTotal      Decimal @default(0) @map("tax_total") @db.Decimal(10, 2)
+  deliveryFee   Decimal @default(0) @map("delivery_fee") @db.Decimal(10, 2)
+  total         Decimal @db.Decimal(10, 2)
+  currency      String  @default("GHS")
+
+  notes             String?
+  deliveryAddressId String?   @map("delivery_address_id")
+  scheduledFor      DateTime? @map("scheduled_for")
+  placedByUserId    String?   @map("placed_by_user_id")
+
+  /// Guards checkout retries from creating duplicate orders — see checkout.service.ts.
+  idempotencyKey String @unique @map("idempotency_key")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  branch          Branch           @relation(fields: [branchId], references: [id], onDelete: Restrict)
+  customer        Customer         @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  deliveryAddress CustomerAddress? @relation(fields: [deliveryAddressId], references: [id], onDelete: SetNull)
+  placedByUser    User?            @relation("OrderPlacedBy", fields: [placedByUserId], references: [id], onDelete: SetNull)
+
+  items         OrderItem[]
+  statusHistory OrderStatusHistory[]
+  payments      Payment[]
+
+  @@index([branchId])
+  @@index([customerId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("orders")
+}
+
+model OrderItem {
+  id           String  @id @default(uuid())
+  orderId      String  @map("order_id")
+  productId    String  @map("product_id")
+  productName  String  @map("product_name")
+  unitPrice    Decimal @map("unit_price") @db.Decimal(10, 2)
+  quantity     Int
+  lineSubtotal Decimal @map("line_subtotal") @db.Decimal(10, 2)
+  notes        String?
+
+  order     Order               @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product   Product             @relation(fields: [productId], references: [id], onDelete: Restrict)
+  modifiers OrderItemModifier[]
+
+  @@index([orderId])
+  @@map("order_items")
+}
+
+model OrderItemModifier {
+  id               String  @id @default(uuid())
+  orderItemId      String  @map("order_item_id")
+  modifierOptionId String? @map("modifier_option_id")
+  optionName       String  @map("option_name")
+  priceDelta       Decimal @map("price_delta") @db.Decimal(10, 2)
+
+  orderItem      OrderItem       @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
+  modifierOption ModifierOption? @relation(fields: [modifierOptionId], references: [id], onDelete: SetNull)
+
+  @@index([orderItemId])
+  @@map("order_item_modifiers")
+}
+
+model OrderStatusHistory {
+  id              String       @id @default(uuid())
+  orderId         String       @map("order_id")
+  fromStatus      OrderStatus? @map("from_status")
+  toStatus        OrderStatus  @map("to_status")
+  changedByUserId String?      @map("changed_by_user_id")
+  reason          String?
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  order         Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  changedByUser User? @relation(fields: [changedByUserId], references: [id], onDelete: SetNull)
+
+  @@index([orderId])
+  @@map("order_status_history")
+}
+
+// ---------------------------------------------------------------------------
+// Payments — never coupled to one gateway. `provider` identifies which
+// PaymentProvider implementation handled it (see services/payments/providers);
+// cash and mobile-money-dev ship now, real gateways slot in later behind the
+// same interface. Payment success is always verified server-side, never
+// trusted from client input — see payment.service.ts.
+// ---------------------------------------------------------------------------
+
+enum PaymentMethod {
+  CASH
+  MOBILE_MONEY
+  CARD
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+  REFUNDED
+  PARTIALLY_REFUNDED
+}
+
+model Payment {
+  id                String        @id @default(uuid())
+  orderId           String        @map("order_id")
+  method            PaymentMethod
+  provider          String
+  providerReference String?       @unique @map("provider_reference")
+  amount            Decimal       @db.Decimal(10, 2)
+  currency          String        @default("GHS")
+  status            PaymentStatus @default(PENDING)
+  initiatedByUserId String?       @map("initiated_by_user_id")
+  metadata          Json?
+
+  /// Guards duplicate payment-intent creation on retried requests.
+  idempotencyKey String @unique @map("idempotency_key")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  order           Order    @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  initiatedByUser User?    @relation(fields: [initiatedByUserId], references: [id], onDelete: SetNull)
+  refunds         Refund[]
+
+  @@index([orderId])
+  @@index([status])
+  @@map("payments")
+}
+
+model Refund {
+  id                String        @id @default(uuid())
+  paymentId         String        @map("payment_id")
+  amount            Decimal       @db.Decimal(10, 2)
+  reason            String?
+  status            PaymentStatus @default(PENDING)
+  initiatedByUserId String?       @map("initiated_by_user_id")
+  providerReference String?       @map("provider_reference")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  payment         Payment @relation(fields: [paymentId], references: [id], onDelete: Restrict)
+  initiatedByUser User?   @relation(fields: [initiatedByUserId], references: [id], onDelete: SetNull)
+
+  @@index([paymentId])
+  @@map("refunds")
+}
+
+/// Raw webhook log, deduped by (provider, externalId) so a retried delivery
+/// from the provider can never be processed twice.
+model PaymentWebhookEvent {
+  id          String    @id @default(uuid())
+  provider    String
+  externalId  String?   @map("external_id")
+  eventType   String    @map("event_type")
+  payload     Json
+  processedAt DateTime? @map("processed_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([provider, externalId])
+  @@map("payment_webhook_events")
 }

@@ -3,6 +3,7 @@ import { signOut } from "@/auth";
 
 const NAV_LINKS = [
   { href: "/admin", label: "Dashboard" },
+  { href: "/admin/orders", label: "Orders" },
   { href: "/admin/menu", label: "Menu" },
   { href: "/admin/customers", label: "Customers" },
 ];
