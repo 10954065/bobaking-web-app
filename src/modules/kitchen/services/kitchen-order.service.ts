@@ -2,6 +2,7 @@ import { prisma } from "@/db/client";
 import { transitionOrder } from "@/modules/orders/services/order.service";
 import { canTransition } from "@/modules/orders/services/order-state-machine";
 import { publishKitchenEvent } from "@/modules/kitchen/services/kitchen-events";
+import { deductStockForProduct } from "@/modules/inventory/services/recipe.service";
 
 /**
  * KDS-specific orchestration on top of the generic order state machine:
@@ -16,6 +17,18 @@ export async function startOrderItem(orderItemId: string, actorUserId: string) {
     where: { id: orderItemId },
     data: { kitchenStatus: "PREPARING", startedAt: new Date() },
     include: { order: true },
+  });
+
+  // Real ingredient consumption happens the moment the kitchen actually
+  // starts making the item, not at checkout — see recipe.service.ts for why
+  // this never blocks cooking even when stock would go negative.
+  await deductStockForProduct({
+    branchId: item.order.branchId,
+    productId: item.productId,
+    quantity: item.quantity,
+    actorUserId,
+    referenceType: "OrderItem",
+    referenceId: item.id,
   });
 
   if (canTransition(item.order.status, "PREPARING")) {

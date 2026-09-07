@@ -94,6 +94,9 @@ model Branch {
   carts            Cart[]
   orders           Order[]
   kitchenStations  KitchenStation[]
+  ingredientStocks BranchIngredientStock[]
+  stockMovements   StockMovement[]
+  purchaseOrders   PurchaseOrder[]
 
   @@index([cityId])
   @@index([status])
@@ -146,6 +149,8 @@ model User {
   orderStatusChanges OrderStatusHistory[]
   paymentsInitiated  Payment[]
   refundsInitiated   Refund[]
+  stockMovements     StockMovement[]
+  purchaseOrders     PurchaseOrder[]
 
   @@index([status])
   @@index([email])
@@ -346,6 +351,7 @@ model Product {
   modifierGroups  ProductModifierGroup[]
   cartItems       CartItem[]
   orderItems      OrderItem[]
+  recipeItems     RecipeItem[]
 
   @@index([categoryId])
   @@index([isActive])
@@ -792,4 +798,175 @@ model KitchenStation {
 
   @@unique([branchId, slug])
   @@map("kitchen_stations")
+}
+
+// ---------------------------------------------------------------------------
+// Inventory — Ingredients are global (like Product); stock is tracked per
+// branch via BranchIngredientStock (like ProductBranchOverride). RecipeItem
+// links a Product to the ingredients + quantities it consumes, so a kitchen
+// sale can deduct real stock (see recipe.service.ts / stock.service.ts).
+// StockMovement is an append-only ledger mirroring AuditLog — the only write
+// path to BranchIngredientStock.quantityOnHand goes through it, so stock can
+// always be reconstructed/audited from history.
+// ---------------------------------------------------------------------------
+
+model Ingredient {
+  id           String  @id @default(uuid())
+  name         String
+  sku          String  @unique
+  /// Free-text unit ("kg", "g", "l", "ml", "pcs") rather than an enum —
+  /// kitchen units vary too much across ingredients to enumerate up front.
+  unit         String
+  reorderLevel Decimal @default(0) @map("reorder_level") @db.Decimal(10, 3)
+  isActive     Boolean @default(true) @map("is_active")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  branchStocks       BranchIngredientStock[]
+  recipeItems        RecipeItem[]
+  stockMovements     StockMovement[]
+  purchaseOrderItems PurchaseOrderItem[]
+
+  @@index([isActive])
+  @@map("ingredients")
+}
+
+/// reorderLevel = null means "use the ingredient's global reorderLevel" — only
+/// set a value here when this branch genuinely needs a different threshold
+/// (mirrors the ProductBranchOverride price=null convention).
+model BranchIngredientStock {
+  id             String   @id @default(uuid())
+  branchId       String   @map("branch_id")
+  ingredientId   String   @map("ingredient_id")
+  quantityOnHand Decimal  @default(0) @map("quantity_on_hand") @db.Decimal(12, 3)
+  reorderLevel   Decimal? @map("reorder_level") @db.Decimal(10, 3)
+
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  branch     Branch     @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  ingredient Ingredient @relation(fields: [ingredientId], references: [id], onDelete: Restrict)
+
+  @@unique([branchId, ingredientId])
+  @@index([branchId])
+  @@map("branch_ingredient_stocks")
+}
+
+enum StockMovementType {
+  RECEIPT
+  SALE_DEDUCTION
+  ADJUSTMENT
+  WASTE
+}
+
+model StockMovement {
+  id            String            @id @default(uuid())
+  branchId      String            @map("branch_id")
+  ingredientId  String            @map("ingredient_id")
+  type          StockMovementType
+  quantityDelta Decimal           @map("quantity_delta") @db.Decimal(12, 3)
+  /// Snapshot of quantityOnHand immediately after this movement — lets any
+  /// point in history be reconstructed without replaying the whole ledger.
+  quantityAfter Decimal           @map("quantity_after") @db.Decimal(12, 3)
+  reason        String?
+  referenceType String?           @map("reference_type")
+  referenceId   String?           @map("reference_id")
+  actorUserId   String?           @map("actor_user_id")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  branch     Branch     @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  ingredient Ingredient @relation(fields: [ingredientId], references: [id], onDelete: Restrict)
+  actorUser  User?      @relation(fields: [actorUserId], references: [id], onDelete: SetNull)
+
+  @@index([branchId, ingredientId])
+  @@index([createdAt])
+  @@map("stock_movements")
+}
+
+/// quantityPerUnit is expressed in the ingredient's own unit (Ingredient.unit)
+/// — recipes do not perform unit conversion, so an ingredient's stock unit and
+/// its recipe usage unit must be the same measure.
+model RecipeItem {
+  id              String  @id @default(uuid())
+  productId       String  @map("product_id")
+  ingredientId    String  @map("ingredient_id")
+  quantityPerUnit Decimal @map("quantity_per_unit") @db.Decimal(10, 3)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  product    Product    @relation(fields: [productId], references: [id], onDelete: Cascade)
+  ingredient Ingredient @relation(fields: [ingredientId], references: [id], onDelete: Restrict)
+
+  @@unique([productId, ingredientId])
+  @@map("recipe_items")
+}
+
+// ---------------------------------------------------------------------------
+// Procurement — suppliers and purchase orders. A PurchaseOrder only affects
+// stock once its items are received (see purchase-order.service.ts); DRAFT/
+// SUBMITTED orders are a paper trail, not a stock movement.
+// ---------------------------------------------------------------------------
+
+model Supplier {
+  id       String  @id @default(uuid())
+  name     String
+  phone    String?
+  email    String?
+  address  String?
+  isActive Boolean @default(true) @map("is_active")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  purchaseOrders PurchaseOrder[]
+
+  @@map("suppliers")
+}
+
+enum PurchaseOrderStatus {
+  DRAFT
+  SUBMITTED
+  PARTIALLY_RECEIVED
+  RECEIVED
+  CANCELLED
+}
+
+model PurchaseOrder {
+  id              String              @id @default(uuid())
+  orderNumber     String              @unique @map("order_number")
+  branchId        String              @map("branch_id")
+  supplierId      String              @map("supplier_id")
+  status          PurchaseOrderStatus @default(DRAFT)
+  notes           String?
+  createdByUserId String?             @map("created_by_user_id")
+  submittedAt     DateTime?           @map("submitted_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  branch        Branch              @relation(fields: [branchId], references: [id], onDelete: Restrict)
+  supplier      Supplier            @relation(fields: [supplierId], references: [id], onDelete: Restrict)
+  createdByUser User?               @relation(fields: [createdByUserId], references: [id], onDelete: SetNull)
+  items         PurchaseOrderItem[]
+
+  @@index([branchId])
+  @@index([status])
+  @@map("purchase_orders")
+}
+
+model PurchaseOrderItem {
+  id               String  @id @default(uuid())
+  purchaseOrderId  String  @map("purchase_order_id")
+  ingredientId     String  @map("ingredient_id")
+  quantityOrdered  Decimal @map("quantity_ordered") @db.Decimal(12, 3)
+  unitCost         Decimal @map("unit_cost") @db.Decimal(10, 2)
+  quantityReceived Decimal @default(0) @map("quantity_received") @db.Decimal(12, 3)
+
+  purchaseOrder PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
+  ingredient    Ingredient    @relation(fields: [ingredientId], references: [id], onDelete: Restrict)
+
+  @@index([purchaseOrderId])
+  @@map("purchase_order_items")
 }

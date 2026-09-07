@@ -65,8 +65,16 @@ export const PERMISSION_CATALOG: PermissionDefinition[] = [
 
   // Inventory
   perm("inventory", "read", "View stock levels"),
-  perm("inventory", "adjust", "Adjust stock counts"),
+  perm("inventory", "adjust", "Adjust stock counts, manage the ingredient catalog"),
   perm("inventory", "transfer", "Transfer stock between branches"),
+  perm("recipes", "read", "View product recipes"),
+  perm("recipes", "update", "Edit product recipes"),
+  perm("suppliers", "read", "View suppliers"),
+  perm("suppliers", "create", "Create suppliers"),
+  perm("suppliers", "update", "Edit suppliers"),
+  perm("purchase_orders", "read", "View purchase orders"),
+  perm("purchase_orders", "create", "Create purchase orders"),
+  perm("purchase_orders", "update", "Submit or receive purchase orders"),
 
   // Kitchen
   perm("kitchen", "read", "View kitchen display / stations"),

@@ -5,6 +5,8 @@ const NAV_LINKS = [
   { href: "/admin", label: "Dashboard" },
   { href: "/admin/orders", label: "Orders" },
   { href: "/admin/menu", label: "Menu" },
+  { href: "/admin/recipes", label: "Recipes" },
+  { href: "/admin/inventory", label: "Inventory" },
   { href: "/admin/customers", label: "Customers" },
 ];
 

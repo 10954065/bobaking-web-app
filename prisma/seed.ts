@@ -3,6 +3,7 @@ import { PERMISSION_CATALOG } from "../src/modules/roles/permissions";
 import { ROLES, DEFAULT_ROLE_PERMISSIONS } from "../src/modules/roles/roles";
 import { hashPassword } from "../src/modules/auth/services/password.service";
 import { assignRoleToUser } from "../src/modules/users/services/user.service";
+import { recordStockMovement } from "../src/modules/inventory/services/stock.service";
 
 const prisma = new PrismaClient();
 
@@ -307,6 +308,109 @@ async function seedKitchenStations(branches: Awaited<ReturnType<typeof seedBranc
   }
 }
 
+async function seedIngredients() {
+  const ingredientSeeds = [
+    { name: "Chicken Breast", sku: "ING-CHICKEN", unit: "kg", reorderLevel: 5 },
+    { name: "Beef", sku: "ING-BEEF", unit: "kg", reorderLevel: 5 },
+    { name: "Potatoes", sku: "ING-POTATO", unit: "kg", reorderLevel: 10 },
+    { name: "Suya Spice Mix", sku: "ING-SUYASPICE", unit: "kg", reorderLevel: 2 },
+    { name: "Cooking Oil", sku: "ING-OIL", unit: "l", reorderLevel: 5 },
+    { name: "Jasmine Rice", sku: "ING-RICE", unit: "kg", reorderLevel: 15 },
+    { name: "Flatbread Wrap", sku: "ING-WRAP", unit: "pcs", reorderLevel: 20 },
+    { name: "Mozzarella Cheese", sku: "ING-CHEESE", unit: "kg", reorderLevel: 3 },
+  ];
+
+  const ingredients: Record<string, { id: string }> = {};
+  for (const seed of ingredientSeeds) {
+    ingredients[seed.sku] = await prisma.ingredient.upsert({
+      where: { sku: seed.sku },
+      update: {},
+      create: seed,
+    });
+  }
+  return ingredients;
+}
+
+async function seedRecipes(
+  products: Awaited<ReturnType<typeof seedCatalog>>["products"],
+  ingredients: Awaited<ReturnType<typeof seedIngredients>>
+) {
+  const recipeSeeds = [
+    { product: "chicken-suya", ingredient: "ING-CHICKEN", quantityPerUnit: 0.2 },
+    { product: "chicken-suya", ingredient: "ING-SUYASPICE", quantityPerUnit: 0.02 },
+    { product: "beef-suya", ingredient: "ING-BEEF", quantityPerUnit: 0.2 },
+    { product: "beef-suya", ingredient: "ING-SUYASPICE", quantityPerUnit: 0.02 },
+    { product: "loaded-fries", ingredient: "ING-POTATO", quantityPerUnit: 0.3 },
+    { product: "loaded-fries", ingredient: "ING-OIL", quantityPerUnit: 0.05 },
+    { product: "classic-fries", ingredient: "ING-POTATO", quantityPerUnit: 0.25 },
+    { product: "classic-fries", ingredient: "ING-OIL", quantityPerUnit: 0.04 },
+    { product: "jollof-rice-chicken", ingredient: "ING-RICE", quantityPerUnit: 0.25 },
+    { product: "jollof-rice-chicken", ingredient: "ING-CHICKEN", quantityPerUnit: 0.15 },
+    { product: "chicken-shawarma", ingredient: "ING-WRAP", quantityPerUnit: 1 },
+    { product: "chicken-shawarma", ingredient: "ING-CHICKEN", quantityPerUnit: 0.15 },
+    { product: "cheesy-shawarma", ingredient: "ING-WRAP", quantityPerUnit: 1 },
+    { product: "cheesy-shawarma", ingredient: "ING-CHEESE", quantityPerUnit: 0.08 },
+  ];
+
+  for (const seed of recipeSeeds) {
+    const productId = products[seed.product].id;
+    const ingredientId = ingredients[seed.ingredient].id;
+    await prisma.recipeItem.upsert({
+      where: { productId_ingredientId: { productId, ingredientId } },
+      update: { quantityPerUnit: seed.quantityPerUnit },
+      create: { productId, ingredientId, quantityPerUnit: seed.quantityPerUnit },
+    });
+  }
+}
+
+async function seedSuppliers() {
+  const supplierSeeds = [
+    { name: "Accra Fresh Meats Ltd", phone: "+233201000010", email: "orders@accrafreshmeats.dev" },
+    { name: "Greater Accra Produce Co-op", phone: "+233201000020", email: "sales@gaproduce.dev" },
+  ];
+
+  const suppliers = [];
+  for (const seed of supplierSeeds) {
+    const existing = await prisma.supplier.findFirst({ where: { name: seed.name } });
+    suppliers.push(existing ?? (await prisma.supplier.create({ data: seed })));
+  }
+  return suppliers;
+}
+
+/** Opening balances so the demo has real stock to sell against and adjust — a fresh ingredient with no movement yet reads as zero, which is correct but not useful for a walkthrough. */
+async function seedInitialStock(
+  branches: Awaited<ReturnType<typeof seedBranches>>,
+  ingredients: Awaited<ReturnType<typeof seedIngredients>>
+) {
+  const openingQuantities: Record<string, number> = {
+    "ING-CHICKEN": 20,
+    "ING-BEEF": 15,
+    "ING-POTATO": 40,
+    "ING-SUYASPICE": 5,
+    "ING-OIL": 20,
+    "ING-RICE": 50,
+    "ING-WRAP": 100,
+    "ING-CHEESE": 10,
+  };
+
+  for (const branch of branches) {
+    for (const [sku, quantity] of Object.entries(openingQuantities)) {
+      const ingredientId = ingredients[sku].id;
+      const existing = await prisma.branchIngredientStock.findUnique({
+        where: { branchId_ingredientId: { branchId: branch.id, ingredientId } },
+      });
+      if (existing) continue;
+      await recordStockMovement({
+        branchId: branch.id,
+        ingredientId,
+        type: "RECEIPT",
+        quantityDelta: quantity,
+        reason: "Opening stock (seed)",
+      });
+    }
+  }
+}
+
 async function seedUsers(roleMap: Record<string, { id: string }>, eastLegonBranchId: string) {
   const passwordHash = await hashPassword(DEV_PASSWORD);
 
@@ -366,6 +470,20 @@ async function seedUsers(roleMap: Record<string, { id: string }>, eastLegonBranc
     },
   });
 
+  const inventoryManagerUser = await prisma.user.upsert({
+    where: { email: "inventory.manager@dev.flicksandlicks.local" },
+    update: {},
+    create: {
+      email: "inventory.manager@dev.flicksandlicks.local",
+      passwordHash,
+      firstName: "Inventory",
+      lastName: "Manager",
+      name: "Inventory Manager (East Legon)",
+      status: "ACTIVE",
+      emailVerified: new Date(),
+    },
+  });
+
   await assignRoleToUser({ userId: superAdminUser.id, roleId: roleMap[ROLES.SUPER_ADMIN].id, branchId: null });
   await assignRoleToUser({ userId: branchAdminUser.id, roleId: roleMap[ROLES.ADMIN].id, branchId: eastLegonBranchId });
   await assignRoleToUser({ userId: frontDeskUser.id, roleId: roleMap[ROLES.FRONT_DESK].id, branchId: eastLegonBranchId });
@@ -374,8 +492,13 @@ async function seedUsers(roleMap: Record<string, { id: string }>, eastLegonBranc
     roleId: roleMap[ROLES.KITCHEN_STAFF].id,
     branchId: eastLegonBranchId,
   });
+  await assignRoleToUser({
+    userId: inventoryManagerUser.id,
+    roleId: roleMap[ROLES.INVENTORY_MANAGER].id,
+    branchId: eastLegonBranchId,
+  });
 
-  return { superAdminUser, branchAdminUser, frontDeskUser, kitchenStaffUser };
+  return { superAdminUser, branchAdminUser, frontDeskUser, kitchenStaffUser, inventoryManagerUser };
 }
 
 async function main() {
@@ -393,13 +516,26 @@ async function main() {
   const roleMap = await seedRoles(permissions);
 
   console.log("Seeding development users...");
-  const { superAdminUser, branchAdminUser, frontDeskUser, kitchenStaffUser } = await seedUsers(roleMap, eastLegon.id);
+  const { superAdminUser, branchAdminUser, frontDeskUser, kitchenStaffUser, inventoryManagerUser } = await seedUsers(
+    roleMap,
+    eastLegon.id
+  );
 
   console.log("Seeding catalog (categories, products, modifiers)...");
   const { categories, products } = await seedCatalog(branches);
 
   console.log("Seeding kitchen stations...");
   await seedKitchenStations(branches);
+
+  console.log("Seeding ingredients & recipes...");
+  const ingredients = await seedIngredients();
+  await seedRecipes(products, ingredients);
+
+  console.log("Seeding suppliers...");
+  const suppliers = await seedSuppliers();
+
+  console.log("Seeding opening stock...");
+  await seedInitialStock(branches, ingredients);
 
   console.log("Seeding customers...");
   const customers = await seedCustomers();
@@ -408,12 +544,14 @@ async function main() {
   console.log(`Branches: ${branches.map((b) => b.name).join(", ")}`);
   console.log(`Roles: ${Object.keys(roleMap).join(", ")}`);
   console.log(`Categories: ${Object.keys(categories).length}, Products: ${Object.keys(products).length}`);
+  console.log(`Ingredients: ${Object.keys(ingredients).length}, Suppliers: ${suppliers.length}`);
   console.log(`Customers: ${customers.length}`);
   console.log("\nDev-only login credentials (never valid outside local/dev):");
   console.log(`  Super Admin — ${superAdminUser.email} / ${DEV_PASSWORD}`);
   console.log(`  Branch Admin (East Legon) — ${branchAdminUser.email} / ${DEV_PASSWORD}`);
   console.log(`  Front Desk (East Legon) — ${frontDeskUser.email} / ${DEV_PASSWORD}`);
   console.log(`  Kitchen Staff (East Legon) — ${kitchenStaffUser.email} / ${DEV_PASSWORD}`);
+  console.log(`  Inventory Manager (East Legon) — ${inventoryManagerUser.email} / ${DEV_PASSWORD}`);
 }
 
 main()
