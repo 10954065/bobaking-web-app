@@ -27,11 +27,13 @@ interface PaymentSummary {
 export function CheckoutFlow({
   cartId,
   subtotal,
+  deliveryAddressId,
   onClose,
   onOrderComplete,
 }: {
   cartId: string;
   subtotal: number;
+  deliveryAddressId?: string;
   onClose: () => void;
   onOrderComplete: () => void;
 }) {
@@ -46,7 +48,7 @@ export function CheckoutFlow({
     startTransition(async () => {
       try {
         const idempotencyKey = `pos-checkout-${cartId}`;
-        const created = await checkoutAction({ cartId, idempotencyKey });
+        const created = await checkoutAction({ cartId, idempotencyKey, deliveryAddressId });
         setOrder(created);
         setStage("payment-method");
       } catch (e) {

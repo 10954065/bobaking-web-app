@@ -3,8 +3,14 @@
 import { prisma } from "@/db/client";
 import { getCurrentUserId } from "@/modules/auth/services/current-session.service";
 import { requirePermission, requireAnyPermission } from "@/modules/auth/services/authorization.service";
-import { searchCustomers, createCustomer, createWalkInCustomer } from "@/modules/customers/services/customer.service";
-import type { CreateCustomerInput } from "@/modules/customers/schemas/customer.schema";
+import {
+  searchCustomers,
+  createCustomer,
+  createWalkInCustomer,
+  listCustomerAddresses,
+  addCustomerAddress,
+} from "@/modules/customers/services/customer.service";
+import type { CreateCustomerInput, CreateCustomerAddressInput } from "@/modules/customers/schemas/customer.schema";
 import {
   getOrCreateActiveCart,
   addItemToCart,
@@ -47,6 +53,57 @@ export async function createWalkInCustomerAction() {
   const userId = await requireUserId();
   await requireAnyPermission(userId, "customers", "create");
   return createWalkInCustomer();
+}
+
+export interface PosCustomerAddress {
+  id: string;
+  label: string | null;
+  addressLine1: string;
+  addressLine2: string | null;
+  area: string | null;
+  city: string | null;
+  landmark: string | null;
+  isDefault: boolean;
+}
+
+function toPosCustomerAddress(address: {
+  id: string;
+  label: string | null;
+  addressLine1: string;
+  addressLine2: string | null;
+  area: string | null;
+  city: string | null;
+  landmark: string | null;
+  isDefault: boolean;
+}): PosCustomerAddress {
+  return {
+    id: address.id,
+    label: address.label,
+    addressLine1: address.addressLine1,
+    addressLine2: address.addressLine2,
+    area: address.area,
+    city: address.city,
+    landmark: address.landmark,
+    isDefault: address.isDefault,
+  };
+}
+
+export async function listCustomerAddressesAction(customerId: string): Promise<PosCustomerAddress[]> {
+  const userId = await requireUserId();
+  await requireAnyPermission(userId, "customers", "read");
+  const addresses = await listCustomerAddresses(customerId);
+  return addresses.map(toPosCustomerAddress);
+}
+
+/** Gated by customers.create (not update) — this creates a new address record, it never modifies the customer row itself. */
+export async function createCustomerAddressAction(
+  customerId: string,
+  input: CreateCustomerAddressInput
+): Promise<PosCustomerAddress> {
+  const userId = await requireUserId();
+  await requireAnyPermission(userId, "customers", "create");
+  const address = await addCustomerAddress(customerId, input);
+  return toPosCustomerAddress(address);
 }
 
 export async function getOrCreateCartAction(params: {

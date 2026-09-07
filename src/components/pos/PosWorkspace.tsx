@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { CustomerPanel, type PosCustomer } from "@/components/pos/CustomerPanel";
+import { DeliveryAddressPanel } from "@/components/pos/DeliveryAddressPanel";
 import { ProductGrid } from "@/components/pos/ProductGrid";
 import { ModifierModal, type ModifierSelection } from "@/components/pos/ModifierModal";
 import { CartPanel } from "@/components/pos/CartPanel";
@@ -36,6 +37,7 @@ export function PosWorkspace({
   const router = useRouter();
   const [customer, setCustomer] = useState<PosCustomer | null>(null);
   const [cart, setCart] = useState<PosCart | null>(null);
+  const [deliveryAddressId, setDeliveryAddressId] = useState<string | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<PosProduct | null>(null);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [isBusy, setIsBusy] = useState(false);
@@ -81,6 +83,7 @@ export function PosWorkspace({
     setCheckoutOpen(false);
     setCustomer(null);
     setCart(null);
+    setDeliveryAddressId(null);
   }
 
   if (!customer || !cart) {
@@ -88,6 +91,19 @@ export function PosWorkspace({
       <div className="min-h-screen bg-stone-950">
         <PosHeader branchName={branchName} branches={branches} branchId={branchId} router={router} />
         <CustomerPanel onStart={handleStartOrder} />
+      </div>
+    );
+  }
+
+  if (cart.type === "DELIVERY" && !deliveryAddressId) {
+    return (
+      <div className="min-h-screen bg-stone-950">
+        <PosHeader branchName={branchName} branches={branches} branchId={branchId} router={router} />
+        <DeliveryAddressPanel
+          customerId={customer.id}
+          customerName={`${customer.firstName} ${customer.lastName}`}
+          onSelect={setDeliveryAddressId}
+        />
       </div>
     );
   }
@@ -116,6 +132,7 @@ export function PosWorkspace({
         <CheckoutFlow
           cartId={cart.id}
           subtotal={cart.subtotal}
+          deliveryAddressId={deliveryAddressId ?? undefined}
           onClose={() => setCheckoutOpen(false)}
           onOrderComplete={handleOrderComplete}
         />

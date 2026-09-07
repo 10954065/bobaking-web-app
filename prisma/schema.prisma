@@ -80,6 +80,9 @@ model Branch {
   /// Configurable, not hard-coded — see CRITICAL rule against hard-coded tax rates. Defaults to 0 until finance configures it.
   taxRate Decimal @default(0) @map("tax_rate") @db.Decimal(5, 4)
 
+  /// Fallback delivery fee used when an order's delivery address doesn't match any DeliveryZone for this branch — configurable per branch, never hard-coded.
+  defaultDeliveryFee Decimal @default(0) @map("default_delivery_fee") @db.Decimal(10, 2)
+
   // JSON schedule: { mon: {open, close}, tue: {...}, ... }. Configurable per branch, not hard-coded.
   openingHours Json? @map("opening_hours")
 
@@ -97,6 +100,8 @@ model Branch {
   ingredientStocks BranchIngredientStock[]
   stockMovements   StockMovement[]
   purchaseOrders   PurchaseOrder[]
+  deliveryZones    DeliveryZone[]
+  riderProfiles    RiderProfile[]
 
   @@index([cityId])
   @@index([status])
@@ -151,6 +156,8 @@ model User {
   refundsInitiated   Refund[]
   stockMovements     StockMovement[]
   purchaseOrders     PurchaseOrder[]
+  riderProfile       RiderProfile?
+  assignedDeliveries Order[]              @relation("OrderAssignedRider")
 
   @@index([status])
   @@index([email])
@@ -608,6 +615,11 @@ model Order {
   scheduledFor      DateTime? @map("scheduled_for")
   placedByUserId    String?   @map("placed_by_user_id")
 
+  /// Which DeliveryZone (if any) priced this order's deliveryFee — null means the branch's defaultDeliveryFee applied instead. Kept for reference even if the zone is later edited/deactivated (SetNull, not a hard dependency).
+  deliveryZoneId  String?    @map("delivery_zone_id")
+  assignedRiderId String?    @map("assigned_rider_id")
+  riderAssignedAt DateTime?  @map("rider_assigned_at")
+
   /// Guards checkout retries from creating duplicate orders — see checkout.service.ts.
   idempotencyKey String @unique @map("idempotency_key")
 
@@ -618,6 +630,8 @@ model Order {
   customer        Customer         @relation(fields: [customerId], references: [id], onDelete: Restrict)
   deliveryAddress CustomerAddress? @relation(fields: [deliveryAddressId], references: [id], onDelete: SetNull)
   placedByUser    User?            @relation("OrderPlacedBy", fields: [placedByUserId], references: [id], onDelete: SetNull)
+  deliveryZone    DeliveryZone?    @relation(fields: [deliveryZoneId], references: [id], onDelete: SetNull)
+  assignedRider   User?            @relation("OrderAssignedRider", fields: [assignedRiderId], references: [id], onDelete: SetNull)
 
   items         OrderItem[]
   statusHistory OrderStatusHistory[]
@@ -627,6 +641,7 @@ model Order {
   @@index([customerId])
   @@index([status])
   @@index([createdAt])
+  @@index([assignedRiderId])
   @@map("orders")
 }
 
@@ -969,4 +984,77 @@ model PurchaseOrderItem {
 
   @@index([purchaseOrderId])
   @@map("purchase_order_items")
+}
+
+// ---------------------------------------------------------------------------
+// Delivery — zones price a DELIVERY order's fee by matching the customer's
+// free-text address area (see CustomerAddress.area) against a per-branch zone
+// list, rather than geofencing exact coordinates — Ghanaian delivery
+// addresses are area-based, not precise geocoded points (same reasoning as
+// CustomerAddress's own area/city fields). A rider is a User holding the
+// RIDER role (see roles.ts); RiderProfile only holds the rider-specific
+// fields most users don't need (vehicle, live status/location).
+// ---------------------------------------------------------------------------
+
+/// fee = what this order's deliveryFee is set to when areaMatch matches the
+/// delivery address's area (case-insensitive). No match falls back to
+/// Branch.defaultDeliveryFee — see checkout.service.ts.
+model DeliveryZone {
+  id               String  @id @default(uuid())
+  branchId         String  @map("branch_id")
+  name             String
+  areaMatch        String  @map("area_match")
+  fee              Decimal @db.Decimal(10, 2)
+  estimatedMinutes Int?    @map("estimated_minutes")
+  isActive         Boolean @default(true) @map("is_active")
+  sortOrder        Int     @default(0) @map("sort_order")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  branch Branch  @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  orders Order[]
+
+  @@unique([branchId, areaMatch])
+  @@index([branchId])
+  @@map("delivery_zones")
+}
+
+enum RiderVehicleType {
+  MOTORBIKE
+  BICYCLE
+  CAR
+  ON_FOOT
+}
+
+enum RiderStatus {
+  OFFLINE
+  AVAILABLE
+  ON_DELIVERY
+}
+
+/// Live status/position only — no historical breadcrumb trail (YAGNI until
+/// route analytics are actually needed); currentLatitude/Longitude hold only
+/// the rider's most recent ping.
+model RiderProfile {
+  id          String           @id @default(uuid())
+  userId      String           @unique @map("user_id")
+  branchId    String           @map("branch_id")
+  vehicleType RiderVehicleType @default(MOTORBIKE) @map("vehicle_type")
+  plateNumber String?          @map("plate_number")
+  status      RiderStatus      @default(OFFLINE)
+
+  currentLatitude  Decimal?  @map("current_latitude") @db.Decimal(10, 7)
+  currentLongitude Decimal?  @map("current_longitude") @db.Decimal(10, 7)
+  lastLocationAt   DateTime? @map("last_location_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  branch Branch @relation(fields: [branchId], references: [id], onDelete: Restrict)
+
+  @@index([branchId])
+  @@index([status])
+  @@map("rider_profiles")
 }

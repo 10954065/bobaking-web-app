@@ -21,6 +21,8 @@ export default async function AdminDashboardPage() {
 
   const canUsePos = hasAnyPermission(profile, "orders", "create");
   const canUseKitchen = hasAnyPermission(profile, "kitchen", "read");
+  const canUseDeliveryBoard = hasAnyPermission(profile, "delivery", "assign");
+  const canUseRiderApp = hasAnyPermission(profile, "delivery", "update") && !canUseDeliveryBoard;
 
   return (
     <div className="min-h-screen bg-stone-100 dark:bg-stone-950">
@@ -67,7 +69,7 @@ export default async function AdminDashboardPage() {
           </ul>
         </section>
 
-        {(canUsePos || canUseKitchen) && (
+        {(canUsePos || canUseKitchen || canUseDeliveryBoard || canUseRiderApp) && (
           <section className="mt-8 rounded-xl border border-stone-200 bg-white p-6 dark:border-stone-800 dark:bg-stone-900">
             <h2 className="mb-4 text-sm font-semibold text-stone-500 dark:text-stone-400">Operations</h2>
             <div className="flex flex-wrap gap-3">
@@ -85,6 +87,22 @@ export default async function AdminDashboardPage() {
                   className="rounded-lg border border-stone-300 px-4 py-2.5 text-sm font-semibold text-stone-700 transition-colors hover:bg-stone-100 dark:border-stone-700 dark:text-stone-200 dark:hover:bg-stone-800"
                 >
                   Open Kitchen Display
+                </Link>
+              )}
+              {canUseDeliveryBoard && (
+                <Link
+                  href="/admin/delivery"
+                  className="rounded-lg border border-stone-300 px-4 py-2.5 text-sm font-semibold text-stone-700 transition-colors hover:bg-stone-100 dark:border-stone-700 dark:text-stone-200 dark:hover:bg-stone-800"
+                >
+                  Delivery board
+                </Link>
+              )}
+              {canUseRiderApp && (
+                <Link
+                  href="/rider"
+                  className="rounded-lg border border-stone-300 px-4 py-2.5 text-sm font-semibold text-stone-700 transition-colors hover:bg-stone-100 dark:border-stone-700 dark:text-stone-200 dark:hover:bg-stone-800"
+                >
+                  Open Rider App
                 </Link>
               )}
             </div>

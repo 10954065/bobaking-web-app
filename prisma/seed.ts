@@ -4,6 +4,7 @@ import { ROLES, DEFAULT_ROLE_PERMISSIONS } from "../src/modules/roles/roles";
 import { hashPassword } from "../src/modules/auth/services/password.service";
 import { assignRoleToUser } from "../src/modules/users/services/user.service";
 import { recordStockMovement } from "../src/modules/inventory/services/stock.service";
+import { createRider } from "../src/modules/delivery/services/rider.service";
 
 const prisma = new PrismaClient();
 
@@ -43,10 +44,13 @@ async function seedBranches(cityId: string) {
 
   const branches = [];
   for (const seed of branchSeeds) {
+    // update: also backfills defaultDeliveryFee on branches seeded before this
+    // field existed — an empty update object here would silently leave
+    // pre-existing rows at the column's schema default (0) forever.
     const branch = await prisma.branch.upsert({
       where: { slug: seed.slug },
-      update: {},
-      create: { ...seed, cityId, status: "ACTIVE" },
+      update: { defaultDeliveryFee: 12 },
+      create: { ...seed, cityId, status: "ACTIVE", defaultDeliveryFee: 12 },
     });
     branches.push(branch);
   }
@@ -411,6 +415,54 @@ async function seedInitialStock(
   }
 }
 
+/**
+ * areaMatch values are chosen to line up with seedCustomers' addresses below
+ * (Ama Owusu -> East Legon, Kwame Mensah -> Achimota, Abena Boateng ->
+ * Dansoman) so the dev flow demonstrates real zone matching end-to-end.
+ * Mile 7 intentionally gets no zones, to also exercise the
+ * Branch.defaultDeliveryFee fallback path.
+ */
+async function seedDeliveryZones(branches: Awaited<ReturnType<typeof seedBranches>>) {
+  const zoneSeeds: Array<{ branchSlug: string; name: string; areaMatch: string; fee: number; estimatedMinutes: number }> = [
+    { branchSlug: "east-legon", name: "East Legon", areaMatch: "East Legon", fee: 10, estimatedMinutes: 25 },
+    { branchSlug: "east-legon", name: "Airport Residential", areaMatch: "Airport Residential", fee: 15, estimatedMinutes: 35 },
+    { branchSlug: "achimota", name: "Achimota", areaMatch: "Achimota", fee: 8, estimatedMinutes: 20 },
+    { branchSlug: "dansoman", name: "Dansoman", areaMatch: "Dansoman", fee: 8, estimatedMinutes: 20 },
+  ];
+
+  for (const seed of zoneSeeds) {
+    const branch = branches.find((b) => b.slug === seed.branchSlug)!;
+    await prisma.deliveryZone.upsert({
+      where: { branchId_areaMatch: { branchId: branch.id, areaMatch: seed.areaMatch } },
+      update: {},
+      create: {
+        branchId: branch.id,
+        name: seed.name,
+        areaMatch: seed.areaMatch,
+        fee: seed.fee,
+        estimatedMinutes: seed.estimatedMinutes,
+      },
+    });
+  }
+}
+
+async function seedRider(eastLegonBranchId: string) {
+  const email = "rider@dev.flicksandlicks.local";
+  const existing = await prisma.user.findUnique({ where: { email } });
+  if (existing) return existing;
+
+  return createRider({
+    branchId: eastLegonBranchId,
+    firstName: "Kojo",
+    lastName: "Boateng",
+    email,
+    phone: "+233241000099",
+    password: DEV_PASSWORD,
+    vehicleType: "MOTORBIKE",
+    plateNumber: "GR-1234-24",
+  });
+}
+
 async function seedUsers(roleMap: Record<string, { id: string }>, eastLegonBranchId: string) {
   const passwordHash = await hashPassword(DEV_PASSWORD);
 
@@ -537,6 +589,12 @@ async function main() {
   console.log("Seeding opening stock...");
   await seedInitialStock(branches, ingredients);
 
+  console.log("Seeding delivery zones...");
+  await seedDeliveryZones(branches);
+
+  console.log("Seeding rider...");
+  const rider = await seedRider(eastLegon.id);
+
   console.log("Seeding customers...");
   const customers = await seedCustomers();
 
@@ -552,6 +610,7 @@ async function main() {
   console.log(`  Front Desk (East Legon) — ${frontDeskUser.email} / ${DEV_PASSWORD}`);
   console.log(`  Kitchen Staff (East Legon) — ${kitchenStaffUser.email} / ${DEV_PASSWORD}`);
   console.log(`  Inventory Manager (East Legon) — ${inventoryManagerUser.email} / ${DEV_PASSWORD}`);
+  console.log(`  Rider (East Legon) — ${rider.email} / ${DEV_PASSWORD}`);
 }
 
 main()

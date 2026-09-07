@@ -18,6 +18,20 @@ export class ProductUnavailableError extends Error {
   }
 }
 
+export class MissingDeliveryAddressError extends Error {
+  constructor() {
+    super("A delivery address is required for delivery orders.");
+    this.name = "MissingDeliveryAddressError";
+  }
+}
+
+export class InvalidDeliveryAddressError extends Error {
+  constructor() {
+    super("That delivery address does not belong to this customer.");
+    this.name = "InvalidDeliveryAddressError";
+  }
+}
+
 export interface CheckoutInput {
   cartId: string;
   idempotencyKey: string;
@@ -104,10 +118,30 @@ export async function checkout(input: CheckoutInput): Promise<OrderWithDetails> 
       });
     }
 
-    // Discounts (Phase 7 promotions engine) and delivery fees (Phase 6 zones)
-    // aren't built yet — both are explicit zero stubs, not silently omitted.
+    // Discounts (Phase 7 promotions engine) aren't built yet — explicit zero
+    // stub, not silently omitted.
     const discountTotal = new Prisma.Decimal(0);
-    const deliveryFee = new Prisma.Decimal(0);
+
+    let deliveryFee = new Prisma.Decimal(0);
+    let deliveryZoneId: string | null = null;
+    if (cart.type === "DELIVERY") {
+      if (!input.deliveryAddressId) {
+        throw new MissingDeliveryAddressError();
+      }
+      const address = await tx.customerAddress.findUniqueOrThrow({ where: { id: input.deliveryAddressId } });
+      if (address.customerId !== cart.customerId) {
+        throw new InvalidDeliveryAddressError();
+      }
+
+      const zone = address.area
+        ? await tx.deliveryZone.findFirst({
+            where: { branchId: cart.branchId, isActive: true, areaMatch: { equals: address.area, mode: "insensitive" } },
+          })
+        : null;
+      deliveryFee = zone?.fee ?? cart.branch.defaultDeliveryFee;
+      deliveryZoneId = zone?.id ?? null;
+    }
+
     const taxTotal = subtotal.times(cart.branch.taxRate);
     const total = subtotal.plus(taxTotal).plus(deliveryFee).minus(discountTotal);
 
@@ -124,6 +158,7 @@ export async function checkout(input: CheckoutInput): Promise<OrderWithDetails> 
         discountTotal,
         taxTotal,
         deliveryFee,
+        deliveryZoneId,
         total,
         notes: input.notes ?? cart.notes,
         deliveryAddressId: input.deliveryAddressId,
