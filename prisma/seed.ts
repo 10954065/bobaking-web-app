@@ -132,31 +132,32 @@ async function seedCatalog(branches: Awaited<ReturnType<typeof seedBranches>>) {
   }
 
   const productSeeds = [
-    { name: "Loaded Fries", slug: "loaded-fries", category: "fries", basePrice: 45 },
-    { name: "Classic Fries", slug: "classic-fries", category: "fries", basePrice: 25 },
-    { name: "Chicken Suya", slug: "chicken-suya", category: "suyas", basePrice: 35 },
-    { name: "Beef Suya", slug: "beef-suya", category: "suyas", basePrice: 40 },
-    { name: "Cheesy Shawarma", slug: "cheesy-shawarma", category: "wraps", basePrice: 50 },
-    { name: "Chicken Shawarma", slug: "chicken-shawarma", category: "wraps", basePrice: 45 },
-    { name: "Jollof Rice with Chicken", slug: "jollof-rice-chicken", category: "rice", basePrice: 55 },
-    { name: "Fried Rice with Beef", slug: "fried-rice-beef", category: "rice", basePrice: 60 },
-    { name: "Pepperoni Pizza (Medium)", slug: "pepperoni-pizza-medium", category: "pizzas", basePrice: 85 },
-    { name: "Chicken Pizza (Medium)", slug: "chicken-pizza-medium", category: "pizzas", basePrice: 90 },
-    { name: "Fresh Juice", slug: "fresh-juice", category: "drinks", basePrice: 20 },
-    { name: "Soft Drink", slug: "soft-drink", category: "drinks", basePrice: 15 },
-    { name: "Flicks Combo", slug: "flicks-combo", category: "combos", basePrice: 90 },
+    { name: "Loaded Fries", slug: "loaded-fries", category: "fries", basePrice: 45, station: "fries" },
+    { name: "Classic Fries", slug: "classic-fries", category: "fries", basePrice: 25, station: "fries" },
+    { name: "Chicken Suya", slug: "chicken-suya", category: "suyas", basePrice: 35, station: "grill" },
+    { name: "Beef Suya", slug: "beef-suya", category: "suyas", basePrice: 40, station: "grill" },
+    { name: "Cheesy Shawarma", slug: "cheesy-shawarma", category: "wraps", basePrice: 50, station: "shawarma" },
+    { name: "Chicken Shawarma", slug: "chicken-shawarma", category: "wraps", basePrice: 45, station: "shawarma" },
+    { name: "Jollof Rice with Chicken", slug: "jollof-rice-chicken", category: "rice", basePrice: 55, station: "rice" },
+    { name: "Fried Rice with Beef", slug: "fried-rice-beef", category: "rice", basePrice: 60, station: "rice" },
+    { name: "Pepperoni Pizza (Medium)", slug: "pepperoni-pizza-medium", category: "pizzas", basePrice: 85, station: "pizza" },
+    { name: "Chicken Pizza (Medium)", slug: "chicken-pizza-medium", category: "pizzas", basePrice: 90, station: "pizza" },
+    { name: "Fresh Juice", slug: "fresh-juice", category: "drinks", basePrice: 20, station: "drinks" },
+    { name: "Soft Drink", slug: "soft-drink", category: "drinks", basePrice: 15, station: "drinks" },
+    { name: "Flicks Combo", slug: "flicks-combo", category: "combos", basePrice: 90, station: "packing" },
   ];
 
   const products: Record<string, { id: string }> = {};
   for (const seed of productSeeds) {
     products[seed.slug] = await prisma.product.upsert({
       where: { slug: seed.slug },
-      update: {},
+      update: { stationSlug: seed.station },
       create: {
         name: seed.name,
         slug: seed.slug,
         categoryId: categories[seed.category].id,
         basePrice: seed.basePrice,
+        stationSlug: seed.station,
       },
     });
   }
@@ -284,6 +285,28 @@ async function seedCustomers() {
   return customers;
 }
 
+async function seedKitchenStations(branches: Awaited<ReturnType<typeof seedBranches>>) {
+  const stationSeeds = [
+    { name: "Grill", slug: "grill", sortOrder: 1 },
+    { name: "Fries", slug: "fries", sortOrder: 2 },
+    { name: "Shawarma", slug: "shawarma", sortOrder: 3 },
+    { name: "Pizza", slug: "pizza", sortOrder: 4 },
+    { name: "Rice", slug: "rice", sortOrder: 5 },
+    { name: "Drinks", slug: "drinks", sortOrder: 6 },
+    { name: "Packing", slug: "packing", sortOrder: 7 },
+  ];
+
+  for (const branch of branches) {
+    for (const seed of stationSeeds) {
+      await prisma.kitchenStation.upsert({
+        where: { branchId_slug: { branchId: branch.id, slug: seed.slug } },
+        update: {},
+        create: { ...seed, branchId: branch.id },
+      });
+    }
+  }
+}
+
 async function seedUsers(roleMap: Record<string, { id: string }>, eastLegonBranchId: string) {
   const passwordHash = await hashPassword(DEV_PASSWORD);
 
@@ -315,10 +338,44 @@ async function seedUsers(roleMap: Record<string, { id: string }>, eastLegonBranc
     },
   });
 
+  const frontDeskUser = await prisma.user.upsert({
+    where: { email: "front.desk@dev.flicksandlicks.local" },
+    update: {},
+    create: {
+      email: "front.desk@dev.flicksandlicks.local",
+      passwordHash,
+      firstName: "Front",
+      lastName: "Desk",
+      name: "Front Desk (East Legon)",
+      status: "ACTIVE",
+      emailVerified: new Date(),
+    },
+  });
+
+  const kitchenStaffUser = await prisma.user.upsert({
+    where: { email: "kitchen.staff@dev.flicksandlicks.local" },
+    update: {},
+    create: {
+      email: "kitchen.staff@dev.flicksandlicks.local",
+      passwordHash,
+      firstName: "Kitchen",
+      lastName: "Staff",
+      name: "Kitchen Staff (East Legon)",
+      status: "ACTIVE",
+      emailVerified: new Date(),
+    },
+  });
+
   await assignRoleToUser({ userId: superAdminUser.id, roleId: roleMap[ROLES.SUPER_ADMIN].id, branchId: null });
   await assignRoleToUser({ userId: branchAdminUser.id, roleId: roleMap[ROLES.ADMIN].id, branchId: eastLegonBranchId });
+  await assignRoleToUser({ userId: frontDeskUser.id, roleId: roleMap[ROLES.FRONT_DESK].id, branchId: eastLegonBranchId });
+  await assignRoleToUser({
+    userId: kitchenStaffUser.id,
+    roleId: roleMap[ROLES.KITCHEN_STAFF].id,
+    branchId: eastLegonBranchId,
+  });
 
-  return { superAdminUser, branchAdminUser };
+  return { superAdminUser, branchAdminUser, frontDeskUser, kitchenStaffUser };
 }
 
 async function main() {
@@ -336,10 +393,13 @@ async function main() {
   const roleMap = await seedRoles(permissions);
 
   console.log("Seeding development users...");
-  const { superAdminUser, branchAdminUser } = await seedUsers(roleMap, eastLegon.id);
+  const { superAdminUser, branchAdminUser, frontDeskUser, kitchenStaffUser } = await seedUsers(roleMap, eastLegon.id);
 
   console.log("Seeding catalog (categories, products, modifiers)...");
   const { categories, products } = await seedCatalog(branches);
+
+  console.log("Seeding kitchen stations...");
+  await seedKitchenStations(branches);
 
   console.log("Seeding customers...");
   const customers = await seedCustomers();
@@ -352,6 +412,8 @@ async function main() {
   console.log("\nDev-only login credentials (never valid outside local/dev):");
   console.log(`  Super Admin — ${superAdminUser.email} / ${DEV_PASSWORD}`);
   console.log(`  Branch Admin (East Legon) — ${branchAdminUser.email} / ${DEV_PASSWORD}`);
+  console.log(`  Front Desk (East Legon) — ${frontDeskUser.email} / ${DEV_PASSWORD}`);
+  console.log(`  Kitchen Staff (East Legon) — ${kitchenStaffUser.email} / ${DEV_PASSWORD}`);
 }
 
 main()

@@ -93,6 +93,7 @@ model Branch {
   productOverrides ProductBranchOverride[]
   carts            Cart[]
   orders           Order[]
+  kitchenStations  KitchenStation[]
 
   @@index([cityId])
   @@index([status])
@@ -331,6 +332,11 @@ model Product {
   imageUrl    String? @map("image_url")
   sortOrder   Int     @default(0) @map("sort_order")
   isActive    Boolean @default(true) @map("is_active")
+
+  /// Logical station tag (e.g. "fries", "grill"), not a hard FK — Product is
+  /// global but KitchenStation rows are per-branch, so this gets resolved
+  /// against whichever branch's stations share the slug at order time.
+  stationSlug String? @map("station_slug")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -618,6 +624,12 @@ model Order {
   @@map("orders")
 }
 
+enum OrderItemKitchenStatus {
+  PENDING
+  PREPARING
+  READY
+}
+
 model OrderItem {
   id           String  @id @default(uuid())
   orderId      String  @map("order_id")
@@ -628,11 +640,19 @@ model OrderItem {
   lineSubtotal Decimal @map("line_subtotal") @db.Decimal(10, 2)
   notes        String?
 
+  /// Snapshotted from Product.stationSlug at order time — kitchen routing
+  /// stays stable even if the product's station assignment changes later.
+  stationSlug   String?                @map("station_slug")
+  kitchenStatus OrderItemKitchenStatus @default(PENDING) @map("kitchen_status")
+  startedAt     DateTime?              @map("started_at")
+  readyAt       DateTime?              @map("ready_at")
+
   order     Order               @relation(fields: [orderId], references: [id], onDelete: Cascade)
   product   Product             @relation(fields: [productId], references: [id], onDelete: Restrict)
   modifiers OrderItemModifier[]
 
   @@index([orderId])
+  @@index([kitchenStatus])
   @@map("order_items")
 }
 
@@ -749,4 +769,27 @@ model PaymentWebhookEvent {
 
   @@unique([provider, externalId])
   @@map("payment_webhook_events")
+}
+
+// ---------------------------------------------------------------------------
+// Kitchen stations — per-branch (each branch has its own physical stations),
+// matched to products via the logical Product.stationSlug tag rather than a
+// direct FK, since Product is global and stations are not.
+// ---------------------------------------------------------------------------
+
+model KitchenStation {
+  id        String  @id @default(uuid())
+  branchId  String  @map("branch_id")
+  name      String
+  slug      String
+  sortOrder Int     @default(0) @map("sort_order")
+  isActive  Boolean @default(true) @map("is_active")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  branch Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  @@unique([branchId, slug])
+  @@map("kitchen_stations")
 }

@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { getCurrentSession } from "@/modules/auth/services/current-session.service";
-import { getUserAccessProfile, hasPermission, getAccessibleBranchIds } from "@/modules/auth/services/authorization.service";
+import { getUserAccessProfile, hasAnyPermission, getAccessibleBranchIds } from "@/modules/auth/services/authorization.service";
 import { listOrdersForBranch } from "@/modules/orders/services/order.service";
 import { AdminHeader } from "@/components/AdminHeader";
 
@@ -24,7 +24,7 @@ export default async function AdminOrdersPage() {
   if (!session) redirect("/login");
 
   const profile = await getUserAccessProfile(session.user.id);
-  if (!hasPermission(profile, "orders", "read")) {
+  if (!hasAnyPermission(profile, "orders", "read")) {
     return (
       <div className="min-h-screen bg-stone-100 dark:bg-stone-950">
         <AdminHeader />

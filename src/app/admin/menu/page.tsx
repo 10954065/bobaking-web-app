@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { getCurrentSession } from "@/modules/auth/services/current-session.service";
-import { getUserAccessProfile, hasPermission } from "@/modules/auth/services/authorization.service";
+import { getUserAccessProfile, hasAnyPermission } from "@/modules/auth/services/authorization.service";
 import { listCategories } from "@/modules/categories/services/category.service";
 import { listProducts } from "@/modules/products/services/product.service";
 import { prisma } from "@/db/client";
@@ -11,7 +11,7 @@ export default async function AdminMenuPage() {
   if (!session) redirect("/login");
 
   const profile = await getUserAccessProfile(session.user.id);
-  if (!hasPermission(profile, "products", "read")) {
+  if (!hasAnyPermission(profile, "products", "read")) {
     return (
       <div className="min-h-screen bg-stone-100 dark:bg-stone-950">
         <AdminHeader />

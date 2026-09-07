@@ -82,6 +82,7 @@ export const PERMISSION_CATALOG: PermissionDefinition[] = [
 
   // Payments
   perm("payments", "read", "View payment transactions"),
+  perm("payments", "create", "Initiate/collect a payment"),
   perm("payments", "refund", "Issue payment refunds"),
 
   // Marketing / promotions / loyalty

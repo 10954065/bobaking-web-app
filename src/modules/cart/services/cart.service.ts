@@ -11,7 +11,14 @@ import {
 const cartWithItems = {
   include: {
     items: {
-      include: { product: true, modifiers: { include: { modifierOption: true } } },
+      // branchOverrides is intentionally unfiltered here (Prisma can't filter
+      // a nested include by a column — cart.branchId — from the same query);
+      // callers that need the resolved price pick the matching row by
+      // cart.branchId themselves (see pos-catalog.service.ts's toPosCart).
+      include: {
+        product: { include: { branchOverrides: true } },
+        modifiers: { include: { modifierOption: true } },
+      },
       orderBy: { createdAt: "asc" as const },
     },
   },

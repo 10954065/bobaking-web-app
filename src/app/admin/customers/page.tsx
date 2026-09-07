@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { getCurrentSession } from "@/modules/auth/services/current-session.service";
-import { getUserAccessProfile, hasPermission } from "@/modules/auth/services/authorization.service";
+import { getUserAccessProfile, hasAnyPermission } from "@/modules/auth/services/authorization.service";
 import { searchCustomers } from "@/modules/customers/services/customer.service";
 import { AdminHeader } from "@/components/AdminHeader";
 
@@ -13,7 +13,7 @@ export default async function AdminCustomersPage({
   if (!session) redirect("/login");
 
   const profile = await getUserAccessProfile(session.user.id);
-  if (!hasPermission(profile, "customers", "read")) {
+  if (!hasAnyPermission(profile, "customers", "read")) {
     return (
       <div className="min-h-screen bg-stone-100 dark:bg-stone-950">
         <AdminHeader />

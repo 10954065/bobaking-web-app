@@ -2,6 +2,7 @@ import { prisma } from "@/db/client";
 import { Prisma, type Order, type OrderStatus } from "@prisma/client";
 import { canTransition, InvalidOrderTransitionError } from "@/modules/orders/services/order-state-machine";
 import { recordAuditLog } from "@/modules/audit/services/audit.service";
+import { publishKitchenEvent } from "@/modules/kitchen/services/kitchen-events";
 
 const orderWithDetails = Prisma.validator<Prisma.OrderDefaultArgs>()({
   include: {
@@ -49,14 +50,14 @@ export async function transitionOrder(params: {
   actorUserId: string | null;
   reason?: string;
 }): Promise<Order> {
-  return prisma.$transaction(async (tx) => {
+  const updated = await prisma.$transaction(async (tx) => {
     const order = await tx.order.findUniqueOrThrow({ where: { id: params.orderId } });
 
     if (!canTransition(order.status, params.toStatus)) {
       throw new InvalidOrderTransitionError(order.status, params.toStatus);
     }
 
-    const updated = await tx.order.update({
+    const updatedOrder = await tx.order.update({
       where: { id: params.orderId },
       data: { status: params.toStatus },
     });
@@ -81,6 +82,14 @@ export async function transitionOrder(params: {
       after: { status: params.toStatus },
     });
 
-    return updated;
+    return updatedOrder;
   });
+
+  // Publish after the transaction commits — a Redis hiccup must never roll
+  // back a real order status change, and holding the DB transaction open
+  // across a network call to Redis would extend lock time for no benefit.
+  const eventType = params.toStatus === "SENT_TO_KITCHEN" ? "order.new" : "order.updated";
+  await publishKitchenEvent(updated.branchId, { type: eventType, orderId: updated.id }).catch(() => {});
+
+  return updated;
 }

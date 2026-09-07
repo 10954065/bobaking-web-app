@@ -47,6 +47,20 @@ export async function createCustomer(input: CreateCustomerInput) {
   });
 }
 
+/**
+ * Anonymous walk-ins at a physical counter often give neither an email nor a
+ * phone number for a quick purchase — createCustomer's schema deliberately
+ * requires one of those (for order updates/receipts), so this is a separate,
+ * narrower path rather than a loophole in that validation. Multiple walk-ins
+ * with null email/phone don't collide: Postgres treats NULL as distinct in a
+ * unique column, same reasoning as the UserRole global-grant fix.
+ */
+export async function createWalkInCustomer() {
+  return prisma.customer.create({
+    data: { firstName: "Walk-in", lastName: "Customer", status: "GUEST" },
+  });
+}
+
 export async function updateCustomer(id: string, input: UpdateCustomerInput) {
   const data = updateCustomerSchema.parse(input);
   return prisma.customer.update({ where: { id }, data });
