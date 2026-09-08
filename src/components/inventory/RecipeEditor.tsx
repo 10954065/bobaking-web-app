@@ -83,7 +83,7 @@ export function RecipeEditor({
                   value={line.ingredientId}
                   disabled={!canEdit}
                   onChange={(e) => updateLine(index, { ingredientId: e.target.value })}
-                  className="mt-1 w-56 rounded-lg border border-stone-300 px-3 py-2 text-sm outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 disabled:opacity-60 dark:border-stone-700 dark:bg-stone-950 dark:text-stone-100"
+                  className="mt-1 w-56 rounded-lg border border-stone-300 px-3 py-2 text-sm outline-none focus:border-brand-red-500 focus:ring-1 focus:ring-brand-red-500 disabled:opacity-60 dark:border-stone-700 dark:bg-stone-950 dark:text-stone-100"
                 >
                   <option value="">Select…</option>
                   {ingredients.map((ing) => (
@@ -104,7 +104,7 @@ export function RecipeEditor({
                   disabled={!canEdit}
                   value={line.quantityPerUnit}
                   onChange={(e) => updateLine(index, { quantityPerUnit: e.target.value })}
-                  className="mt-1 w-32 rounded-lg border border-stone-300 px-3 py-2 text-sm outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 disabled:opacity-60 dark:border-stone-700 dark:bg-stone-950 dark:text-stone-100"
+                  className="mt-1 w-32 rounded-lg border border-stone-300 px-3 py-2 text-sm outline-none focus:border-brand-red-500 focus:ring-1 focus:ring-brand-red-500 disabled:opacity-60 dark:border-stone-700 dark:bg-stone-950 dark:text-stone-100"
                 />
               </div>
               {canEdit && (
@@ -119,7 +119,7 @@ export function RecipeEditor({
             </div>
           ))}
           {canEdit && (
-            <button type="button" onClick={addLine} className="text-sm font-medium text-orange-600 hover:text-orange-500">
+            <button type="button" onClick={addLine} className="text-sm font-medium text-brand-red-600 hover:text-brand-red-500">
               + Add ingredient
             </button>
           )}
@@ -134,7 +134,7 @@ export function RecipeEditor({
           type="button"
           onClick={handleSave}
           disabled={isPending}
-          className="mt-4 rounded-lg bg-orange-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-orange-500 disabled:opacity-50"
+          className="mt-4 rounded-lg bg-brand-red-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-red-500 disabled:opacity-50"
         >
           {isPending ? "Saving…" : "Save recipe"}
         </button>

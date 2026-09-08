@@ -79,7 +79,7 @@ export default async function PurchaseOrdersPage() {
                 {purchaseOrders.map((po) => (
                   <tr key={po.id}>
                     <td className="px-6 py-3 font-medium text-stone-900 dark:text-stone-50">
-                      <Link href={`/admin/inventory/purchase-orders/${po.id}`} className="hover:text-orange-600">
+                      <Link href={`/admin/inventory/purchase-orders/${po.id}`} className="hover:text-brand-red-600">
                         {po.orderNumber}
                       </Link>
                     </td>

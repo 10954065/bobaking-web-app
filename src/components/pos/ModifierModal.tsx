@@ -63,7 +63,7 @@ export function ModifierModal({
           <div key={group.id} className="mt-5">
             <h3 className="text-sm font-semibold text-stone-200">
               {group.name}
-              {group.isRequired && <span className="ml-1 text-orange-500">*</span>}
+              {group.isRequired && <span className="ml-1 text-brand-red-light">*</span>}
             </h3>
             <div className="mt-2 space-y-1.5">
               {group.options.map((option) => {
@@ -73,7 +73,7 @@ export function ModifierModal({
                     key={option.id}
                     onClick={() => toggleOption(group.id, option.id, group.selectionType)}
                     className={`flex w-full items-center justify-between rounded-lg border px-3 py-2 text-left text-sm transition-colors ${
-                      isSelected ? "border-orange-600 bg-orange-950/40 text-orange-200" : "border-stone-700 text-stone-300 hover:border-stone-600"
+                      isSelected ? "border-brand-red bg-brand-red/10 text-brand-red-light" : "border-stone-700 text-stone-300 hover:border-stone-600"
                     }`}
                   >
                     <span>{option.name}</span>
@@ -91,7 +91,7 @@ export function ModifierModal({
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             rows={2}
-            className="mt-1.5 w-full rounded-lg border border-stone-700 bg-stone-950 px-3 py-2 text-sm text-stone-100 outline-none focus:border-orange-500"
+            className="mt-1.5 w-full rounded-lg border border-stone-700 bg-stone-950 px-3 py-2 text-sm text-stone-100 outline-none focus:border-brand-red"
           />
         </div>
 
@@ -111,7 +111,7 @@ export function ModifierModal({
               +
             </button>
           </div>
-          <span className="font-semibold text-orange-500">GHS {(unitPriceWithModifiers * quantity).toFixed(2)}</span>
+          <span className="font-semibold text-brand-red-light">GHS {(unitPriceWithModifiers * quantity).toFixed(2)}</span>
         </div>
 
         <div className="mt-6 flex gap-2">
@@ -126,7 +126,7 @@ export function ModifierModal({
               onConfirm({ productId: product.id, quantity, notes: notes.trim(), modifierOptionIds: allOptionIds })
             }
             disabled={missingRequired}
-            className="w-full rounded-lg bg-orange-600 py-2.5 text-sm font-semibold text-white hover:bg-orange-500 disabled:opacity-50"
+            className="w-full rounded-lg bg-brand-red py-2.5 text-sm font-semibold text-white shadow-lg shadow-brand-red/20 transition-transform hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50"
           >
             Add to order
           </button>

@@ -70,7 +70,7 @@ export function ReceivePurchaseOrderForm({
               min="0"
               value={quantities[item.id] ?? ""}
               onChange={(e) => setQuantities((prev) => ({ ...prev, [item.id]: e.target.value }))}
-              className="w-28 rounded-lg border border-stone-300 px-3 py-2 text-sm outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 dark:border-stone-700 dark:bg-stone-950 dark:text-stone-100"
+              className="w-28 rounded-lg border border-stone-300 px-3 py-2 text-sm outline-none focus:border-brand-red-500 focus:ring-1 focus:ring-brand-red-500 dark:border-stone-700 dark:bg-stone-950 dark:text-stone-100"
             />
             <span className="text-xs text-stone-500 dark:text-stone-400">{item.unit} received now</span>
           </div>
@@ -83,7 +83,7 @@ export function ReceivePurchaseOrderForm({
         type="button"
         onClick={handleReceive}
         disabled={isPending}
-        className="mt-4 rounded-lg bg-orange-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-orange-500 disabled:opacity-50"
+        className="mt-4 rounded-lg bg-brand-red-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-red-500 disabled:opacity-50"
       >
         {isPending ? "Recording…" : "Record receipt"}
       </button>

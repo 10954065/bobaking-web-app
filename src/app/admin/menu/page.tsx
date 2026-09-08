@@ -44,7 +44,7 @@ export default async function AdminMenuPage() {
                 key={category.id}
                 className={`rounded-full px-3 py-1 text-xs font-medium ${
                   category.isActive
-                    ? "bg-orange-100 text-orange-800 dark:bg-orange-950 dark:text-orange-300"
+                    ? "bg-brand-red-100 text-brand-red-800 dark:bg-brand-red-950 dark:text-brand-red-300"
                     : "bg-stone-200 text-stone-500 dark:bg-stone-800 dark:text-stone-500"
                 }`}
               >

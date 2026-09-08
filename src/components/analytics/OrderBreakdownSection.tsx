@@ -28,7 +28,7 @@ export function OrderBreakdownSection({
               </div>
               <div className="mt-1 h-1.5 w-full rounded-full bg-stone-100 dark:bg-stone-800">
                 <div
-                  className="h-1.5 rounded-full bg-orange-500 dark:bg-orange-600"
+                  className="h-1.5 rounded-full bg-brand-red-500 dark:bg-brand-red-600"
                   style={{ width: `${Math.round((row.count / totalStatusCount) * 100)}%` }}
                 />
               </div>

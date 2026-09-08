@@ -15,6 +15,21 @@
   --color-brand-cyan: #2fd8d1;
   --color-brand-ink: #120404;
   --color-brand-cream: #fff4ec;
+
+  /* Full shade scale so every former `orange-NNN` utility across the
+     staff/admin surface (badges, hover states, dark-mode tints) maps
+     1:1 to `brand-red-NNN` without guessing an equivalent shade. */
+  --color-brand-red-50: #fef2f0;
+  --color-brand-red-100: #fde1dc;
+  --color-brand-red-200: #fbc4ba;
+  --color-brand-red-300: #f89a8a;
+  --color-brand-red-400: #f26a53;
+  --color-brand-red-500: #e42313;
+  --color-brand-red-600: #c81c0e;
+  --color-brand-red-700: #a5170c;
+  --color-brand-red-800: #86140c;
+  --color-brand-red-900: #6f130d;
+  --color-brand-red-950: #3d0805;
 }
 
 @theme inline {
@@ -31,6 +46,18 @@
   --color-brand-cyan: var(--color-brand-cyan);
   --color-brand-ink: var(--color-brand-ink);
   --color-brand-cream: var(--color-brand-cream);
+
+  --color-brand-red-50: var(--color-brand-red-50);
+  --color-brand-red-100: var(--color-brand-red-100);
+  --color-brand-red-200: var(--color-brand-red-200);
+  --color-brand-red-300: var(--color-brand-red-300);
+  --color-brand-red-400: var(--color-brand-red-400);
+  --color-brand-red-500: var(--color-brand-red-500);
+  --color-brand-red-600: var(--color-brand-red-600);
+  --color-brand-red-700: var(--color-brand-red-700);
+  --color-brand-red-800: var(--color-brand-red-800);
+  --color-brand-red-900: var(--color-brand-red-900);
+  --color-brand-red-950: var(--color-brand-red-950);
 }
 
 @media (prefers-color-scheme: dark) {

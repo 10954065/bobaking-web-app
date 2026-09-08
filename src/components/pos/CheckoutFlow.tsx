@@ -154,12 +154,12 @@ export function CheckoutFlow({
                     setPromoMessage(null);
                   }}
                   placeholder="e.g. WELCOME10"
-                  className="w-full rounded-lg border border-stone-700 bg-stone-950 px-3 py-2 text-sm text-stone-100 outline-none focus:border-orange-500"
+                  className="w-full rounded-lg border border-stone-700 bg-stone-950 px-3 py-2 text-sm text-stone-100 outline-none focus:border-brand-red-500"
                 />
                 <button
                   onClick={handleApplyPromo}
                   disabled={isPromoPending || !promoCode.trim()}
-                  className="whitespace-nowrap rounded-lg border border-stone-700 px-3 py-2 text-sm font-medium text-stone-200 hover:border-orange-600 disabled:opacity-50"
+                  className="whitespace-nowrap rounded-lg border border-stone-700 px-3 py-2 text-sm font-medium text-stone-200 hover:border-brand-red-600 disabled:opacity-50"
                 >
                   Apply
                 </button>
@@ -182,12 +182,12 @@ export function CheckoutFlow({
                   type="number"
                   min="0"
                   placeholder="e.g. 20"
-                  className="w-full rounded-lg border border-stone-700 bg-stone-950 px-3 py-2 text-sm text-stone-100 outline-none focus:border-orange-500"
+                  className="w-full rounded-lg border border-stone-700 bg-stone-950 px-3 py-2 text-sm text-stone-100 outline-none focus:border-brand-red-500"
                 />
                 <button
                   onClick={handleApplyPoints}
                   disabled={isPointsPending || !pointsInput}
-                  className="whitespace-nowrap rounded-lg border border-stone-700 px-3 py-2 text-sm font-medium text-stone-200 hover:border-orange-600 disabled:opacity-50"
+                  className="whitespace-nowrap rounded-lg border border-stone-700 px-3 py-2 text-sm font-medium text-stone-200 hover:border-brand-red-600 disabled:opacity-50"
                 >
                   Apply
                 </button>
@@ -204,7 +204,7 @@ export function CheckoutFlow({
               <button
                 onClick={handlePlaceOrder}
                 disabled={isPending}
-                className="w-full rounded-lg bg-orange-600 py-2.5 text-sm font-semibold text-white hover:bg-orange-500 disabled:opacity-50"
+                className="w-full rounded-lg bg-brand-red-600 py-2.5 text-sm font-semibold text-white hover:bg-brand-red-500 disabled:opacity-50"
               >
                 {isPending ? "Placing…" : "Place order"}
               </button>
@@ -224,14 +224,14 @@ export function CheckoutFlow({
               <button
                 onClick={() => handlePayment("CASH")}
                 disabled={isPending}
-                className="w-full rounded-lg border border-stone-700 py-2.5 text-sm font-medium text-stone-200 hover:border-orange-600 disabled:opacity-50"
+                className="w-full rounded-lg border border-stone-700 py-2.5 text-sm font-medium text-stone-200 hover:border-brand-red-600 disabled:opacity-50"
               >
                 Cash
               </button>
               <button
                 onClick={() => handlePayment("MOBILE_MONEY")}
                 disabled={isPending}
-                className="w-full rounded-lg border border-stone-700 py-2.5 text-sm font-medium text-stone-200 hover:border-orange-600 disabled:opacity-50"
+                className="w-full rounded-lg border border-stone-700 py-2.5 text-sm font-medium text-stone-200 hover:border-brand-red-600 disabled:opacity-50"
               >
                 Mobile Money
               </button>
@@ -278,7 +278,7 @@ export function CheckoutFlow({
             <p className="mt-1 text-sm text-stone-400">Sent for kitchen preparation once accepted.</p>
             <button
               onClick={onOrderComplete}
-              className="mt-6 w-full rounded-lg bg-orange-600 py-2.5 text-sm font-semibold text-white hover:bg-orange-500"
+              className="mt-6 w-full rounded-lg bg-brand-red-600 py-2.5 text-sm font-semibold text-white hover:bg-brand-red-500"
             >
               New order
             </button>

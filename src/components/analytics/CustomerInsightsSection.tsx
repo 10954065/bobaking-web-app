@@ -19,7 +19,7 @@ export function CustomerInsightsSection({ insights }: { insights: CustomerInsigh
           <p className="text-xl font-bold text-stone-900 dark:text-stone-50">{insights.returningCustomers}</p>
         </div>
         <div className="h-2 flex-1 overflow-hidden rounded-full bg-stone-100 dark:bg-stone-800">
-          <div className="h-2 bg-orange-500 dark:bg-orange-600" style={{ width: `${newPct}%` }} />
+          <div className="h-2 bg-brand-red-500 dark:bg-brand-red-600" style={{ width: `${newPct}%` }} />
         </div>
       </div>
 
@@ -29,7 +29,7 @@ export function CustomerInsightsSection({ insights }: { insights: CustomerInsigh
           <li key={customer.customerId} className="flex items-center justify-between py-2 text-sm">
             <Link
               href={`/admin/customers/${customer.customerId}`}
-              className="font-medium text-stone-900 hover:text-orange-600 dark:text-stone-50 dark:hover:text-orange-400"
+              className="font-medium text-stone-900 hover:text-brand-red-600 dark:text-stone-50 dark:hover:text-brand-red-400"
             >
               {customer.name}
             </Link>

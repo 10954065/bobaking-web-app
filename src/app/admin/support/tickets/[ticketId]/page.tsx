@@ -103,7 +103,7 @@ export default async function SupportTicketDetailPage({ params }: { params: Prom
                 key={message.id}
                 className={`rounded-lg p-3 text-sm ${
                   message.authorType === "STAFF"
-                    ? "bg-orange-50 dark:bg-orange-950/40"
+                    ? "bg-brand-red-50 dark:bg-brand-red-950/40"
                     : "bg-stone-50 dark:bg-stone-800/60"
                 }`}
               >
@@ -127,11 +127,11 @@ export default async function SupportTicketDetailPage({ params }: { params: Prom
                 required
                 rows={3}
                 placeholder="Reply to the customer..."
-                className="w-full rounded-lg border border-stone-300 px-3 py-2 text-sm outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 dark:border-stone-700 dark:bg-stone-950 dark:text-stone-100"
+                className="w-full rounded-lg border border-stone-300 px-3 py-2 text-sm outline-none focus:border-brand-red-500 focus:ring-1 focus:ring-brand-red-500 dark:border-stone-700 dark:bg-stone-950 dark:text-stone-100"
               />
               <button
                 type="submit"
-                className="self-end rounded-lg bg-orange-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-orange-500"
+                className="self-end rounded-lg bg-brand-red-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-red-500"
               >
                 Send reply
               </button>

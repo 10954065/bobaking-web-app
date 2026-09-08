@@ -106,7 +106,7 @@ export function DeliveryBoard({
               onClick={() => router.push(`/admin/delivery?branch=${b.id}`)}
               className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
                 b.id === branchId
-                  ? "bg-orange-600 text-white"
+                  ? "bg-brand-red-600 text-white"
                   : "bg-white text-stone-600 hover:bg-stone-100 dark:bg-stone-900 dark:text-stone-400 dark:hover:bg-stone-800"
               }`}
             >
@@ -146,7 +146,7 @@ export function DeliveryBoard({
                         <select
                           value={assigning[order.id] ?? ""}
                           onChange={(e) => setAssigning((prev) => ({ ...prev, [order.id]: e.target.value }))}
-                          className="rounded-lg border border-stone-300 px-2 py-1.5 text-xs outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 dark:border-stone-700 dark:bg-stone-950 dark:text-stone-100"
+                          className="rounded-lg border border-stone-300 px-2 py-1.5 text-xs outline-none focus:border-brand-red-500 focus:ring-1 focus:ring-brand-red-500 dark:border-stone-700 dark:bg-stone-950 dark:text-stone-100"
                         >
                           <option value="">Select rider…</option>
                           {availableRiders.map((rider) => (
@@ -158,7 +158,7 @@ export function DeliveryBoard({
                         <button
                           onClick={() => handleAssign(order.id)}
                           disabled={!assigning[order.id] || pendingOrderId === order.id}
-                          className="rounded-lg bg-stone-900 px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-stone-700 disabled:opacity-50 dark:bg-orange-600 dark:hover:bg-orange-500"
+                          className="rounded-lg bg-stone-900 px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-stone-700 disabled:opacity-50 dark:bg-brand-red-600 dark:hover:bg-brand-red-500"
                         >
                           Assign
                         </button>

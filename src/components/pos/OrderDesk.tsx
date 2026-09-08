@@ -69,7 +69,7 @@ export function OrderDesk({ onNewOrder }: { onNewOrder: () => void }) {
           <button
             onClick={() => setTab("incoming")}
             className={`flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-sm font-semibold transition-colors ${
-              tab === "incoming" ? "bg-orange-600 text-white" : "text-stone-400 hover:text-stone-100"
+              tab === "incoming" ? "bg-brand-red-600 text-white" : "text-stone-400 hover:text-stone-100"
             }`}
           >
             <Inbox size={14} /> Incoming{incoming.length > 0 && ` (${incoming.length})`}
@@ -77,7 +77,7 @@ export function OrderDesk({ onNewOrder }: { onNewOrder: () => void }) {
           <button
             onClick={() => setTab("today")}
             className={`flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-sm font-semibold transition-colors ${
-              tab === "today" ? "bg-orange-600 text-white" : "text-stone-400 hover:text-stone-100"
+              tab === "today" ? "bg-brand-red-600 text-white" : "text-stone-400 hover:text-stone-100"
             }`}
           >
             <Receipt size={14} /> Today
@@ -85,7 +85,7 @@ export function OrderDesk({ onNewOrder }: { onNewOrder: () => void }) {
         </div>
         <button
           onClick={onNewOrder}
-          className="flex items-center gap-1.5 rounded-xl border border-stone-700 px-3.5 py-2 text-sm font-medium text-stone-300 transition-colors hover:border-orange-600 hover:text-orange-400"
+          className="flex items-center gap-1.5 rounded-xl border border-stone-700 px-3.5 py-2 text-sm font-medium text-stone-300 transition-colors hover:border-brand-red-600 hover:text-brand-red-400"
         >
           <PlusCircle size={15} /> New phone order
         </button>
@@ -112,7 +112,7 @@ export function OrderDesk({ onNewOrder }: { onNewOrder: () => void }) {
               >
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
-                    <span className="font-mono text-base font-bold text-orange-400">{order.orderNumber}</span>
+                    <span className="font-mono text-base font-bold text-brand-red-400">{order.orderNumber}</span>
                     <span className="rounded-full bg-stone-800 px-2 py-0.5 text-[11px] font-medium text-stone-400">
                       {TYPE_LABELS[order.type] ?? order.type}
                     </span>
@@ -199,7 +199,7 @@ export function OrderDesk({ onNewOrder }: { onNewOrder: () => void }) {
                 <tbody className="divide-y divide-stone-800">
                   {today.orders.map((order) => (
                     <tr key={order.id}>
-                      <td className="px-4 py-2.5 font-mono text-orange-400">{order.orderNumber}</td>
+                      <td className="px-4 py-2.5 font-mono text-brand-red-400">{order.orderNumber}</td>
                       <td className="px-4 py-2.5 text-stone-300">{order.customerName}</td>
                       <td className="px-4 py-2.5 text-stone-400">{TYPE_LABELS[order.type] ?? order.type}</td>
                       <td className="px-4 py-2.5 text-stone-300">GHS {order.total.toFixed(2)}</td>

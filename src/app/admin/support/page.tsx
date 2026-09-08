@@ -44,7 +44,7 @@ export default async function SupportHomePage() {
           {canViewTickets && (
             <Link
               href="/admin/support/tickets"
-              className="rounded-xl border border-stone-200 bg-white p-6 transition-colors hover:border-orange-400 dark:border-stone-800 dark:bg-stone-900"
+              className="rounded-xl border border-stone-200 bg-white p-6 transition-colors hover:border-brand-red-400 dark:border-stone-800 dark:bg-stone-900"
             >
               <p className="text-xs font-semibold uppercase text-stone-500 dark:text-stone-400">Open tickets</p>
               <p className="mt-1 text-2xl font-bold text-stone-900 dark:text-stone-50">{openTickets.length}</p>
@@ -54,7 +54,7 @@ export default async function SupportHomePage() {
           {canViewReviews && (
             <Link
               href="/admin/support/reviews"
-              className="rounded-xl border border-stone-200 bg-white p-6 transition-colors hover:border-orange-400 dark:border-stone-800 dark:bg-stone-900"
+              className="rounded-xl border border-stone-200 bg-white p-6 transition-colors hover:border-brand-red-400 dark:border-stone-800 dark:bg-stone-900"
             >
               <p className="text-xs font-semibold uppercase text-stone-500 dark:text-stone-400">Reviews</p>
               <p className="mt-1 text-2xl font-bold text-stone-900 dark:text-stone-50">{reviews.length}</p>
@@ -64,7 +64,7 @@ export default async function SupportHomePage() {
           {canViewNotifications && (
             <Link
               href="/admin/support/notifications"
-              className="rounded-xl border border-stone-200 bg-white p-6 transition-colors hover:border-orange-400 dark:border-stone-800 dark:bg-stone-900"
+              className="rounded-xl border border-stone-200 bg-white p-6 transition-colors hover:border-brand-red-400 dark:border-stone-800 dark:bg-stone-900"
             >
               <p className="text-xs font-semibold uppercase text-stone-500 dark:text-stone-400">Notifications sent</p>
               <p className="mt-1 text-2xl font-bold text-stone-900 dark:text-stone-50">{notificationCount}</p>

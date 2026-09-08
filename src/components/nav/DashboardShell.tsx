@@ -4,8 +4,9 @@ import { useState, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
-import { Menu, X, LogOut, ChevronLeft, UtensilsCrossed } from "lucide-react";
+import { Menu, X, LogOut, ChevronLeft } from "lucide-react";
 import { NAV_ITEMS, type NavItem } from "@/lib/dashboard-nav";
+import { Logo } from "@/components/brand/Logo";
 
 interface DashboardShellProps {
   visibleHrefs: string[];
@@ -54,21 +55,21 @@ function NavLink({
         title={collapsed ? item.label : undefined}
         className={`group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${
           active
-            ? "bg-orange-600/15 text-orange-400"
+            ? "bg-brand-red/15 text-brand-red-light"
             : "text-stone-400 hover:bg-stone-800/70 hover:text-stone-100"
         }`}
       >
         {active && (
           <motion.span
             layoutId="active-nav-pill"
-            className="absolute inset-y-1 left-0 w-0.5 rounded-full bg-orange-500"
+            className="absolute inset-y-1 left-0 w-0.5 rounded-full bg-brand-red"
             transition={{ type: "spring", stiffness: 400, damping: 32 }}
           />
         )}
         <Icon
           size={18}
           strokeWidth={2}
-          className={`shrink-0 transition-transform duration-200 group-hover:scale-110 ${active ? "text-orange-400" : ""}`}
+          className={`shrink-0 transition-transform duration-200 group-hover:scale-110 ${active ? "text-brand-red-light" : ""}`}
         />
         <span className={`whitespace-nowrap transition-all duration-200 ${collapsed ? "w-0 opacity-0" : "w-auto opacity-100"}`}>
           {item.label}
@@ -100,12 +101,10 @@ function SidebarContent({
   return (
     <div className="flex h-full flex-col">
       <div className={`flex items-center gap-2.5 px-4 py-5 ${collapsed ? "justify-center px-2" : ""}`}>
-        <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-orange-600 text-white shadow-lg shadow-orange-900/30">
-          <UtensilsCrossed size={18} strokeWidth={2.25} />
-        </span>
+        <Logo size={36} />
         {!collapsed && (
           <div className="min-w-0">
-            <p className="truncate text-xs font-semibold uppercase tracking-[0.2em] text-orange-500">Flicks &amp; Licks</p>
+            <p className="truncate text-xs font-semibold uppercase tracking-[0.2em] text-brand-red-light">Flicks &amp; Licks</p>
             <p className="truncate text-sm font-medium text-stone-300">Operations</p>
           </div>
         )}
@@ -201,7 +200,7 @@ export function DashboardShell({ visibleHrefs, userName, roleLabel, branchLabel,
         <button
           onClick={toggleCollapsed}
           title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-          className="absolute top-6 -right-3 flex size-6 items-center justify-center rounded-full border border-stone-700 bg-stone-900 text-stone-400 shadow-md transition-colors hover:text-orange-400"
+          className="absolute top-6 -right-3 flex size-6 items-center justify-center rounded-full border border-stone-700 bg-stone-900 text-stone-400 shadow-md transition-colors hover:text-brand-red-light"
         >
           <motion.span animate={{ rotate: collapsed ? 180 : 0 }} transition={{ duration: 0.25 }}>
             <ChevronLeft size={14} />
@@ -212,9 +211,7 @@ export function DashboardShell({ visibleHrefs, userName, roleLabel, branchLabel,
       {/* Mobile top bar */}
       <div className="fixed inset-x-0 top-0 z-30 flex items-center justify-between border-b border-stone-800 bg-stone-950/95 px-4 py-3 backdrop-blur lg:hidden">
         <div className="flex items-center gap-2">
-          <span className="flex size-8 items-center justify-center rounded-lg bg-orange-600 text-white">
-            <UtensilsCrossed size={16} />
-          </span>
+          <Logo size={30} />
           <p className="text-sm font-semibold text-stone-100">Flicks &amp; Licks</p>
         </div>
         <button

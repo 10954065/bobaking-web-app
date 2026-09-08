@@ -19,7 +19,7 @@ export function ResetPasswordForm({ token }: { token: string }) {
         <p className="text-sm text-stone-300">Your password has been reset. You can sign in with it now.</p>
         <Link
           href="/login"
-          className="mt-2 rounded-lg bg-orange-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-orange-500"
+          className="mt-2 rounded-lg bg-brand-red-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-red-500"
         >
           Go to sign in
         </Link>
@@ -40,7 +40,7 @@ export function ResetPasswordForm({ token }: { token: string }) {
           autoComplete="new-password"
           required
           minLength={8}
-          className="rounded-lg border border-stone-700 bg-stone-950 px-3.5 py-2.5 text-stone-100 outline-none transition-colors focus:border-orange-500 focus:ring-1 focus:ring-orange-500"
+          className="rounded-lg border border-stone-700 bg-stone-950 px-3.5 py-2.5 text-stone-100 outline-none transition-colors focus:border-brand-red-500 focus:ring-1 focus:ring-brand-red-500"
         />
       </div>
 
@@ -55,7 +55,7 @@ export function ResetPasswordForm({ token }: { token: string }) {
           autoComplete="new-password"
           required
           minLength={8}
-          className="rounded-lg border border-stone-700 bg-stone-950 px-3.5 py-2.5 text-stone-100 outline-none transition-colors focus:border-orange-500 focus:ring-1 focus:ring-orange-500"
+          className="rounded-lg border border-stone-700 bg-stone-950 px-3.5 py-2.5 text-stone-100 outline-none transition-colors focus:border-brand-red-500 focus:ring-1 focus:ring-brand-red-500"
         />
       </div>
 
@@ -68,7 +68,7 @@ export function ResetPasswordForm({ token }: { token: string }) {
       <button
         type="submit"
         disabled={isPending}
-        className="mt-1 rounded-lg bg-orange-600 px-4 py-2.5 font-semibold text-white transition-colors hover:bg-orange-500 disabled:cursor-not-allowed disabled:opacity-60"
+        className="mt-1 rounded-lg bg-brand-red-600 px-4 py-2.5 font-semibold text-white transition-colors hover:bg-brand-red-500 disabled:cursor-not-allowed disabled:opacity-60"
       >
         {isPending ? "Resetting…" : "Reset password"}
       </button>

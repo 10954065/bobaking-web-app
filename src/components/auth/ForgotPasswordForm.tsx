@@ -26,7 +26,7 @@ export function ForgotPasswordForm() {
             </Link>
           </div>
         )}
-        <Link href="/login" className="mt-2 text-sm font-medium text-orange-500 hover:text-orange-400">
+        <Link href="/login" className="mt-2 text-sm font-medium text-brand-red-500 hover:text-brand-red-400">
           Back to sign in
         </Link>
       </div>
@@ -45,7 +45,7 @@ export function ForgotPasswordForm() {
           type="email"
           autoComplete="email"
           required
-          className="rounded-lg border border-stone-700 bg-stone-950 px-3.5 py-2.5 text-stone-100 outline-none transition-colors focus:border-orange-500 focus:ring-1 focus:ring-orange-500"
+          className="rounded-lg border border-stone-700 bg-stone-950 px-3.5 py-2.5 text-stone-100 outline-none transition-colors focus:border-brand-red-500 focus:ring-1 focus:ring-brand-red-500"
         />
       </div>
 
@@ -58,7 +58,7 @@ export function ForgotPasswordForm() {
       <button
         type="submit"
         disabled={isPending}
-        className="mt-1 rounded-lg bg-orange-600 px-4 py-2.5 font-semibold text-white transition-colors hover:bg-orange-500 disabled:cursor-not-allowed disabled:opacity-60"
+        className="mt-1 rounded-lg bg-brand-red-600 px-4 py-2.5 font-semibold text-white transition-colors hover:bg-brand-red-500 disabled:cursor-not-allowed disabled:opacity-60"
       >
         {isPending ? "Sending…" : "Send reset link"}
       </button>

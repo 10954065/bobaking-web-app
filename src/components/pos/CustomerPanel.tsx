@@ -75,7 +75,7 @@ export function CustomerPanel({
             key={t.value}
             onClick={() => setType(t.value)}
             className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
-              type === t.value ? "bg-orange-600 text-white" : "bg-stone-800 text-stone-300 hover:bg-stone-700"
+              type === t.value ? "bg-brand-red-600 text-white" : "bg-stone-800 text-stone-300 hover:bg-stone-700"
             }`}
           >
             {t.label}
@@ -88,7 +88,7 @@ export function CustomerPanel({
           value={query}
           onChange={(e) => handleSearch(e.target.value)}
           placeholder="Search by name, phone, or email"
-          className="w-full rounded-lg border border-stone-700 bg-stone-900 px-3.5 py-2.5 text-sm text-stone-100 outline-none focus:border-orange-500"
+          className="w-full rounded-lg border border-stone-700 bg-stone-900 px-3.5 py-2.5 text-sm text-stone-100 outline-none focus:border-brand-red-500"
         />
         <button
           onClick={handleWalkIn}
@@ -118,7 +118,7 @@ export function CustomerPanel({
       )}
 
       {!showNewForm ? (
-        <button onClick={() => setShowNewForm(true)} className="text-sm font-medium text-orange-500 hover:text-orange-400">
+        <button onClick={() => setShowNewForm(true)} className="text-sm font-medium text-brand-red-500 hover:text-brand-red-400">
           + New customer
         </button>
       ) : (
@@ -128,13 +128,13 @@ export function CustomerPanel({
               value={firstName}
               onChange={(e) => setFirstName(e.target.value)}
               placeholder="First name"
-              className="w-full rounded-lg border border-stone-700 bg-stone-900 px-3 py-2 text-sm text-stone-100 outline-none focus:border-orange-500"
+              className="w-full rounded-lg border border-stone-700 bg-stone-900 px-3 py-2 text-sm text-stone-100 outline-none focus:border-brand-red-500"
             />
             <input
               value={lastName}
               onChange={(e) => setLastName(e.target.value)}
               placeholder="Last name"
-              className="w-full rounded-lg border border-stone-700 bg-stone-900 px-3 py-2 text-sm text-stone-100 outline-none focus:border-orange-500"
+              className="w-full rounded-lg border border-stone-700 bg-stone-900 px-3 py-2 text-sm text-stone-100 outline-none focus:border-brand-red-500"
             />
           </div>
           <div className="flex gap-2">
@@ -142,19 +142,19 @@ export function CustomerPanel({
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               placeholder="Phone"
-              className="w-full rounded-lg border border-stone-700 bg-stone-900 px-3 py-2 text-sm text-stone-100 outline-none focus:border-orange-500"
+              className="w-full rounded-lg border border-stone-700 bg-stone-900 px-3 py-2 text-sm text-stone-100 outline-none focus:border-brand-red-500"
             />
             <input
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Email"
-              className="w-full rounded-lg border border-stone-700 bg-stone-900 px-3 py-2 text-sm text-stone-100 outline-none focus:border-orange-500"
+              className="w-full rounded-lg border border-stone-700 bg-stone-900 px-3 py-2 text-sm text-stone-100 outline-none focus:border-brand-red-500"
             />
           </div>
           <button
             onClick={handleCreate}
             disabled={isPending || !firstName || !lastName || (!phone && !email)}
-            className="rounded-lg bg-orange-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-orange-500 disabled:opacity-50"
+            className="rounded-lg bg-brand-red-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-red-500 disabled:opacity-50"
           >
             Create &amp; start order
           </button>

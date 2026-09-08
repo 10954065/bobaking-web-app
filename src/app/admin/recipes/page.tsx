@@ -56,7 +56,7 @@ export default async function RecipesPage() {
                       {recipeCountByProduct.get(product.id) ?? 0}
                     </td>
                     <td className="px-6 py-3 text-right">
-                      <Link href={`/admin/recipes/${product.id}`} className="text-sm font-medium text-orange-600 hover:text-orange-500">
+                      <Link href={`/admin/recipes/${product.id}`} className="text-sm font-medium text-brand-red-600 hover:text-brand-red-500">
                         Edit recipe
                       </Link>
                     </td>

@@ -62,7 +62,7 @@ export function AdminDeliveryMapPanel({
       <div className="w-full max-w-2xl overflow-hidden rounded-xl border border-stone-800 bg-stone-900">
         <div className="flex items-center justify-between border-b border-stone-800 px-4 py-3">
           <div>
-            <p className="font-mono text-sm font-bold text-orange-400">{orderNumber}</p>
+            <p className="font-mono text-sm font-bold text-brand-red-400">{orderNumber}</p>
             <p className="text-xs text-stone-400">{customerName}</p>
           </div>
           <div className="flex items-center gap-2">

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "motion/react";
+import { Logo } from "@/components/brand/Logo";
 import {
   Bike,
   Package,
@@ -11,7 +12,6 @@ import {
   Navigation2,
   CheckCircle2,
   Radio,
-  UtensilsCrossed,
   UserRound,
   LogOut,
   Wallet,
@@ -133,11 +133,9 @@ export function RiderApp({
     <div className="flex min-h-screen flex-col bg-stone-950 text-stone-100">
       <header className="sticky top-0 z-10 flex items-center justify-between border-b border-stone-800 bg-stone-950/95 px-4 py-3 backdrop-blur">
         <div className="flex min-w-0 items-center gap-2.5">
-          <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-orange-600 text-white">
-            <UtensilsCrossed size={17} strokeWidth={2.25} />
-          </span>
+          <Logo size={36} ring={false} />
           <div className="min-w-0">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-orange-500">Flicks &amp; Licks</p>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-brand-red-light">Flicks &amp; Licks</p>
             <h1 className="truncate text-base font-semibold leading-tight">{riderName}</h1>
           </div>
         </div>
@@ -228,7 +226,7 @@ export function RiderApp({
               className="overflow-hidden rounded-2xl border border-stone-800 bg-stone-900"
             >
               <div className="flex items-center justify-between border-b border-stone-800/80 px-4 py-3">
-                <span className="flex items-center gap-2 font-mono text-lg font-bold text-orange-400">
+                <span className="flex items-center gap-2 font-mono text-lg font-bold text-brand-red-400">
                   <Package size={16} />
                   {order.orderNumber}
                 </span>
@@ -294,7 +292,7 @@ export function RiderApp({
                         inputMode="numeric"
                         maxLength={4}
                         placeholder="0000"
-                        className="w-24 rounded-xl border border-stone-700 bg-stone-950 px-3 py-3 text-center font-mono text-lg tracking-[0.3em] text-stone-100 outline-none focus:border-orange-500"
+                        className="w-24 rounded-xl border border-stone-700 bg-stone-950 px-3 py-3 text-center font-mono text-lg tracking-[0.3em] text-stone-100 outline-none focus:border-brand-red-500"
                       />
                       <button
                         onClick={() => handleDelivered(order.id)}
@@ -323,7 +321,7 @@ export function RiderApp({
           onClick={handleToggle}
           disabled={isTogglePending || isOnDelivery}
           className={`flex w-full items-center justify-center gap-2 rounded-2xl py-3.5 text-base font-semibold transition-colors active:scale-[0.98] disabled:opacity-60 ${
-            isOnline ? "bg-stone-800 text-stone-200 hover:bg-stone-700" : "bg-orange-600 text-white hover:bg-orange-500"
+            isOnline ? "bg-stone-800 text-stone-200 hover:bg-stone-700" : "bg-brand-red-600 text-white hover:bg-brand-red-500"
           }`}
         >
           <Bike size={19} />

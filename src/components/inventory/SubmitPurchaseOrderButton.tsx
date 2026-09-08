@@ -20,7 +20,7 @@ export function SubmitPurchaseOrderButton({ purchaseOrderId }: { purchaseOrderId
       type="button"
       onClick={handleSubmit}
       disabled={isPending}
-      className="rounded-lg bg-stone-900 px-3.5 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-stone-700 disabled:opacity-50 dark:bg-orange-600 dark:hover:bg-orange-500"
+      className="rounded-lg bg-stone-900 px-3.5 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-stone-700 disabled:opacity-50 dark:bg-brand-red-600 dark:hover:bg-brand-red-500"
     >
       {isPending ? "Submitting…" : "Submit to supplier"}
     </button>

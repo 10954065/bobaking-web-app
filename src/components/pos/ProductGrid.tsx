@@ -39,14 +39,14 @@ export function ProductGrid({
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search products…"
-            className="w-full rounded-lg border border-stone-700 bg-stone-900 py-2 pl-9 pr-3.5 text-sm text-stone-100 outline-none focus:border-orange-500"
+            className="w-full rounded-lg border border-stone-700 bg-stone-900 py-2 pl-9 pr-3.5 text-sm text-stone-100 outline-none focus:border-brand-red"
           />
         </div>
         <div className="flex flex-wrap gap-2">
           <button
             onClick={() => setActiveCategory("all")}
             className={`rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${
-              activeCategory === "all" ? "bg-orange-600 text-white" : "bg-stone-800 text-stone-300 hover:bg-stone-700"
+              activeCategory === "all" ? "bg-brand-red text-white" : "bg-stone-800 text-stone-300 hover:bg-stone-700"
             }`}
           >
             All
@@ -56,7 +56,7 @@ export function ProductGrid({
               key={c.id}
               onClick={() => setActiveCategory(c.id)}
               className={`rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${
-                activeCategory === c.id ? "bg-orange-600 text-white" : "bg-stone-800 text-stone-300 hover:bg-stone-700"
+                activeCategory === c.id ? "bg-brand-red text-white" : "bg-stone-800 text-stone-300 hover:bg-stone-700"
               }`}
             >
               {c.name}
@@ -73,7 +73,7 @@ export function ProductGrid({
             disabled={!product.isAvailable}
             className={`group flex flex-col overflow-hidden rounded-2xl border text-left transition-all ${
               product.isAvailable
-                ? "border-stone-800 bg-stone-900 hover:-translate-y-0.5 hover:border-orange-600 hover:shadow-lg hover:shadow-black/30"
+                ? "border-stone-800 bg-stone-900 hover:-translate-y-0.5 hover:border-brand-red hover:shadow-lg hover:shadow-black/30"
                 : "cursor-not-allowed border-stone-900 bg-stone-950 opacity-40"
             }`}
           >
@@ -84,7 +84,7 @@ export function ProductGrid({
             />
             <div className="flex flex-1 flex-col gap-1 p-3">
               <span className="text-sm font-semibold leading-snug text-stone-100 sm:text-base">{product.name}</span>
-              <span className="mt-auto text-sm font-bold text-orange-500 sm:text-base">GHS {product.price.toFixed(2)}</span>
+              <span className="mt-auto text-sm font-bold text-brand-red-light sm:text-base">GHS {product.price.toFixed(2)}</span>
               {!product.isAvailable && <span className="text-xs text-stone-500">Unavailable at this branch</span>}
             </div>
           </button>

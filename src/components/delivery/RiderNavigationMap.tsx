@@ -83,7 +83,7 @@ export function RiderNavigationMap({ orderId, selfLocation }: { orderId: string;
 
       {navigation && (
         <div className="flex items-center gap-2 border-t border-stone-800 bg-stone-900 px-3.5 py-2.5 text-xs text-stone-300">
-          {navigation.destinationLabel === "restaurant" ? <Store size={13} className="text-orange-500" /> : <MapPinned size={13} className="text-blue-500" />}
+          {navigation.destinationLabel === "restaurant" ? <Store size={13} className="text-brand-red-500" /> : <MapPinned size={13} className="text-blue-500" />}
           <span>{navigation.destinationLabel === "restaurant" ? "To the restaurant" : "To the customer"}</span>
           <span className="ml-auto font-semibold text-stone-100">
             {navigation.route.etaMinutesLow}–{navigation.route.etaMinutesHigh} min · {navigation.route.distanceKm.toFixed(1)} km

@@ -39,11 +39,11 @@ export default async function AdminCustomersPage({
               name="q"
               defaultValue={q}
               placeholder="Search by name, email, or phone"
-              className="w-full max-w-sm rounded-lg border border-stone-300 px-3.5 py-2 text-sm outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 dark:border-stone-700 dark:bg-stone-950 dark:text-stone-100"
+              className="w-full max-w-sm rounded-lg border border-stone-300 px-3.5 py-2 text-sm outline-none focus:border-brand-red-500 focus:ring-1 focus:ring-brand-red-500 dark:border-stone-700 dark:bg-stone-950 dark:text-stone-100"
             />
             <button
               type="submit"
-              className="rounded-lg bg-orange-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-orange-500"
+              className="rounded-lg bg-brand-red-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-red-500"
             >
               Search
             </button>
@@ -54,7 +54,7 @@ export default async function AdminCustomersPage({
               <li key={customer.id}>
                 <Link
                   href={`/admin/customers/${customer.id}`}
-                  className="flex items-center justify-between py-3 transition-colors hover:text-orange-600"
+                  className="flex items-center justify-between py-3 transition-colors hover:text-brand-red-600"
                 >
                   <div>
                     <p className="font-medium text-stone-900 dark:text-stone-50">

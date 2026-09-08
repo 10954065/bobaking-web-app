@@ -83,7 +83,7 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
           {canViewLoyalty && (
             <div className="rounded-xl border border-stone-200 bg-white p-4 dark:border-stone-800 dark:bg-stone-900">
               <p className="text-xs font-semibold uppercase text-stone-500 dark:text-stone-400">Loyalty points</p>
-              <p className="mt-1 text-2xl font-bold text-orange-600">{loyaltyAccount?.pointsBalance ?? 0}</p>
+              <p className="mt-1 text-2xl font-bold text-brand-red-600">{loyaltyAccount?.pointsBalance ?? 0}</p>
             </div>
           )}
         </div>
@@ -202,7 +202,7 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
                     type="number"
                     name="points"
                     required
-                    className="mt-1 w-28 rounded-lg border border-stone-300 px-3 py-2 text-sm outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 dark:border-stone-700 dark:bg-stone-950 dark:text-stone-100"
+                    className="mt-1 w-28 rounded-lg border border-stone-300 px-3 py-2 text-sm outline-none focus:border-brand-red-500 focus:ring-1 focus:ring-brand-red-500 dark:border-stone-700 dark:bg-stone-950 dark:text-stone-100"
                   />
                 </div>
                 <div>
@@ -212,12 +212,12 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
                     name="reason"
                     required
                     placeholder="e.g. Goodwill gesture"
-                    className="mt-1 w-64 rounded-lg border border-stone-300 px-3 py-2 text-sm outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 dark:border-stone-700 dark:bg-stone-950 dark:text-stone-100"
+                    className="mt-1 w-64 rounded-lg border border-stone-300 px-3 py-2 text-sm outline-none focus:border-brand-red-500 focus:ring-1 focus:ring-brand-red-500 dark:border-stone-700 dark:bg-stone-950 dark:text-stone-100"
                   />
                 </div>
                 <button
                   type="submit"
-                  className="rounded-lg bg-orange-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-orange-500"
+                  className="rounded-lg bg-brand-red-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-red-500"
                 >
                   Apply adjustment
                 </button>

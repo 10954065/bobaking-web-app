@@ -44,7 +44,7 @@ export function CartPanel({
                   )}
                   {item.notes && <p className="text-xs italic text-amber-400">{item.notes}</p>}
                 </div>
-                <span className="whitespace-nowrap text-sm font-semibold text-orange-500">GHS {item.lineTotal.toFixed(2)}</span>
+                <span className="whitespace-nowrap text-sm font-semibold text-brand-red-500">GHS {item.lineTotal.toFixed(2)}</span>
               </div>
               <div className="mt-2 flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -79,7 +79,7 @@ export function CartPanel({
         <button
           onClick={onCheckout}
           disabled={items.length === 0 || isBusy}
-          className="w-full rounded-lg bg-orange-600 py-3 text-sm font-semibold text-white transition-colors hover:bg-orange-500 disabled:opacity-50"
+          className="w-full rounded-lg bg-brand-red-600 py-3 text-sm font-semibold text-white transition-colors hover:bg-brand-red-500 disabled:opacity-50"
         >
           {isBusy ? "Working…" : "Checkout"}
         </button>

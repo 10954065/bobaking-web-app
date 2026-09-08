@@ -3,8 +3,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ChefHat, ChevronDown, UserRound, LogOut } from "lucide-react";
+import { ChevronDown, UserRound, LogOut } from "lucide-react";
 import { MenuImage } from "@/components/menu/MenuImage";
+import { Logo } from "@/components/brand/Logo";
 import { startItemAction, markItemReadyAction, getKitchenQueueAction } from "@/modules/kitchen/actions/kitchen.actions";
 import { signOutAction } from "@/modules/auth/actions/sign-out.action";
 import type { KdsOrderWithItems } from "@/modules/kitchen/services/kitchen-order.service";
@@ -110,11 +111,9 @@ export function KitchenBoard({ branchId, branchName, branches, initialOrders }: 
     <div className="flex h-screen flex-col bg-stone-950 text-stone-100">
       <header className="flex items-center justify-between border-b border-stone-800 px-4 py-3 sm:px-6 sm:py-4">
         <div className="flex items-center gap-2.5">
-          <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-orange-600 text-white">
-            <ChefHat size={17} strokeWidth={2.25} />
-          </span>
+          <Logo size={36} ring={false} />
           <div className="min-w-0">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-orange-500">Flicks &amp; Licks</p>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-brand-red-500">Flicks &amp; Licks</p>
             <h1 className="truncate text-lg font-semibold sm:text-xl">Kitchen Display — {branchName}</h1>
           </div>
         </div>
@@ -171,7 +170,7 @@ export function KitchenBoard({ branchId, branchName, branches, initialOrders }: 
                 {columnOrders.map((order) => (
                   <div key={order.id} className="rounded-lg border border-stone-800 bg-stone-900 p-4">
                     <div className="mb-2 flex items-center justify-between">
-                      <span className="font-mono text-lg font-bold text-orange-400">{order.orderNumber}</span>
+                      <span className="font-mono text-lg font-bold text-brand-red-400">{order.orderNumber}</span>
                       <span className="text-xs uppercase text-stone-500">{order.type}</span>
                     </div>
                     <ul className="space-y-2">

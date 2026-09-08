@@ -67,7 +67,7 @@ export default async function SupportTicketsPage({
               href={filter.value ? `/admin/support/tickets?status=${filter.value}` : "/admin/support/tickets"}
               className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
                 filter.value === status
-                  ? "bg-orange-600 text-white"
+                  ? "bg-brand-red-600 text-white"
                   : "bg-white text-stone-600 hover:bg-stone-100 dark:bg-stone-900 dark:text-stone-400 dark:hover:bg-stone-800"
               }`}
             >
@@ -95,7 +95,7 @@ export default async function SupportTicketsPage({
                     <td className="px-6 py-3">
                       <Link
                         href={`/admin/support/tickets/${ticket.id}`}
-                        className="font-medium text-stone-900 hover:text-orange-600 dark:text-stone-50 dark:hover:text-orange-400"
+                        className="font-medium text-stone-900 hover:text-brand-red-600 dark:text-stone-50 dark:hover:text-brand-red-400"
                       >
                         {ticket.subject}
                       </Link>

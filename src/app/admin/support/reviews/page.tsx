@@ -59,7 +59,7 @@ export default async function ReviewsPage({ searchParams }: { searchParams: Prom
               href={filter.value ? `/admin/support/reviews?status=${filter.value}` : "/admin/support/reviews"}
               className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
                 filter.value === status || (!filter.value && !status)
-                  ? "bg-orange-600 text-white"
+                  ? "bg-brand-red-600 text-white"
                   : "bg-white text-stone-600 hover:bg-stone-100 dark:bg-stone-900 dark:text-stone-400 dark:hover:bg-stone-800"
               }`}
             >
@@ -95,7 +95,7 @@ export default async function ReviewsPage({ searchParams }: { searchParams: Prom
                   </span>
                   {canModerate && (
                     <form action={toggleStatusAction.bind(null, review.id, review.status === "PUBLISHED" ? "HIDDEN" : "PUBLISHED")}>
-                      <button type="submit" className="text-xs font-medium text-stone-500 hover:text-orange-600 dark:text-stone-400 dark:hover:text-orange-400">
+                      <button type="submit" className="text-xs font-medium text-stone-500 hover:text-brand-red-600 dark:text-stone-400 dark:hover:text-brand-red-400">
                         {review.status === "PUBLISHED" ? "Hide" : "Publish"}
                       </button>
                     </form>

@@ -97,7 +97,7 @@ export default async function AnalyticsPage({
                 href={`/admin/analytics?range=${preset.value}${branchParam ? `&branch=${branchParam}` : ""}`}
                 className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
                   preset.value === activeRange
-                    ? "bg-orange-600 text-white"
+                    ? "bg-brand-red-600 text-white"
                     : "bg-white text-stone-600 hover:bg-stone-100 dark:bg-stone-900 dark:text-stone-400 dark:hover:bg-stone-800"
                 }`}
               >

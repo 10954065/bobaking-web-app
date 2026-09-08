@@ -19,7 +19,7 @@ export function RevenueChart({ points }: { points: RevenuePoint[] }) {
             <div key={point.date} className="flex flex-1 flex-col justify-end">
               <div
                 title={`${point.date}: GHS ${point.revenue.toFixed(2)} · ${point.orders} order${point.orders === 1 ? "" : "s"}`}
-                className="w-full rounded-t bg-orange-500 transition-colors hover:bg-orange-400 dark:bg-orange-600"
+                className="w-full rounded-t bg-brand-red-500 transition-colors hover:bg-brand-red-400 dark:bg-brand-red-600"
                 style={{ height: `${heightPct}%` }}
               />
             </div>

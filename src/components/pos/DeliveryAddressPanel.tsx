@@ -75,7 +75,7 @@ export function DeliveryAddressPanel({
       )}
 
       {loaded && !showNewForm && (
-        <button onClick={() => setShowNewForm(true)} className="text-sm font-medium text-orange-500 hover:text-orange-400">
+        <button onClick={() => setShowNewForm(true)} className="text-sm font-medium text-brand-red-500 hover:text-brand-red-400">
           + New address
         </button>
       )}
@@ -86,26 +86,26 @@ export function DeliveryAddressPanel({
             value={addressLine1}
             onChange={(e) => setAddressLine1(e.target.value)}
             placeholder="Address (e.g. 12 Lagos Ave)"
-            className="w-full rounded-lg border border-stone-700 bg-stone-900 px-3 py-2 text-sm text-stone-100 outline-none focus:border-orange-500"
+            className="w-full rounded-lg border border-stone-700 bg-stone-900 px-3 py-2 text-sm text-stone-100 outline-none focus:border-brand-red-500"
           />
           <div className="flex gap-2">
             <input
               value={area}
               onChange={(e) => setArea(e.target.value)}
               placeholder="Area (e.g. East Legon)"
-              className="w-full rounded-lg border border-stone-700 bg-stone-900 px-3 py-2 text-sm text-stone-100 outline-none focus:border-orange-500"
+              className="w-full rounded-lg border border-stone-700 bg-stone-900 px-3 py-2 text-sm text-stone-100 outline-none focus:border-brand-red-500"
             />
             <input
               value={landmark}
               onChange={(e) => setLandmark(e.target.value)}
               placeholder="Landmark (optional)"
-              className="w-full rounded-lg border border-stone-700 bg-stone-900 px-3 py-2 text-sm text-stone-100 outline-none focus:border-orange-500"
+              className="w-full rounded-lg border border-stone-700 bg-stone-900 px-3 py-2 text-sm text-stone-100 outline-none focus:border-brand-red-500"
             />
           </div>
           <button
             onClick={handleCreate}
             disabled={isPending || !addressLine1}
-            className="rounded-lg bg-orange-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-orange-500 disabled:opacity-50"
+            className="rounded-lg bg-brand-red-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-red-500 disabled:opacity-50"
           >
             {isPending ? "Saving…" : "Use this address"}
           </button>

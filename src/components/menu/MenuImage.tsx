@@ -1,7 +1,7 @@
 import { UtensilsCrossed } from "lucide-react";
 
 const FALLBACK_PALETTE = [
-  "bg-orange-500/15 text-orange-400",
+  "bg-brand-red-500/15 text-brand-red-400",
   "bg-rose-500/15 text-rose-400",
   "bg-amber-500/15 text-amber-400",
   "bg-emerald-500/15 text-emerald-400",

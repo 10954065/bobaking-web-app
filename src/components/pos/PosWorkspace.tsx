@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { UtensilsCrossed, ChevronDown, UserRound, LogOut, ArrowLeft } from "lucide-react";
+import { ChevronDown, UserRound, LogOut, ArrowLeft } from "lucide-react";
+import { Logo } from "@/components/brand/Logo";
 import { CustomerPanel, type PosCustomer } from "@/components/pos/CustomerPanel";
 import { DeliveryAddressPanel } from "@/components/pos/DeliveryAddressPanel";
 import { ProductGrid } from "@/components/pos/ProductGrid";
@@ -178,11 +179,9 @@ function PosHeader({
   return (
     <header className="flex items-center justify-between border-b border-stone-800 px-4 py-3 sm:px-6">
       <div className="flex items-center gap-2.5">
-        <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-orange-600 text-white">
-          <UtensilsCrossed size={17} strokeWidth={2.25} />
-        </span>
+        <Logo size={36} ring={false} />
         <div className="min-w-0">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-orange-500">Flicks &amp; Licks</p>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-brand-red-light">Flicks &amp; Licks</p>
           <h1 className="truncate text-lg font-semibold text-stone-50">POS — {branchName}</h1>
         </div>
       </div>

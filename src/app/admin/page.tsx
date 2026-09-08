@@ -58,7 +58,7 @@ export default async function AdminDashboardPage() {
           {userRoles.map((ur) => (
             <span
               key={ur.id}
-              className="rounded-full bg-orange-100 px-3 py-1 text-xs font-medium text-orange-800 dark:bg-orange-950 dark:text-orange-300"
+              className="rounded-full bg-brand-red-100 px-3 py-1 text-xs font-medium text-brand-red-800 dark:bg-brand-red-950 dark:text-brand-red-300"
             >
               {ur.role.name.split("_").join(" ")}
               {ur.branch ? ` · ${ur.branch.name}` : " · All branches"}
@@ -77,16 +77,16 @@ export default async function AdminDashboardPage() {
                 <Link
                   key={op.key}
                   href={op.href}
-                  className="group flex flex-col gap-3 rounded-xl border border-stone-200 bg-white p-4 transition-all hover:-translate-y-0.5 hover:border-orange-300 hover:shadow-lg hover:shadow-orange-900/5 dark:border-stone-800 dark:bg-stone-900 dark:hover:border-orange-900"
+                  className="group flex flex-col gap-3 rounded-xl border border-stone-200 bg-white p-4 transition-all hover:-translate-y-0.5 hover:border-brand-red-300 hover:shadow-lg hover:shadow-brand-red-900/5 dark:border-stone-800 dark:bg-stone-900 dark:hover:border-brand-red-900"
                 >
-                  <span className="flex size-9 items-center justify-center rounded-lg bg-orange-50 text-orange-600 dark:bg-orange-950 dark:text-orange-400">
+                  <span className="flex size-9 items-center justify-center rounded-lg bg-brand-red-50 text-brand-red-600 dark:bg-brand-red-950 dark:text-brand-red-400">
                     <Icon size={18} />
                   </span>
                   <span className="flex items-center justify-between text-sm font-semibold text-stone-800 dark:text-stone-100">
                     {op.label}
                     <ArrowUpRight
                       size={15}
-                      className="text-stone-300 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-orange-500 dark:text-stone-600"
+                      className="text-stone-300 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-brand-red-500 dark:text-stone-600"
                     />
                   </span>
                 </Link>
