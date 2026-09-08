@@ -4,7 +4,6 @@ import { getCurrentSession } from "@/modules/auth/services/current-session.servi
 import { getUserAccessProfile, hasAnyPermission } from "@/modules/auth/services/authorization.service";
 import { listProducts } from "@/modules/products/services/product.service";
 import { prisma } from "@/db/client";
-import { AdminHeader } from "@/components/AdminHeader";
 
 export default async function RecipesPage() {
   const session = await getCurrentSession();
@@ -14,7 +13,6 @@ export default async function RecipesPage() {
   if (!hasAnyPermission(profile, "recipes", "read")) {
     return (
       <div className="min-h-screen bg-stone-100 dark:bg-stone-950">
-        <AdminHeader />
         <main className="mx-auto max-w-5xl px-6 py-8">
           <p className="text-sm text-stone-600 dark:text-stone-400">You don&apos;t have permission to view recipes.</p>
         </main>
@@ -30,7 +28,6 @@ export default async function RecipesPage() {
 
   return (
     <div className="min-h-screen bg-stone-100 dark:bg-stone-950">
-      <AdminHeader />
       <main className="mx-auto max-w-5xl px-6 py-8">
         <div className="mb-6">
           <h2 className="text-lg font-semibold text-stone-900 dark:text-stone-50">Recipes</h2>

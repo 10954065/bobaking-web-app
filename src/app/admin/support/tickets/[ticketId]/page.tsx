@@ -3,7 +3,6 @@ import { notFound, redirect } from "next/navigation";
 import { getCurrentSession } from "@/modules/auth/services/current-session.service";
 import { getUserAccessProfile, hasPermission } from "@/modules/auth/services/authorization.service";
 import { getTicketById } from "@/modules/support/services/support-ticket.service";
-import { AdminHeader } from "@/components/AdminHeader";
 import { replyToTicketAction, updateTicketStatusAction } from "@/modules/support/actions/support.actions";
 import type { SupportTicketStatus } from "@prisma/client";
 
@@ -38,7 +37,6 @@ export default async function SupportTicketDetailPage({ params }: { params: Prom
   if (!hasPermission(profile, "support", "read", ticket.branchId)) {
     return (
       <div className="min-h-screen bg-stone-100 dark:bg-stone-950">
-        <AdminHeader />
         <main className="mx-auto max-w-3xl px-6 py-8">
           <p className="text-sm text-stone-600 dark:text-stone-400">You don&apos;t have permission to view this ticket.</p>
         </main>
@@ -49,7 +47,6 @@ export default async function SupportTicketDetailPage({ params }: { params: Prom
 
   return (
     <div className="min-h-screen bg-stone-100 dark:bg-stone-950">
-      <AdminHeader />
       <main className="mx-auto max-w-3xl px-6 py-8">
         <div className="mb-6 flex items-center justify-between">
           <div>

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { UtensilsCrossed, ChevronDown } from "lucide-react";
 import { CustomerPanel, type PosCustomer } from "@/components/pos/CustomerPanel";
 import { DeliveryAddressPanel } from "@/components/pos/DeliveryAddressPanel";
 import { ProductGrid } from "@/components/pos/ProductGrid";
@@ -155,23 +156,31 @@ function PosHeader({
   router: ReturnType<typeof useRouter>;
 }) {
   return (
-    <header className="flex items-center justify-between border-b border-stone-800 px-6 py-3">
-      <div>
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-orange-500">Flicks &amp; Licks</p>
-        <h1 className="text-lg font-semibold text-stone-50">POS — {branchName}</h1>
+    <header className="flex items-center justify-between border-b border-stone-800 px-4 py-3 sm:px-6">
+      <div className="flex items-center gap-2.5">
+        <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-orange-600 text-white">
+          <UtensilsCrossed size={17} strokeWidth={2.25} />
+        </span>
+        <div className="min-w-0">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-orange-500">Flicks &amp; Licks</p>
+          <h1 className="truncate text-lg font-semibold text-stone-50">POS — {branchName}</h1>
+        </div>
       </div>
       {branches.length > 1 && (
-        <select
-          defaultValue={branchId}
-          onChange={(e) => router.push(`/pos?branch=${e.target.value}`)}
-          className="rounded-lg border border-stone-700 bg-stone-900 px-3 py-2 text-sm text-stone-100"
-        >
-          {branches.map((b) => (
-            <option key={b.id} value={b.id}>
-              {b.name}
-            </option>
-          ))}
-        </select>
+        <div className="relative shrink-0">
+          <select
+            defaultValue={branchId}
+            onChange={(e) => router.push(`/pos?branch=${e.target.value}`)}
+            className="appearance-none rounded-lg border border-stone-700 bg-stone-900 py-2 pl-3 pr-8 text-sm text-stone-100"
+          >
+            {branches.map((b) => (
+              <option key={b.id} value={b.id}>
+                {b.name}
+              </option>
+            ))}
+          </select>
+          <ChevronDown size={14} className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-stone-500" />
+        </div>
       )}
     </header>
   );

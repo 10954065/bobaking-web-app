@@ -1,3 +1,4 @@
+import { UtensilsCrossed } from "lucide-react";
 import { LoginForm } from "@/components/LoginForm";
 
 export default async function LoginPage({
@@ -10,8 +11,11 @@ export default async function LoginPage({
 
   return (
     <div className="flex flex-1 items-center justify-center bg-stone-950 px-4 py-16">
-      <div className="w-full max-w-sm">
-        <div className="mb-8 text-center">
+      <div className="w-full max-w-sm animate-fade-slide-up">
+        <div className="mb-8 flex flex-col items-center text-center">
+          <span className="mb-4 flex size-12 items-center justify-center rounded-2xl bg-orange-600 text-white shadow-lg shadow-orange-900/30">
+            <UtensilsCrossed size={22} strokeWidth={2.25} />
+          </span>
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-orange-500">Flicks &amp; Licks</p>
           <h1 className="mt-2 text-2xl font-semibold text-stone-50">Staff sign in</h1>
           <p className="mt-1 text-sm text-stone-400">Restaurant operations platform</p>

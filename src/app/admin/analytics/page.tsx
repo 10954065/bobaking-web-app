@@ -13,7 +13,6 @@ import {
   getTopProducts,
 } from "@/modules/analytics/services/sales-analytics.service";
 import { getCustomerInsights, getDeliveryPerformance, getGeographicBreakdown } from "@/modules/analytics/services/geo-analytics.service";
-import { AdminHeader } from "@/components/AdminHeader";
 import { SummaryCards } from "@/components/analytics/SummaryCards";
 import { RevenueChart } from "@/components/analytics/RevenueChart";
 import { TopProductsTable } from "@/components/analytics/TopProductsTable";
@@ -40,7 +39,6 @@ export default async function AnalyticsPage({
   if (!hasAnyPermission(profile, "analytics", "read")) {
     return (
       <div className="min-h-screen bg-stone-100 dark:bg-stone-950">
-        <AdminHeader />
         <main className="mx-auto max-w-6xl px-6 py-8">
           <p className="text-sm text-stone-600 dark:text-stone-400">You don&apos;t have permission to view analytics.</p>
         </main>
@@ -75,7 +73,6 @@ export default async function AnalyticsPage({
 
   return (
     <div className="min-h-screen bg-stone-100 dark:bg-stone-950">
-      <AdminHeader />
       <main className="mx-auto max-w-6xl px-6 py-8">
         <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
           <div>

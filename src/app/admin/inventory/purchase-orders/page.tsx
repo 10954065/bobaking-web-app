@@ -6,7 +6,6 @@ import { listBranches } from "@/modules/branches/services/branch.service";
 import { listSuppliers } from "@/modules/inventory/services/supplier.service";
 import { listIngredients } from "@/modules/inventory/services/ingredient.service";
 import { listPurchaseOrders } from "@/modules/inventory/services/purchase-order.service";
-import { AdminHeader } from "@/components/AdminHeader";
 import { NewPurchaseOrderForm } from "@/components/inventory/NewPurchaseOrderForm";
 
 const STATUS_COLORS: Record<string, string> = {
@@ -25,7 +24,6 @@ export default async function PurchaseOrdersPage() {
   if (!hasAnyPermission(profile, "purchase_orders", "read")) {
     return (
       <div className="min-h-screen bg-stone-100 dark:bg-stone-950">
-        <AdminHeader />
         <main className="mx-auto max-w-5xl px-6 py-8">
           <p className="text-sm text-stone-600 dark:text-stone-400">
             You don&apos;t have permission to view purchase orders.
@@ -48,7 +46,6 @@ export default async function PurchaseOrdersPage() {
 
   return (
     <div className="min-h-screen bg-stone-100 dark:bg-stone-950">
-      <AdminHeader />
       <main className="mx-auto max-w-5xl px-6 py-8">
         <div className="mb-6 flex items-center justify-between">
           <div>

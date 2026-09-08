@@ -3,7 +3,6 @@ import { redirect } from "next/navigation";
 import { getCurrentSession } from "@/modules/auth/services/current-session.service";
 import { getUserAccessProfile, hasAnyPermission } from "@/modules/auth/services/authorization.service";
 import { listNotifications } from "@/modules/notifications/services/notification.service";
-import { AdminHeader } from "@/components/AdminHeader";
 
 export default async function NotificationsLogPage() {
   const session = await getCurrentSession();
@@ -13,7 +12,6 @@ export default async function NotificationsLogPage() {
   if (!hasAnyPermission(profile, "notifications", "read")) {
     return (
       <div className="min-h-screen bg-stone-100 dark:bg-stone-950">
-        <AdminHeader />
         <main className="mx-auto max-w-5xl px-6 py-8">
           <p className="text-sm text-stone-600 dark:text-stone-400">You don&apos;t have permission to view notifications.</p>
         </main>
@@ -25,7 +23,6 @@ export default async function NotificationsLogPage() {
 
   return (
     <div className="min-h-screen bg-stone-100 dark:bg-stone-950">
-      <AdminHeader />
       <main className="mx-auto max-w-5xl px-6 py-8">
         <div className="mb-6 flex items-center justify-between">
           <div>

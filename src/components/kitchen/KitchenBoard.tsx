@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { ChefHat, ChevronDown } from "lucide-react";
 import { startItemAction, markItemReadyAction, getKitchenQueueAction } from "@/modules/kitchen/actions/kitchen.actions";
 import type { KdsOrderWithItems } from "@/modules/kitchen/services/kitchen-order.service";
 
@@ -104,37 +105,48 @@ export function KitchenBoard({ branchId, branchName, branches, initialOrders }: 
 
   return (
     <div className="flex h-screen flex-col bg-stone-950 text-stone-100">
-      <header className="flex items-center justify-between border-b border-stone-800 px-6 py-4">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-orange-500">Flicks &amp; Licks</p>
-          <h1 className="text-xl font-semibold">Kitchen Display — {branchName}</h1>
+      <header className="flex items-center justify-between border-b border-stone-800 px-4 py-3 sm:px-6 sm:py-4">
+        <div className="flex items-center gap-2.5">
+          <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-orange-600 text-white">
+            <ChefHat size={17} strokeWidth={2.25} />
+          </span>
+          <div className="min-w-0">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-orange-500">Flicks &amp; Licks</p>
+            <h1 className="truncate text-lg font-semibold sm:text-xl">Kitchen Display — {branchName}</h1>
+          </div>
         </div>
         {branches.length > 1 && (
-          <select
-            defaultValue={branchId}
-            onChange={(e) => router.push(`/kitchen?branch=${e.target.value}`)}
-            className="rounded-lg border border-stone-700 bg-stone-900 px-3 py-2 text-sm"
-          >
-            {branches.map((b) => (
-              <option key={b.id} value={b.id}>
-                {b.name}
-              </option>
-            ))}
-          </select>
+          <div className="relative shrink-0">
+            <select
+              defaultValue={branchId}
+              onChange={(e) => router.push(`/kitchen?branch=${e.target.value}`)}
+              className="appearance-none rounded-lg border border-stone-700 bg-stone-900 py-2 pl-3 pr-8 text-sm"
+            >
+              {branches.map((b) => (
+                <option key={b.id} value={b.id}>
+                  {b.name}
+                </option>
+              ))}
+            </select>
+            <ChevronDown size={14} className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-stone-500" />
+          </div>
         )}
       </header>
 
-      <div className="grid flex-1 grid-cols-3 gap-4 overflow-hidden p-4">
+      <div className="scrollbar-thin grid flex-1 grid-cols-1 gap-4 overflow-y-auto p-4 sm:grid-cols-3 sm:overflow-hidden">
         {COLUMNS.map((column) => {
           const columnOrders = orders.filter((o) => o.status === column.status);
           return (
-            <div key={column.status} className="flex flex-col overflow-hidden rounded-xl border border-stone-800 bg-stone-900/40">
+            <div
+              key={column.status}
+              className="flex h-[70vh] flex-col overflow-hidden rounded-xl border border-stone-800 bg-stone-900/40 sm:h-auto"
+            >
               <div className="border-b border-stone-800 px-4 py-3">
                 <h2 className="text-sm font-bold tracking-wide text-stone-300">
                   {column.label} <span className="text-stone-500">({columnOrders.length})</span>
                 </h2>
               </div>
-              <div className="flex-1 space-y-3 overflow-y-auto p-3">
+              <div className="scrollbar-thin flex-1 space-y-3 overflow-y-auto p-3">
                 {columnOrders.map((order) => (
                   <div key={order.id} className="rounded-lg border border-stone-800 bg-stone-900 p-4">
                     <div className="mb-2 flex items-center justify-between">

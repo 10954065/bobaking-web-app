@@ -4,7 +4,6 @@ import { getCurrentSession } from "@/modules/auth/services/current-session.servi
 import { getUserAccessProfile, hasAnyPermission } from "@/modules/auth/services/authorization.service";
 import { listPromotions } from "@/modules/promotions/services/promotion.service";
 import { listCampaigns } from "@/modules/marketing/services/campaign.service";
-import { AdminHeader } from "@/components/AdminHeader";
 
 export default async function MarketingHomePage() {
   const session = await getCurrentSession();
@@ -18,7 +17,6 @@ export default async function MarketingHomePage() {
   if (!canViewPromotions && !canViewCampaigns && !canViewLoyalty) {
     return (
       <div className="min-h-screen bg-stone-100 dark:bg-stone-950">
-        <AdminHeader />
         <main className="mx-auto max-w-5xl px-6 py-8">
           <p className="text-sm text-stone-600 dark:text-stone-400">You don&apos;t have permission to view marketing.</p>
         </main>
@@ -33,7 +31,6 @@ export default async function MarketingHomePage() {
 
   return (
     <div className="min-h-screen bg-stone-100 dark:bg-stone-950">
-      <AdminHeader />
       <main className="mx-auto max-w-5xl px-6 py-8">
         <div className="mb-6">
           <h2 className="text-lg font-semibold text-stone-900 dark:text-stone-50">Marketing</h2>

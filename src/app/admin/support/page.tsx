@@ -5,7 +5,6 @@ import { getCurrentSession } from "@/modules/auth/services/current-session.servi
 import { getUserAccessProfile, hasAnyPermission, getAccessibleBranchIds } from "@/modules/auth/services/authorization.service";
 import { listTicketsForBranches } from "@/modules/support/services/support-ticket.service";
 import { listReviews } from "@/modules/reviews/services/review.service";
-import { AdminHeader } from "@/components/AdminHeader";
 
 export default async function SupportHomePage() {
   const session = await getCurrentSession();
@@ -19,7 +18,6 @@ export default async function SupportHomePage() {
   if (!canViewTickets && !canViewReviews && !canViewNotifications) {
     return (
       <div className="min-h-screen bg-stone-100 dark:bg-stone-950">
-        <AdminHeader />
         <main className="mx-auto max-w-5xl px-6 py-8">
           <p className="text-sm text-stone-600 dark:text-stone-400">You don&apos;t have permission to view support.</p>
         </main>
@@ -36,7 +34,6 @@ export default async function SupportHomePage() {
 
   return (
     <div className="min-h-screen bg-stone-100 dark:bg-stone-950">
-      <AdminHeader />
       <main className="mx-auto max-w-5xl px-6 py-8">
         <div className="mb-6">
           <h2 className="text-lg font-semibold text-stone-900 dark:text-stone-50">Support</h2>

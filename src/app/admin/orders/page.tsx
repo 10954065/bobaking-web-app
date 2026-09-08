@@ -2,7 +2,6 @@ import { redirect } from "next/navigation";
 import { getCurrentSession } from "@/modules/auth/services/current-session.service";
 import { getUserAccessProfile, hasAnyPermission, getAccessibleBranchIds } from "@/modules/auth/services/authorization.service";
 import { listOrdersForBranch } from "@/modules/orders/services/order.service";
-import { AdminHeader } from "@/components/AdminHeader";
 
 const STATUS_COLORS: Record<string, string> = {
   DRAFT: "bg-stone-200 text-stone-600 dark:bg-stone-800 dark:text-stone-400",
@@ -27,7 +26,6 @@ export default async function AdminOrdersPage() {
   if (!hasAnyPermission(profile, "orders", "read")) {
     return (
       <div className="min-h-screen bg-stone-100 dark:bg-stone-950">
-        <AdminHeader />
         <main className="mx-auto max-w-5xl px-6 py-8">
           <p className="text-sm text-stone-600 dark:text-stone-400">You don&apos;t have permission to view orders.</p>
         </main>
@@ -40,7 +38,6 @@ export default async function AdminOrdersPage() {
 
   return (
     <div className="min-h-screen bg-stone-100 dark:bg-stone-950">
-      <AdminHeader />
       <main className="mx-auto max-w-5xl px-6 py-8">
         <section className="rounded-xl border border-stone-200 bg-white dark:border-stone-800 dark:bg-stone-900">
           <h2 className="px-6 pt-6 text-sm font-semibold text-stone-500 dark:text-stone-400">

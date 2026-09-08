@@ -4,7 +4,6 @@ import { getUserAccessProfile, hasAnyPermission } from "@/modules/auth/services/
 import { listCategories } from "@/modules/categories/services/category.service";
 import { listProducts } from "@/modules/products/services/product.service";
 import { prisma } from "@/db/client";
-import { AdminHeader } from "@/components/AdminHeader";
 
 export default async function AdminMenuPage() {
   const session = await getCurrentSession();
@@ -14,7 +13,6 @@ export default async function AdminMenuPage() {
   if (!hasAnyPermission(profile, "products", "read")) {
     return (
       <div className="min-h-screen bg-stone-100 dark:bg-stone-950">
-        <AdminHeader />
         <main className="mx-auto max-w-5xl px-6 py-8">
           <p className="text-sm text-stone-600 dark:text-stone-400">
             You don&apos;t have permission to view the menu.
@@ -34,7 +32,6 @@ export default async function AdminMenuPage() {
 
   return (
     <div className="min-h-screen bg-stone-100 dark:bg-stone-950">
-      <AdminHeader />
       <main className="mx-auto max-w-5xl px-6 py-8">
         <section className="mb-8 rounded-xl border border-stone-200 bg-white p-6 dark:border-stone-800 dark:bg-stone-900">
           <h2 className="text-sm font-semibold text-stone-500 dark:text-stone-400">

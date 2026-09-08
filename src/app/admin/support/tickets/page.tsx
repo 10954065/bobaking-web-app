@@ -3,7 +3,6 @@ import { redirect } from "next/navigation";
 import { getCurrentSession } from "@/modules/auth/services/current-session.service";
 import { getUserAccessProfile, hasAnyPermission, getAccessibleBranchIds } from "@/modules/auth/services/authorization.service";
 import { listTicketsForBranches } from "@/modules/support/services/support-ticket.service";
-import { AdminHeader } from "@/components/AdminHeader";
 import type { SupportTicketStatus } from "@prisma/client";
 
 const STATUS_FILTERS: { value: SupportTicketStatus | undefined; label: string }[] = [
@@ -33,7 +32,6 @@ export default async function SupportTicketsPage({
   if (!hasAnyPermission(profile, "support", "read")) {
     return (
       <div className="min-h-screen bg-stone-100 dark:bg-stone-950">
-        <AdminHeader />
         <main className="mx-auto max-w-5xl px-6 py-8">
           <p className="text-sm text-stone-600 dark:text-stone-400">You don&apos;t have permission to view support tickets.</p>
         </main>
@@ -48,7 +46,6 @@ export default async function SupportTicketsPage({
 
   return (
     <div className="min-h-screen bg-stone-100 dark:bg-stone-950">
-      <AdminHeader />
       <main className="mx-auto max-w-5xl px-6 py-8">
         <div className="mb-6 flex items-center justify-between">
           <div>

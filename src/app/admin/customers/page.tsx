@@ -3,7 +3,6 @@ import { redirect } from "next/navigation";
 import { getCurrentSession } from "@/modules/auth/services/current-session.service";
 import { getUserAccessProfile, hasAnyPermission } from "@/modules/auth/services/authorization.service";
 import { searchCustomers } from "@/modules/customers/services/customer.service";
-import { AdminHeader } from "@/components/AdminHeader";
 
 export default async function AdminCustomersPage({
   searchParams,
@@ -17,7 +16,6 @@ export default async function AdminCustomersPage({
   if (!hasAnyPermission(profile, "customers", "read")) {
     return (
       <div className="min-h-screen bg-stone-100 dark:bg-stone-950">
-        <AdminHeader />
         <main className="mx-auto max-w-5xl px-6 py-8">
           <p className="text-sm text-stone-600 dark:text-stone-400">
             You don&apos;t have permission to view customers.
@@ -32,7 +30,6 @@ export default async function AdminCustomersPage({
 
   return (
     <div className="min-h-screen bg-stone-100 dark:bg-stone-950">
-      <AdminHeader />
       <main className="mx-auto max-w-5xl px-6 py-8">
         <section className="rounded-xl border border-stone-200 bg-white p-6 dark:border-stone-800 dark:bg-stone-900">
           <h2 className="text-sm font-semibold text-stone-500 dark:text-stone-400">Customer search</h2>

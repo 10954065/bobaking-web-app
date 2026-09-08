@@ -5,7 +5,6 @@ import { getUserAccessProfile, hasAnyPermission } from "@/modules/auth/services/
 import { getCustomerById } from "@/modules/customers/services/customer.service";
 import { listOrdersForCustomer } from "@/modules/orders/services/order.service";
 import { getLoyaltyAccountForCustomer, listLoyaltyTransactionsForCustomer } from "@/modules/loyalty/services/loyalty.service";
-import { AdminHeader } from "@/components/AdminHeader";
 import { adjustPointsFormAction } from "./actions";
 
 const STATUS_COLORS: Record<string, string> = {
@@ -32,7 +31,6 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
   if (!hasAnyPermission(profile, "customers", "read")) {
     return (
       <div className="min-h-screen bg-stone-100 dark:bg-stone-950">
-        <AdminHeader />
         <main className="mx-auto max-w-5xl px-6 py-8">
           <p className="text-sm text-stone-600 dark:text-stone-400">You don&apos;t have permission to view customers.</p>
         </main>
@@ -55,7 +53,6 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
 
   return (
     <div className="min-h-screen bg-stone-100 dark:bg-stone-950">
-      <AdminHeader />
       <main className="mx-auto max-w-5xl px-6 py-8">
         <div className="mb-6 flex items-center justify-between">
           <div>

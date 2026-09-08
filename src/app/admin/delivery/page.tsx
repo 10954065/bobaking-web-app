@@ -3,7 +3,6 @@ import { getCurrentSession } from "@/modules/auth/services/current-session.servi
 import { getUserAccessProfile, hasAnyPermission, getAccessibleBranchIds } from "@/modules/auth/services/authorization.service";
 import { listBranches } from "@/modules/branches/services/branch.service";
 import { getDeliveryBoardAction } from "@/modules/delivery/actions/board.actions";
-import { AdminHeader } from "@/components/AdminHeader";
 import { DeliveryBoard } from "@/components/delivery/DeliveryBoard";
 
 export default async function AdminDeliveryPage({
@@ -18,7 +17,6 @@ export default async function AdminDeliveryPage({
   if (!hasAnyPermission(profile, "delivery", "read")) {
     return (
       <div className="min-h-screen bg-stone-100 dark:bg-stone-950">
-        <AdminHeader />
         <main className="mx-auto max-w-5xl px-6 py-8">
           <p className="text-sm text-stone-600 dark:text-stone-400">You don&apos;t have permission to view delivery.</p>
         </main>
@@ -36,7 +34,6 @@ export default async function AdminDeliveryPage({
   if (!branchId || !currentBranch) {
     return (
       <div className="min-h-screen bg-stone-100 dark:bg-stone-950">
-        <AdminHeader />
         <main className="mx-auto max-w-5xl px-6 py-8">
           <p className="text-sm text-stone-600 dark:text-stone-400">No branch access configured for delivery.</p>
         </main>
@@ -49,7 +46,6 @@ export default async function AdminDeliveryPage({
 
   return (
     <div className="min-h-screen bg-stone-100 dark:bg-stone-950">
-      <AdminHeader />
       <DeliveryBoard
         branchId={branchId}
         branchName={currentBranch.name}

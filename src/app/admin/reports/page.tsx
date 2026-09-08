@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation";
 import { getCurrentSession } from "@/modules/auth/services/current-session.service";
 import { getUserAccessProfile, hasAnyPermission } from "@/modules/auth/services/authorization.service";
-import { AdminHeader } from "@/components/AdminHeader";
 
 const REPORT_CARDS = [
   {
@@ -43,7 +42,6 @@ export default async function ReportsPage() {
 
   return (
     <div className="min-h-screen bg-stone-100 dark:bg-stone-950">
-      <AdminHeader />
       <main className="mx-auto max-w-5xl px-6 py-8">
         <div className="mb-6">
           <h2 className="text-lg font-semibold text-stone-900 dark:text-stone-50">Reports</h2>
