@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 import type { LucideIcon } from "lucide-react";
-import { ArrowLeft, Flag, Home, Mail, MapPin, Phone, User } from "lucide-react";
+import { ArrowLeft, Flag, Home, Mail, MapPin, Phone, ReceiptText, User } from "lucide-react";
+import { MenuImage } from "@/components/menu/MenuImage";
+import type { LocalCartItem } from "@/modules/storefront/lib/storefront-cart";
 
 export interface GuestCheckoutValues {
   firstName: string;
@@ -33,6 +35,7 @@ function IconField({
 
 export function CheckoutStep({
   type,
+  cart,
   cartTotal,
   isPending,
   error,
@@ -40,6 +43,7 @@ export function CheckoutStep({
   onSubmit,
 }: {
   type: "DELIVERY" | "PICKUP";
+  cart: LocalCartItem[];
   cartTotal: number;
   isPending: boolean;
   error: string | null;
@@ -79,7 +83,7 @@ export function CheckoutStep({
     (type === "PICKUP" || values.addressLine1.trim());
 
   return (
-    <div className="mx-auto w-full max-w-lg px-4 py-6 sm:py-10">
+    <div className="mx-auto w-full max-w-4xl px-4 py-6 sm:py-10 lg:px-6">
       <button
         onClick={onBack}
         className="flex items-center gap-1.5 text-sm font-medium text-stone-400 transition-colors hover:text-stone-100"
@@ -97,73 +101,116 @@ export function CheckoutStep({
 
       {error && <p className="mt-4 rounded-lg bg-red-950/40 px-3 py-2 text-sm text-red-300">{error}</p>}
 
-      <div className="mt-5 space-y-3">
-        <div className="flex gap-3">
-          <IconField
-            icon={User}
-            value={values.firstName}
-            onChange={(e) => set("firstName", e.target.value)}
-            placeholder="First name"
-          />
-          <IconField
-            icon={User}
-            value={values.lastName}
-            onChange={(e) => set("lastName", e.target.value)}
-            placeholder="Last name"
-          />
-        </div>
-        <IconField
-          icon={Phone}
-          value={values.phone}
-          onChange={(e) => set("phone", e.target.value)}
-          placeholder="Phone number"
-          type="tel"
-        />
-        <IconField
-          icon={Mail}
-          value={values.email}
-          onChange={(e) => set("email", e.target.value)}
-          placeholder="Email (optional)"
-          type="email"
-        />
-
-        {type === "DELIVERY" && (
-          <div className="space-y-3 rounded-2xl border border-brand-cyan/15 bg-linear-to-b from-stone-900 to-stone-900/60 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]">
-            <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-brand-cyan">
-              <MapPin size={13} /> Delivery address
-            </p>
+      <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_22rem] lg:items-start">
+        {/* Every field carries autoComplete/inputMode so mobile keyboards and
+            browser autofill can do as much of the typing as possible. */}
+        <div className="space-y-3">
+          <div className="flex gap-3">
             <IconField
-              icon={Home}
-              value={values.addressLine1}
-              onChange={(e) => set("addressLine1", e.target.value)}
-              placeholder="Address (e.g. 12 Lagos Ave)"
+              icon={User}
+              value={values.firstName}
+              onChange={(e) => set("firstName", e.target.value)}
+              placeholder="First name"
+              autoComplete="given-name"
             />
-            <div className="flex gap-3">
-              <IconField
-                icon={MapPin}
-                value={values.area}
-                onChange={(e) => set("area", e.target.value)}
-                placeholder="Area (e.g. East Legon)"
-              />
-              <IconField
-                icon={Flag}
-                value={values.landmark}
-                onChange={(e) => set("landmark", e.target.value)}
-                placeholder="Landmark (optional)"
-              />
-            </div>
+            <IconField
+              icon={User}
+              value={values.lastName}
+              onChange={(e) => set("lastName", e.target.value)}
+              placeholder="Last name"
+              autoComplete="family-name"
+            />
           </div>
-        )}
-      </div>
+          <IconField
+            icon={Phone}
+            value={values.phone}
+            onChange={(e) => set("phone", e.target.value)}
+            placeholder="Phone number"
+            type="tel"
+            inputMode="tel"
+            autoComplete="tel"
+          />
+          <IconField
+            icon={Mail}
+            value={values.email}
+            onChange={(e) => set("email", e.target.value)}
+            placeholder="Email (optional)"
+            type="email"
+            inputMode="email"
+            autoComplete="email"
+          />
 
-      <button
-        onClick={handleSubmit}
-        disabled={!canSubmit || isPending}
-        className="group relative mt-6 flex w-full items-center justify-center overflow-hidden rounded-2xl bg-brand-red py-3.5 font-display text-base uppercase tracking-wide text-white shadow-lg shadow-brand-red/25 transition-transform hover:scale-[1.01] active:scale-[0.99] disabled:opacity-40 disabled:hover:scale-100"
-      >
-        <span className="absolute inset-0 -z-0 translate-x-[-100%] bg-brand-red-light transition-transform duration-300 group-hover:translate-x-0" />
-        <span className="relative z-10">{isPending ? "Placing order…" : `Place order · GHS ${cartTotal.toFixed(2)}`}</span>
-      </button>
+          {type === "DELIVERY" && (
+            <div className="space-y-3 rounded-2xl border border-brand-cyan/15 bg-linear-to-b from-stone-900 to-stone-900/60 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]">
+              <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-brand-cyan">
+                <MapPin size={13} /> Delivery address
+              </p>
+              <IconField
+                icon={Home}
+                value={values.addressLine1}
+                onChange={(e) => set("addressLine1", e.target.value)}
+                placeholder="Address (e.g. 12 Lagos Ave)"
+                autoComplete="address-line1"
+              />
+              <div className="flex gap-3">
+                <IconField
+                  icon={MapPin}
+                  value={values.area}
+                  onChange={(e) => set("area", e.target.value)}
+                  placeholder="Area (e.g. East Legon)"
+                  autoComplete="address-level2"
+                />
+                <IconField
+                  icon={Flag}
+                  value={values.landmark}
+                  onChange={(e) => set("landmark", e.target.value)}
+                  placeholder="Landmark (optional)"
+                  autoComplete="address-line2"
+                />
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Grounds the page in real content instead of a lone form floating
+            in empty space, and lets the customer confirm their cart survived
+            while they type — sticky on desktop, first thing reachable after
+            the form on mobile. */}
+        <div className="rounded-2xl border border-stone-800 bg-stone-900/60 p-4 lg:sticky lg:top-6">
+          <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-stone-400">
+            <ReceiptText size={13} /> Order summary
+          </p>
+
+          <ul className="mt-3 max-h-64 space-y-2.5 overflow-y-auto pr-1">
+            {cart.map((item) => (
+              <li key={item.key} className="flex items-center gap-2.5">
+                <MenuImage src={item.imageUrl} alt={item.productName} className="size-11 shrink-0 rounded-lg" />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium text-stone-100">
+                    {item.quantity} × {item.productName}
+                  </p>
+                  {item.modifiersLabel && <p className="truncate text-xs text-stone-500">{item.modifiersLabel}</p>}
+                </div>
+                <p className="shrink-0 text-sm font-semibold text-brand-cyan">GHS {item.lineTotal.toFixed(2)}</p>
+              </li>
+            ))}
+          </ul>
+
+          <div className="mt-3 flex items-center justify-between border-t border-stone-800 pt-3">
+            <span className="text-sm text-stone-400">Total</span>
+            <span className="text-lg font-bold text-stone-50">GHS {cartTotal.toFixed(2)}</span>
+          </div>
+
+          <button
+            onClick={handleSubmit}
+            disabled={!canSubmit || isPending}
+            className="group relative mt-4 flex w-full items-center justify-center overflow-hidden rounded-2xl bg-brand-red py-3.5 font-display text-base uppercase tracking-wide text-white shadow-lg shadow-brand-red/25 transition-transform hover:scale-[1.01] active:scale-[0.99] disabled:opacity-40 disabled:hover:scale-100"
+          >
+            <span className="absolute inset-0 -z-0 translate-x-[-100%] bg-brand-red-light transition-transform duration-300 group-hover:translate-x-0" />
+            <span className="relative z-10">{isPending ? "Placing order…" : "Place order"}</span>
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

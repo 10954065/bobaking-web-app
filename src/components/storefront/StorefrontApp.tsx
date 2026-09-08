@@ -42,6 +42,20 @@ const QUICK_TRANSITION_TIMINGS: SplashEntranceTimings = {
 // the wait — see globals.css .splash-glow).
 const QUICK_TRANSITION_HOLD_MS = 1450;
 
+// A customer who has already added items and then loses this component
+// (an accidental back-swipe, a refresh, tab close/reopen) should never come
+// back to an empty cart — mirrored to sessionStorage on every change, and
+// used to resume exactly where they left off on mount. Session-scoped
+// rather than localStorage: a cart shouldn't resurface days later against
+// stale prices.
+const CART_STORAGE_KEY = "flicks-cart-v1";
+
+type PersistedCartState = {
+  branchId: string;
+  type: "DELIVERY" | "PICKUP";
+  cart: LocalCartItem[];
+};
+
 export function StorefrontApp({ branches, initialDishId = null }: { branches: StorefrontBranch[]; initialDishId?: string | null }) {
   const router = useRouter();
   const [step, setStep] = useState<Step>("branch");
@@ -79,7 +93,7 @@ export function StorefrontApp({ branches, initialDishId = null }: { branches: St
   const cartCount = useMemo(() => cart.reduce((sum, item) => sum + item.quantity, 0), [cart]);
   const currentBranch = branches.find((b) => b.id === branchId);
 
-  async function handleBranchContinue(id: string) {
+  async function handleBranchContinue(id: string, options: { skipInitialDish?: boolean } = {}) {
     setBranchId(id);
     setMenuLoading(true);
     const startedAt = performance.now();
@@ -97,7 +111,8 @@ export function StorefrontApp({ branches, initialDishId = null }: { branches: St
       setStep("menu");
       // Came from tapping a dish on the homepage — jump straight into
       // ordering that item instead of making them find it again in the grid.
-      if (initialDishId) {
+      // Skipped when resuming a restored cart — that intent takes priority.
+      if (initialDishId && !options.skipInitialDish) {
         const match = loaded.products.find((p) => p.id === initialDishId);
         if (match) setSelectedProduct(match);
       }
@@ -119,6 +134,49 @@ export function StorefrontApp({ branches, initialDishId = null }: { branches: St
       }, holdRemaining)
     );
   }
+
+  // Restore a cart that survived losing this component — re-fetches the
+  // branch's menu and replays the normal loading transition, landing back
+  // on the menu step with the cart already in place. setCart/setType here
+  // only queue state updates; they land on a later render, not this effect
+  // pass — see isFirstPersistRun below, which is what keeps the persistence
+  // effect from seeing this render's still-empty state and wiping the
+  // sessionStorage entry before that restored state actually lands.
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem(CART_STORAGE_KEY);
+      if (raw) {
+        const saved = JSON.parse(raw) as Partial<PersistedCartState>;
+        if (saved.branchId && saved.cart?.length) {
+          setCart(saved.cart);
+          setType(saved.type === "PICKUP" ? "PICKUP" : "DELIVERY");
+          handleBranchContinue(saved.branchId, { skipInitialDish: true });
+        }
+      }
+    } catch {
+      // Corrupt or old-shape data — ignore and start fresh.
+    }
+    // Intentionally mount-only.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Mirror the cart to sessionStorage on every change. Skips its first run
+  // unconditionally: on mount that run either has nothing to persist yet, or
+  // a restore (above) is in flight and will show up as a second run once its
+  // setCart/setBranchId land — never as this initial, still-empty one.
+  const isFirstPersistRun = useRef(true);
+  useEffect(() => {
+    if (isFirstPersistRun.current) {
+      isFirstPersistRun.current = false;
+      return;
+    }
+    if (!branchId || cart.length === 0) {
+      sessionStorage.removeItem(CART_STORAGE_KEY);
+      return;
+    }
+    const payload: PersistedCartState = { branchId, type, cart };
+    sessionStorage.setItem(CART_STORAGE_KEY, JSON.stringify(payload));
+  }, [cart, branchId, type]);
 
   function handleConfirmItem(selection: ModifierSelection) {
     if (!selectedProduct) return;
@@ -167,6 +225,7 @@ export function StorefrontApp({ branches, initialDishId = null }: { branches: St
         })),
       });
       setOrder(placed);
+      setCart([]);
       setCartOpen(false);
       setStep("payment");
     } catch (e) {
@@ -198,6 +257,7 @@ export function StorefrontApp({ branches, initialDishId = null }: { branches: St
       <div className="min-h-screen bg-stone-950 text-stone-100">
         <CheckoutStep
           type={type}
+          cart={cart}
           cartTotal={cartTotal}
           isPending={isPlacing}
           error={checkoutError}
