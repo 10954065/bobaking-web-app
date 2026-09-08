@@ -25,8 +25,9 @@ import type { PosProduct } from "@/modules/pos/services/pos-catalog.service";
 type Step = "branch" | "menu" | "checkout" | "payment";
 
 // A compressed replay of the homepage splash's entrance, used as a brand
-// beat on the hand-off into checkout — same choreography, much shorter hold.
-const CHECKOUT_TRANSITION_TIMINGS: SplashEntranceTimings = {
+// beat at two hand-off points — branch -> menu (real async wait) and menu ->
+// checkout (purely decorative) — same choreography, much shorter hold.
+const QUICK_TRANSITION_TIMINGS: SplashEntranceTimings = {
   flood: 0,
   wordmark: 100,
   ampersand: 560,
@@ -35,7 +36,11 @@ const CHECKOUT_TRANSITION_TIMINGS: SplashEntranceTimings = {
   glow: 980,
   tagline: 1060,
 };
-const CHECKOUT_TRANSITION_HOLD_MS = 1450;
+// How long the entrance needs to play before it's OK to exit — a fixed hold
+// for checkout (nothing to wait on), a minimum for menu loading (the real
+// fetch can run longer, in which case the glow's idle breathing loop covers
+// the wait — see globals.css .splash-glow).
+const QUICK_TRANSITION_HOLD_MS = 1450;
 
 export function StorefrontApp({ branches, initialDishId = null }: { branches: StorefrontBranch[]; initialDishId?: string | null }) {
   const router = useRouter();
@@ -65,8 +70,8 @@ export function StorefrontApp({ branches, initialDishId = null }: { branches: St
     }
     setCheckoutTransition(true);
     transitionTimers.current.push(
-      setTimeout(() => setCheckoutTransition(false), CHECKOUT_TRANSITION_HOLD_MS),
-      setTimeout(() => setStep("checkout"), CHECKOUT_TRANSITION_HOLD_MS + EXIT_BLOOM_COVER_MS)
+      setTimeout(() => setCheckoutTransition(false), QUICK_TRANSITION_HOLD_MS),
+      setTimeout(() => setStep("checkout"), QUICK_TRANSITION_HOLD_MS + EXIT_BLOOM_COVER_MS)
     );
   }
 
@@ -77,8 +82,17 @@ export function StorefrontApp({ branches, initialDishId = null }: { branches: St
   async function handleBranchContinue(id: string) {
     setBranchId(id);
     setMenuLoading(true);
+    const startedAt = performance.now();
+
+    let loaded: StorefrontMenu;
     try {
-      const loaded = await getStorefrontMenuAction(id);
+      loaded = await getStorefrontMenuAction(id);
+    } catch (e) {
+      setMenuLoading(false);
+      throw e;
+    }
+
+    const revealMenu = () => {
       setMenu(loaded);
       setStep("menu");
       // Came from tapping a dish on the homepage — jump straight into
@@ -87,9 +101,23 @@ export function StorefrontApp({ branches, initialDishId = null }: { branches: St
         const match = loaded.products.find((p) => p.id === initialDishId);
         if (match) setSelectedProduct(match);
       }
-    } finally {
+    };
+
+    if (reducedMotion) {
       setMenuLoading(false);
+      revealMenu();
+      return;
     }
+
+    // Never cut the entrance short if the fetch was fast — but never make a
+    // slow fetch wait either, the glow's idle breathing loop covers it.
+    const holdRemaining = Math.max(0, QUICK_TRANSITION_HOLD_MS - (performance.now() - startedAt));
+    transitionTimers.current.push(
+      setTimeout(() => {
+        setMenuLoading(false);
+        transitionTimers.current.push(setTimeout(revealMenu, EXIT_BLOOM_COVER_MS));
+      }, holdRemaining)
+    );
   }
 
   function handleConfirmItem(selection: ModifierSelection) {
@@ -151,11 +179,7 @@ export function StorefrontApp({ branches, initialDishId = null }: { branches: St
   if (step === "branch") {
     return (
       <div className="min-h-screen bg-stone-950 text-stone-100">
-        {isMenuLoading && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
-            <p className="text-sm text-stone-300">Loading menu…</p>
-          </div>
-        )}
+        <SplashVisual visible={isMenuLoading} reducedMotion={reducedMotion} timings={QUICK_TRANSITION_TIMINGS} tagline="Finding your menu" />
         <BranchStep branches={branches} type={type} onSelectType={setType} onContinue={handleBranchContinue} />
       </div>
     );
@@ -186,7 +210,7 @@ export function StorefrontApp({ branches, initialDishId = null }: { branches: St
 
   return (
     <div className="flex min-h-screen flex-col bg-stone-950 text-stone-100">
-      <SplashVisual visible={checkoutTransition} reducedMotion={false} timings={CHECKOUT_TRANSITION_TIMINGS} tagline="Almost there" />
+      <SplashVisual visible={checkoutTransition} reducedMotion={false} timings={QUICK_TRANSITION_TIMINGS} tagline="Almost there" />
 
       <header className="sticky top-0 z-20 flex items-center gap-3 border-b border-stone-800 bg-stone-950/95 px-4 py-3 backdrop-blur">
         <button
