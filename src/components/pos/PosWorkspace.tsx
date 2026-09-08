@@ -3,13 +3,14 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { UtensilsCrossed, ChevronDown, UserRound, LogOut } from "lucide-react";
+import { UtensilsCrossed, ChevronDown, UserRound, LogOut, ArrowLeft } from "lucide-react";
 import { CustomerPanel, type PosCustomer } from "@/components/pos/CustomerPanel";
 import { DeliveryAddressPanel } from "@/components/pos/DeliveryAddressPanel";
 import { ProductGrid } from "@/components/pos/ProductGrid";
 import { ModifierModal, type ModifierSelection } from "@/components/pos/ModifierModal";
 import { CartPanel } from "@/components/pos/CartPanel";
 import { CheckoutFlow } from "@/components/pos/CheckoutFlow";
+import { OrderDesk } from "@/components/pos/OrderDesk";
 import {
   getOrCreateCartAction,
   addItemToCartAction,
@@ -38,6 +39,7 @@ export function PosWorkspace({
   products: PosProduct[];
 }) {
   const router = useRouter();
+  const [view, setView] = useState<"desk" | "manual">("desk");
   const [customer, setCustomer] = useState<PosCustomer | null>(null);
   const [cart, setCart] = useState<PosCart | null>(null);
   const [deliveryAddressId, setDeliveryAddressId] = useState<string | null>(null);
@@ -87,12 +89,28 @@ export function PosWorkspace({
     setCustomer(null);
     setCart(null);
     setDeliveryAddressId(null);
+    setView("desk");
+  }
+
+  if (view === "desk" && !customer) {
+    return (
+      <div className="min-h-screen bg-stone-950">
+        <PosHeader branchName={branchName} branches={branches} branchId={branchId} router={router} />
+        <OrderDesk onNewOrder={() => setView("manual")} />
+      </div>
+    );
   }
 
   if (!customer || !cart) {
     return (
       <div className="min-h-screen bg-stone-950">
         <PosHeader branchName={branchName} branches={branches} branchId={branchId} router={router} />
+        <button
+          onClick={() => setView("desk")}
+          className="mx-auto mt-4 flex w-fit items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-stone-400 transition-colors hover:bg-stone-900 hover:text-stone-100"
+        >
+          <ArrowLeft size={14} /> Back to order desk
+        </button>
         <CustomerPanel onStart={handleStartOrder} />
       </div>
     );

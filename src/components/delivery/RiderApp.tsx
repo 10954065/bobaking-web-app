@@ -3,7 +3,20 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "motion/react";
-import { Bike, Package, MapPin, Phone, Navigation2, CheckCircle2, Radio, UtensilsCrossed, UserRound, LogOut } from "lucide-react";
+import {
+  Bike,
+  Package,
+  MapPin,
+  Phone,
+  Navigation2,
+  CheckCircle2,
+  Radio,
+  UtensilsCrossed,
+  UserRound,
+  LogOut,
+  Wallet,
+  KeyRound,
+} from "lucide-react";
 import { signOutAction } from "@/modules/auth/actions/sign-out.action";
 import {
   getMyDeliveriesAction,
@@ -11,7 +24,9 @@ import {
   pingLocationAction,
   markPickedUpAction,
   markDeliveredAction,
+  getRiderEarningsSummaryAction,
   type RiderDeliveryOrder,
+  type RiderEarningsSummary,
 } from "@/modules/delivery/actions/rider.actions";
 
 const LOCATION_PING_INTERVAL_MS = 20_000;
@@ -32,6 +47,9 @@ export function RiderApp({
   const [pendingOrderId, setPendingOrderId] = useState<string | null>(null);
   const [locationError, setLocationError] = useState<string | null>(null);
   const [isTogglePending, setTogglePending] = useState(false);
+  const [earnings, setEarnings] = useState<RiderEarningsSummary>({ deliveriesToday: 0, earningsToday: 0 });
+  const [codeInputs, setCodeInputs] = useState<Record<string, string>>({});
+  const [codeErrors, setCodeErrors] = useState<Record<string, string | null>>({});
   const refetchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const isOnline = status !== "OFFLINE";
@@ -43,6 +61,15 @@ export function RiderApp({
       .catch(() => {
         // A failed background refetch just leaves the list stale until the next event or manual refresh.
       });
+    getRiderEarningsSummaryAction()
+      .then(setEarnings)
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    getRiderEarningsSummaryAction()
+      .then(setEarnings)
+      .catch(() => {});
   }, []);
 
   const debouncedRefetch = useCallback(() => {
@@ -100,14 +127,18 @@ export function RiderApp({
   }
 
   async function handleDelivered(orderId: string) {
+    const code = (codeInputs[orderId] ?? "").trim();
     setPendingOrderId(orderId);
+    setCodeErrors((prev) => ({ ...prev, [orderId]: null }));
     try {
-      await markDeliveredAction(orderId);
+      await markDeliveredAction(orderId, code);
       // markDeliveredAction also flips the rider back to AVAILABLE server-side
       // (see rider.service.ts setRiderStatus) — mirror that locally so the
       // online/offline toggle doesn't stay stuck on "On delivery".
       setStatus("AVAILABLE");
       refetch();
+    } catch (e) {
+      setCodeErrors((prev) => ({ ...prev, [orderId]: e instanceof Error ? e.message : "Couldn't confirm delivery." }));
     } finally {
       setPendingOrderId(null);
     }
@@ -153,6 +184,21 @@ export function RiderApp({
         </div>
       </header>
 
+      <div className="mx-auto flex w-full max-w-lg items-center gap-3 px-4 pt-3">
+        <div className="flex flex-1 items-center gap-2.5 rounded-xl border border-stone-800 bg-stone-900 px-3.5 py-2.5">
+          <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-emerald-950/60 text-emerald-400">
+            <Wallet size={15} />
+          </span>
+          <div className="min-w-0">
+            <p className="text-[10px] uppercase tracking-wide text-stone-500">Today&apos;s earnings</p>
+            <p className="truncate text-sm font-semibold text-stone-50">
+              GHS {earnings.earningsToday.toFixed(2)}{" "}
+              <span className="font-normal text-stone-500">· {earnings.deliveriesToday} deliveries</span>
+            </p>
+          </div>
+        </div>
+      </div>
+
       {/* Bottom padding reserves room for the fixed action bar so the last card is never hidden behind it. */}
       <main className="mx-auto w-full max-w-lg flex-1 space-y-3 p-4 pb-28">
         {locationError && (
@@ -189,7 +235,9 @@ export function RiderApp({
                   <Package size={16} />
                   {order.orderNumber}
                 </span>
-                <span className="text-xs font-semibold text-stone-400">GHS {order.total.toFixed(2)}</span>
+                <span className="flex items-center gap-1 text-xs font-semibold text-emerald-400">
+                  <Wallet size={12} /> +GHS {order.deliveryFee.toFixed(2)}
+                </span>
               </div>
 
               <div className="space-y-2 px-4 py-3">
@@ -235,14 +283,33 @@ export function RiderApp({
                   </button>
                 )}
                 {(order.status === "PICKED_UP" || order.status === "OUT_FOR_DELIVERY") && (
-                  <button
-                    onClick={() => handleDelivered(order.id)}
-                    disabled={pendingOrderId === order.id}
-                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 py-3 text-sm font-semibold text-white transition-colors active:scale-[0.98] hover:bg-emerald-500 disabled:opacity-50"
-                  >
-                    <CheckCircle2 size={16} />
-                    {pendingOrderId === order.id ? "Updating…" : "Mark delivered"}
-                  </button>
+                  <div className="space-y-2">
+                    <label className="flex items-center gap-1.5 text-xs font-medium text-stone-400">
+                      <KeyRound size={12} /> Ask the customer for their 4-digit code
+                    </label>
+                    <div className="flex gap-2">
+                      <input
+                        value={codeInputs[order.id] ?? ""}
+                        onChange={(e) => {
+                          const digits = e.target.value.replace(/\D/g, "").slice(0, 4);
+                          setCodeInputs((prev) => ({ ...prev, [order.id]: digits }));
+                        }}
+                        inputMode="numeric"
+                        maxLength={4}
+                        placeholder="0000"
+                        className="w-24 rounded-xl border border-stone-700 bg-stone-950 px-3 py-3 text-center font-mono text-lg tracking-[0.3em] text-stone-100 outline-none focus:border-orange-500"
+                      />
+                      <button
+                        onClick={() => handleDelivered(order.id)}
+                        disabled={pendingOrderId === order.id || (codeInputs[order.id] ?? "").length !== 4}
+                        className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-emerald-600 py-3 text-sm font-semibold text-white transition-colors active:scale-[0.98] hover:bg-emerald-500 disabled:opacity-50"
+                      >
+                        <CheckCircle2 size={16} />
+                        {pendingOrderId === order.id ? "Confirming…" : "Confirm delivered"}
+                      </button>
+                    </div>
+                    {codeErrors[order.id] && <p className="text-xs text-red-400">{codeErrors[order.id]}</p>}
+                  </div>
                 )}
               </div>
             </motion.div>

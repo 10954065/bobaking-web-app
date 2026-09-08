@@ -16,7 +16,6 @@ export const ROLES = {
   RIDER: "RIDER",
   FINANCE: "FINANCE",
   MARKETING: "MARKETING",
-  INVENTORY_MANAGER: "INVENTORY_MANAGER",
   CUSTOMER_SUPPORT: "CUSTOMER_SUPPORT",
 } as const;
 
@@ -167,20 +166,6 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<Exclude<RoleName, "SUPER_ADMIN">, 
     p("loyalty", "update"),
     p("analytics", "read"),
     p("customers", "read"),
-  ],
-  [ROLES.INVENTORY_MANAGER]: [
-    p("inventory", "read"),
-    p("inventory", "adjust"),
-    p("inventory", "transfer"),
-    p("recipes", "read"),
-    p("recipes", "update"),
-    p("suppliers", "read"),
-    p("suppliers", "create"),
-    p("suppliers", "update"),
-    p("purchase_orders", "read"),
-    p("purchase_orders", "create"),
-    p("purchase_orders", "update"),
-    p("products", "read"),
   ],
   [ROLES.CUSTOMER_SUPPORT]: [
     p("support", "read"),

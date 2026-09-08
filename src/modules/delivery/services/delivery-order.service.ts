@@ -11,6 +11,13 @@ export class NotAssignedToRiderError extends Error {
   }
 }
 
+export class InvalidDeliveryCodeError extends Error {
+  constructor() {
+    super("That code doesn't match — ask the customer to read it out again.");
+    this.name = "InvalidDeliveryCodeError";
+  }
+}
+
 /** READY delivery orders with no rider yet — what the admin board offers up for assignment. */
 export async function listReadyForDeliveryOrders(branchId: string) {
   return prisma.order.findMany({
@@ -34,6 +41,30 @@ export async function listAssignedDeliveriesForRider(riderUserId: string) {
     include: { customer: true, deliveryAddress: true, items: true },
     orderBy: { riderAssignedAt: "asc" },
   });
+}
+
+/**
+ * "How much am I making" for a rider: every order this rider personally
+ * marked DELIVERED today earns them that order's deliveryFee (the codebase
+ * has no separate rider-commission-percentage concept yet, so the full fee
+ * is the honest number to show rather than inventing a split). Keyed off
+ * OrderStatusHistory (changedByUserId is the rider on riderMarkDelivered)
+ * rather than Order.updatedAt, which could later be touched by an unrelated
+ * COMPLETED/REFUNDED transition and would then misreport "today".
+ */
+export async function getRiderEarningsToday(riderUserId: string) {
+  const startOfToday = new Date();
+  startOfToday.setHours(0, 0, 0, 0);
+
+  const deliveries = await prisma.orderStatusHistory.findMany({
+    where: { toStatus: "DELIVERED", changedByUserId: riderUserId, createdAt: { gte: startOfToday } },
+    include: { order: { select: { deliveryFee: true } } },
+  });
+
+  return {
+    deliveriesToday: deliveries.length,
+    earningsToday: deliveries.reduce((sum, entry) => sum + Number(entry.order.deliveryFee), 0),
+  };
 }
 
 async function requireOrderAssignedToRider(orderId: string, riderUserId: string) {
@@ -89,11 +120,24 @@ export async function riderMarkPickedUp(orderId: string, riderUserId: string, ac
   await publishDeliveryEvent(order.branchId, { type: "order.updated", orderId }).catch(() => {});
 }
 
-export async function riderMarkDelivered(orderId: string, riderUserId: string, actorUserId: string) {
+/**
+ * `code` is the 4-digit handoff PIN the customer reads out on arrival (see
+ * checkout.service.ts). Orders placed before this feature shipped have no
+ * deliveryCode — those fall back to no check at all rather than being
+ * permanently undeliverable.
+ */
+export async function riderMarkDelivered(orderId: string, riderUserId: string, actorUserId: string, code?: string) {
   const order = await requireOrderAssignedToRider(orderId, riderUserId);
+
+  if (order.deliveryCode && order.deliveryCode !== code) {
+    throw new InvalidDeliveryCodeError();
+  }
 
   if (canTransition(order.status, "DELIVERED")) {
     await transitionOrder({ orderId, toStatus: "DELIVERED", actorUserId, reason: "Delivered to customer" });
+  }
+  if (order.deliveryCode) {
+    await prisma.order.update({ where: { id: orderId }, data: { deliveryCodeVerifiedAt: new Date() } });
   }
   await setRiderStatus(riderUserId, "AVAILABLE");
 

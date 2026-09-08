@@ -1,3 +1,4 @@
+import { randomInt } from "node:crypto";
 import { prisma } from "@/db/client";
 import { Prisma } from "@prisma/client";
 import { generateOrderNumber } from "@/modules/orders/services/order-number.service";
@@ -199,6 +200,12 @@ export async function checkout(input: CheckoutInput): Promise<OrderWithDetails> 
 
     const orderNumber = await generateOrderNumber();
 
+    // A 4-digit handoff code the customer reads out to the rider on arrival —
+    // only DELIVERY orders need it (PICKUP is handed over in person at the
+    // counter, no impostor risk). See order-tracking.service.ts (customer
+    // view) and delivery-order.service.ts's riderMarkDelivered (rider check).
+    const deliveryCode = cart.type === "DELIVERY" ? String(randomInt(0, 10000)).padStart(4, "0") : null;
+
     const order = await tx.order.create({
       data: {
         orderNumber,
@@ -219,6 +226,7 @@ export async function checkout(input: CheckoutInput): Promise<OrderWithDetails> 
         scheduledFor: input.scheduledFor,
         placedByUserId: input.placedByUserId,
         idempotencyKey: input.idempotencyKey,
+        deliveryCode,
         items: {
           create: itemsToCreate.map((item) => ({
             productId: item.productId,

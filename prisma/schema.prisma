@@ -656,6 +656,10 @@ model Order {
   assignedRiderId String?   @map("assigned_rider_id")
   riderAssignedAt DateTime? @map("rider_assigned_at")
 
+  /// Handoff PIN shown to the customer (on their tracking page) and required from the rider before DELIVERED is accepted — proves the parcel actually reached the right person. Generated at checkout for DELIVERY orders only; plaintext by design (a short-lived handoff PIN, not an auth secret) same posture as the payment dev-stubs elsewhere in this codebase.
+  deliveryCode           String?   @map("delivery_code")
+  deliveryCodeVerifiedAt DateTime? @map("delivery_code_verified_at")
+
   /// Which Promotion (if any) discounted this order — discountTotal is the
   /// resolved GHS amount, computed once at checkout and never recomputed.
   promotionId    String? @map("promotion_id")

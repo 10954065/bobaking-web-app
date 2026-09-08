@@ -6,6 +6,7 @@ import {
   listAssignedDeliveriesForRider,
   riderMarkPickedUp,
   riderMarkDelivered,
+  getRiderEarningsToday,
 } from "@/modules/delivery/services/delivery-order.service";
 import { getRiderProfileByUserId, setRiderStatus, updateRiderLocation } from "@/modules/delivery/services/rider.service";
 import type { LocationPingInput } from "@/modules/delivery/schemas/rider.schema";
@@ -34,11 +35,17 @@ export interface RiderDeliveryOrder {
   addressLine2: string | null;
   landmark: string | null;
   total: number;
+  deliveryFee: number;
   itemCount: number;
 }
 
 export interface RiderStatusSummary {
   status: string;
+}
+
+export interface RiderEarningsSummary {
+  deliveriesToday: number;
+  earningsToday: number;
 }
 
 export async function getMyDeliveriesAction(): Promise<RiderDeliveryOrder[]> {
@@ -60,8 +67,15 @@ export async function getMyDeliveriesAction(): Promise<RiderDeliveryOrder[]> {
     addressLine2: order.deliveryAddress?.addressLine2 ?? null,
     landmark: order.deliveryAddress?.landmark ?? null,
     total: Number(order.total),
+    deliveryFee: Number(order.deliveryFee),
     itemCount: order.items.length,
   }));
+}
+
+export async function getRiderEarningsSummaryAction(): Promise<RiderEarningsSummary> {
+  const userId = await requireUserId();
+  await requireRiderProfile(userId);
+  return getRiderEarningsToday(userId);
 }
 
 export async function toggleAvailabilityAction(goOnline: boolean): Promise<RiderStatusSummary> {
@@ -85,8 +99,8 @@ export async function markPickedUpAction(orderId: string): Promise<void> {
   await riderMarkPickedUp(orderId, userId, userId);
 }
 
-export async function markDeliveredAction(orderId: string): Promise<void> {
+export async function markDeliveredAction(orderId: string, code: string): Promise<void> {
   const userId = await requireUserId();
   await requireRiderProfile(userId);
-  await riderMarkDelivered(orderId, userId, userId);
+  await riderMarkDelivered(orderId, userId, userId, code);
 }

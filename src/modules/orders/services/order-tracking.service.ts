@@ -10,6 +10,8 @@ export interface PublicOrderTracking {
   total: number;
   statusHistory: { toStatus: string; createdAt: string }[];
   rider: { firstName: string; lastLocationAt: string | null } | null;
+  /** Read this out to your rider on arrival — only set for DELIVERY orders, and hidden once the handoff is already confirmed. */
+  deliveryCode: string | null;
 }
 
 /**
@@ -52,5 +54,7 @@ export async function getPublicOrderTracking(orderNumber: string): Promise<Publi
           lastLocationAt: order.assignedRider!.riderProfile?.lastLocationAt?.toISOString() ?? null,
         }
       : null,
+    // Once the rider has already punched it in there's nothing left to prove — showing a stale code after DELIVERED would just be confusing.
+    deliveryCode: order.deliveryCode && !order.deliveryCodeVerifiedAt ? order.deliveryCode : null,
   };
 }

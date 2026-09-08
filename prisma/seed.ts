@@ -57,6 +57,18 @@ async function seedBranches(cityId: string) {
   return branches;
 }
 
+/**
+ * Deletes a role (and its seeded dev user, if any) that used to exist in
+ * DEFAULT_ROLE_PERMISSIONS but has since been retired — e.g. INVENTORY_MANAGER,
+ * folded into ADMIN/BRANCH_MANAGER once this went online-only. Without this,
+ * a dev database seeded before the retirement keeps a dangling role/user
+ * forever, since seedRoles only ever upserts roles it currently knows about.
+ */
+async function removeRetiredRole(roleName: string, devUserEmail: string) {
+  await prisma.user.deleteMany({ where: { email: devUserEmail } });
+  await prisma.role.deleteMany({ where: { name: roleName } });
+}
+
 async function seedPermissions() {
   const permissions = [];
   for (const def of PERMISSION_CATALOG) {
@@ -604,20 +616,6 @@ async function seedUsers(roleMap: Record<string, { id: string }>, eastLegonBranc
     },
   });
 
-  const inventoryManagerUser = await prisma.user.upsert({
-    where: { email: "inventory.manager@dev.flicksandlicks.local" },
-    update: {},
-    create: {
-      email: "inventory.manager@dev.flicksandlicks.local",
-      passwordHash,
-      firstName: "Inventory",
-      lastName: "Manager",
-      name: "Inventory Manager (East Legon)",
-      status: "ACTIVE",
-      emailVerified: new Date(),
-    },
-  });
-
   await assignRoleToUser({ userId: superAdminUser.id, roleId: roleMap[ROLES.SUPER_ADMIN].id, branchId: null });
   await assignRoleToUser({ userId: branchAdminUser.id, roleId: roleMap[ROLES.ADMIN].id, branchId: eastLegonBranchId });
   await assignRoleToUser({ userId: frontDeskUser.id, roleId: roleMap[ROLES.FRONT_DESK].id, branchId: eastLegonBranchId });
@@ -626,13 +624,8 @@ async function seedUsers(roleMap: Record<string, { id: string }>, eastLegonBranc
     roleId: roleMap[ROLES.KITCHEN_STAFF].id,
     branchId: eastLegonBranchId,
   });
-  await assignRoleToUser({
-    userId: inventoryManagerUser.id,
-    roleId: roleMap[ROLES.INVENTORY_MANAGER].id,
-    branchId: eastLegonBranchId,
-  });
 
-  return { superAdminUser, branchAdminUser, frontDeskUser, kitchenStaffUser, inventoryManagerUser };
+  return { superAdminUser, branchAdminUser, frontDeskUser, kitchenStaffUser };
 }
 
 async function main() {
@@ -643,6 +636,9 @@ async function main() {
   const branches = await seedBranches(accra.id);
   const eastLegon = branches.find((b) => b.slug === "east-legon")!;
 
+  console.log("Removing retired roles...");
+  await removeRetiredRole("INVENTORY_MANAGER", "inventory.manager@dev.flicksandlicks.local");
+
   console.log("Seeding permission catalog...");
   const permissions = await seedPermissions();
 
@@ -650,10 +646,7 @@ async function main() {
   const roleMap = await seedRoles(permissions);
 
   console.log("Seeding development users...");
-  const { superAdminUser, branchAdminUser, frontDeskUser, kitchenStaffUser, inventoryManagerUser } = await seedUsers(
-    roleMap,
-    eastLegon.id
-  );
+  const { superAdminUser, branchAdminUser, frontDeskUser, kitchenStaffUser } = await seedUsers(roleMap, eastLegon.id);
 
   console.log("Seeding catalog (categories, products, modifiers)...");
   const { categories, products } = await seedCatalog(branches);
@@ -696,7 +689,6 @@ async function main() {
   console.log(`  Branch Admin (East Legon) — ${branchAdminUser.email} / ${DEV_PASSWORD}`);
   console.log(`  Front Desk (East Legon) — ${frontDeskUser.email} / ${DEV_PASSWORD}`);
   console.log(`  Kitchen Staff (East Legon) — ${kitchenStaffUser.email} / ${DEV_PASSWORD}`);
-  console.log(`  Inventory Manager (East Legon) — ${inventoryManagerUser.email} / ${DEV_PASSWORD}`);
   console.log(`  Rider (East Legon) — ${rider.email} / ${DEV_PASSWORD}`);
 }
 

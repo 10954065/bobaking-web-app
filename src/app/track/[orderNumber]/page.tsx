@@ -10,7 +10,7 @@ const STATUS_LABELS: Record<string, string> = {
   DRAFT: "Order started",
   PENDING_PAYMENT: "Awaiting payment",
   PAYMENT_FAILED: "Payment failed",
-  CONFIRMED: "Order confirmed",
+  CONFIRMED: "Order approved",
   ACCEPTED: "Order accepted",
   SENT_TO_KITCHEN: "Sent to kitchen",
   PREPARING: "Being prepared",
@@ -95,6 +95,17 @@ export default async function TrackOrderPage({
               {tracking.rider.lastLocationAt &&
                 ` · last update ${new Date(tracking.rider.lastLocationAt).toLocaleTimeString()}`}
             </p>
+          )}
+
+          {tracking.deliveryCode && (
+            <div className="mt-4 rounded-lg border border-orange-200 bg-orange-50 px-4 py-3 text-center dark:border-orange-900/60 dark:bg-orange-950/30">
+              <p className="text-xs font-medium text-orange-700 dark:text-orange-300">
+                Give this code to your rider when they arrive
+              </p>
+              <p className="mt-1 font-mono text-3xl font-bold tracking-[0.4em] text-orange-600 dark:text-orange-400">
+                {tracking.deliveryCode}
+              </p>
+            </div>
           )}
         </section>
 
