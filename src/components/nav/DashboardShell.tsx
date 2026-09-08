@@ -181,7 +181,7 @@ export function DashboardShell({ visibleHrefs, userName, roleLabel, branchLabel,
   }
 
   return (
-    <div className="flex min-h-screen bg-stone-100 dark:bg-stone-950">
+    <div className="flex min-h-screen bg-gradient-to-br from-stone-50 via-brand-red-50/50 to-amber-50/40 dark:from-stone-950 dark:via-stone-950 dark:to-brand-red-950/10">
       {/* Desktop sidebar */}
       <motion.aside
         animate={{ width: collapsed ? 76 : 256 }}
@@ -265,12 +265,17 @@ export function DashboardShell({ visibleHrefs, userName, roleLabel, branchLabel,
         )}
       </AnimatePresence>
 
-      <main className="min-w-0 flex-1 pt-14 lg:pt-0">
+      <main className="dashboard-main relative min-w-0 flex-1 overflow-x-hidden pt-14 lg:pt-0">
+        {/* Decorative depth blobs — purely visual, sit behind the content. */}
+        <div className="pointer-events-none absolute -top-24 right-0 h-96 w-96 rounded-full bg-brand-red-300/25 blur-3xl dark:bg-brand-red-900/20" />
+        <div className="pointer-events-none absolute top-[40%] -left-24 h-80 w-80 rounded-full bg-amber-300/20 blur-3xl dark:bg-amber-900/10" />
+        <div className="pointer-events-none absolute bottom-0 right-1/4 h-72 w-72 rounded-full bg-brand-cyan/10 blur-3xl" />
         <motion.div
           key={pathname}
           initial={{ opacity: 0, y: 6 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.2, ease: "easeOut" }}
+          className="relative"
         >
           {children}
         </motion.div>

@@ -30,7 +30,7 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
   const profile = await getUserAccessProfile(session.user.id);
   if (!hasAnyPermission(profile, "customers", "read")) {
     return (
-      <div className="min-h-screen bg-stone-100 dark:bg-stone-950">
+      <div className="min-h-screen">
         <main className="mx-auto max-w-5xl px-6 py-8">
           <p className="text-sm text-stone-600 dark:text-stone-400">You don&apos;t have permission to view customers.</p>
         </main>
@@ -52,7 +52,7 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
     .reduce((sum, o) => sum + Number(o.total), 0);
 
   return (
-    <div className="min-h-screen bg-stone-100 dark:bg-stone-950">
+    <div className="min-h-screen">
       <main className="mx-auto max-w-5xl px-6 py-8">
         <div className="mb-6 flex items-center justify-between">
           <div>
@@ -72,23 +72,23 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
         </div>
 
         <div className="mb-8 grid grid-cols-3 gap-4">
-          <div className="rounded-xl border border-stone-200 bg-white p-4 dark:border-stone-800 dark:bg-stone-900">
+          <div className="rounded-xl border border-stone-200/70 bg-white shadow-sm shadow-stone-900/5 transition-shadow duration-200 hover:shadow-md p-4 dark:border-stone-800 dark:bg-stone-900">
             <p className="text-xs font-semibold uppercase text-stone-500 dark:text-stone-400">Orders</p>
             <p className="mt-1 text-2xl font-bold text-stone-900 dark:text-stone-50">{orders.length}</p>
           </div>
-          <div className="rounded-xl border border-stone-200 bg-white p-4 dark:border-stone-800 dark:bg-stone-900">
+          <div className="rounded-xl border border-stone-200/70 bg-white shadow-sm shadow-stone-900/5 transition-shadow duration-200 hover:shadow-md p-4 dark:border-stone-800 dark:bg-stone-900">
             <p className="text-xs font-semibold uppercase text-stone-500 dark:text-stone-400">Lifetime spend</p>
             <p className="mt-1 text-2xl font-bold text-stone-900 dark:text-stone-50">GHS {lifetimeSpend.toFixed(2)}</p>
           </div>
           {canViewLoyalty && (
-            <div className="rounded-xl border border-stone-200 bg-white p-4 dark:border-stone-800 dark:bg-stone-900">
+            <div className="rounded-xl border border-stone-200/70 bg-white shadow-sm shadow-stone-900/5 transition-shadow duration-200 hover:shadow-md p-4 dark:border-stone-800 dark:bg-stone-900">
               <p className="text-xs font-semibold uppercase text-stone-500 dark:text-stone-400">Loyalty points</p>
               <p className="mt-1 text-2xl font-bold text-brand-red-600">{loyaltyAccount?.pointsBalance ?? 0}</p>
             </div>
           )}
         </div>
 
-        <section className="mb-8 rounded-xl border border-stone-200 bg-white dark:border-stone-800 dark:bg-stone-900">
+        <section className="mb-8 rounded-xl border border-stone-200/70 bg-white shadow-sm shadow-stone-900/5 transition-shadow duration-200 hover:shadow-md dark:border-stone-800 dark:bg-stone-900">
           <h3 className="px-6 pt-6 text-sm font-semibold text-stone-500 dark:text-stone-400">Addresses</h3>
           <ul className="mt-4 divide-y divide-stone-100 dark:divide-stone-800">
             {customer.addresses.map((address) => (
@@ -107,7 +107,7 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
           </ul>
         </section>
 
-        <section className="mb-8 rounded-xl border border-stone-200 bg-white dark:border-stone-800 dark:bg-stone-900">
+        <section className="mb-8 rounded-xl border border-stone-200/70 bg-white shadow-sm shadow-stone-900/5 transition-shadow duration-200 hover:shadow-md dark:border-stone-800 dark:bg-stone-900">
           <h3 className="px-6 pt-6 text-sm font-semibold text-stone-500 dark:text-stone-400">
             Order history ({orders.length})
           </h3>
@@ -153,7 +153,7 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
         </section>
 
         {canViewLoyalty && (
-          <section className="rounded-xl border border-stone-200 bg-white dark:border-stone-800 dark:bg-stone-900">
+          <section className="rounded-xl border border-stone-200/70 bg-white shadow-sm shadow-stone-900/5 transition-shadow duration-200 hover:shadow-md dark:border-stone-800 dark:bg-stone-900">
             <h3 className="px-6 pt-6 text-sm font-semibold text-stone-500 dark:text-stone-400">
               Loyalty activity, balance: {loyaltyAccount?.pointsBalance ?? 0} points
             </h3>

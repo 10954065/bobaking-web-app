@@ -12,7 +12,7 @@ export default async function RecipesPage() {
   const profile = await getUserAccessProfile(session.user.id);
   if (!hasAnyPermission(profile, "recipes", "read")) {
     return (
-      <div className="min-h-screen bg-stone-100 dark:bg-stone-950">
+      <div className="min-h-screen">
         <main className="mx-auto max-w-5xl px-6 py-8">
           <p className="text-sm text-stone-600 dark:text-stone-400">You don&apos;t have permission to view recipes.</p>
         </main>
@@ -27,7 +27,7 @@ export default async function RecipesPage() {
   const recipeCountByProduct = new Map(recipeCounts.map((r) => [r.productId, r._count.productId]));
 
   return (
-    <div className="min-h-screen bg-stone-100 dark:bg-stone-950">
+    <div className="min-h-screen">
       <main className="mx-auto max-w-5xl px-6 py-8">
         <div className="mb-6">
           <h2 className="text-lg font-semibold text-stone-900 dark:text-stone-50">Recipes</h2>
@@ -36,7 +36,7 @@ export default async function RecipesPage() {
           </p>
         </div>
 
-        <section className="rounded-xl border border-stone-200 bg-white dark:border-stone-800 dark:bg-stone-900">
+        <section className="rounded-xl border border-stone-200/70 bg-white shadow-sm shadow-stone-900/5 transition-shadow duration-200 hover:shadow-md dark:border-stone-800 dark:bg-stone-900">
           <div className="mt-4 overflow-x-auto">
             <table className="w-full text-left text-sm">
               <thead className="text-stone-500 dark:text-stone-400">

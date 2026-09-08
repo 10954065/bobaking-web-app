@@ -16,7 +16,7 @@ export default async function MarketingHomePage() {
 
   if (!canViewPromotions && !canViewCampaigns && !canViewLoyalty) {
     return (
-      <div className="min-h-screen bg-stone-100 dark:bg-stone-950">
+      <div className="min-h-screen">
         <main className="mx-auto max-w-5xl px-6 py-8">
           <p className="text-sm text-stone-600 dark:text-stone-400">You don&apos;t have permission to view marketing.</p>
         </main>
@@ -30,7 +30,7 @@ export default async function MarketingHomePage() {
   ]);
 
   return (
-    <div className="min-h-screen bg-stone-100 dark:bg-stone-950">
+    <div className="min-h-screen">
       <main className="mx-auto max-w-5xl px-6 py-8">
         <div className="mb-6">
           <h2 className="text-lg font-semibold text-stone-900 dark:text-stone-50">Marketing</h2>
@@ -41,7 +41,7 @@ export default async function MarketingHomePage() {
           {canViewPromotions && (
             <Link
               href="/admin/marketing/promotions"
-              className="rounded-xl border border-stone-200 bg-white p-6 transition-colors hover:border-brand-red-400 dark:border-stone-800 dark:bg-stone-900"
+              className="rounded-xl border border-stone-200/70 bg-white shadow-sm shadow-stone-900/5 transition-shadow duration-200 hover:shadow-md p-6 transition-colors hover:border-brand-red-400 dark:border-stone-800 dark:bg-stone-900"
             >
               <p className="text-xs font-semibold uppercase text-stone-500 dark:text-stone-400">Promotions</p>
               <p className="mt-1 text-2xl font-bold text-stone-900 dark:text-stone-50">{promotions.length}</p>
@@ -51,7 +51,7 @@ export default async function MarketingHomePage() {
           {canViewCampaigns && (
             <Link
               href="/admin/marketing/campaigns"
-              className="rounded-xl border border-stone-200 bg-white p-6 transition-colors hover:border-brand-red-400 dark:border-stone-800 dark:bg-stone-900"
+              className="rounded-xl border border-stone-200/70 bg-white shadow-sm shadow-stone-900/5 transition-shadow duration-200 hover:shadow-md p-6 transition-colors hover:border-brand-red-400 dark:border-stone-800 dark:bg-stone-900"
             >
               <p className="text-xs font-semibold uppercase text-stone-500 dark:text-stone-400">Campaigns</p>
               <p className="mt-1 text-2xl font-bold text-stone-900 dark:text-stone-50">{campaigns.length}</p>
@@ -61,7 +61,7 @@ export default async function MarketingHomePage() {
           {canViewLoyalty && (
             <Link
               href="/admin/marketing/loyalty"
-              className="rounded-xl border border-stone-200 bg-white p-6 transition-colors hover:border-brand-red-400 dark:border-stone-800 dark:bg-stone-900"
+              className="rounded-xl border border-stone-200/70 bg-white shadow-sm shadow-stone-900/5 transition-shadow duration-200 hover:shadow-md p-6 transition-colors hover:border-brand-red-400 dark:border-stone-800 dark:bg-stone-900"
             >
               <p className="text-xs font-semibold uppercase text-stone-500 dark:text-stone-400">Loyalty</p>
               <p className="mt-1 text-2xl font-bold text-stone-900 dark:text-stone-50">Program</p>

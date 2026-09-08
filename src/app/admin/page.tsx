@@ -77,7 +77,7 @@ export default async function AdminDashboardPage() {
                 <Link
                   key={op.key}
                   href={op.href}
-                  className="group flex flex-col gap-3 rounded-xl border border-stone-200 bg-white p-4 transition-all hover:-translate-y-0.5 hover:border-brand-red-300 hover:shadow-lg hover:shadow-brand-red-900/5 dark:border-stone-800 dark:bg-stone-900 dark:hover:border-brand-red-900"
+                  className="group flex flex-col gap-3 rounded-xl border border-stone-200/70 bg-white shadow-sm shadow-stone-900/5 transition-shadow duration-200 hover:shadow-md p-4 transition-all hover:-translate-y-0.5 hover:border-brand-red-300 hover:shadow-lg hover:shadow-brand-red-900/5 dark:border-stone-800 dark:bg-stone-900 dark:hover:border-brand-red-900"
                 >
                   <span className="flex size-9 items-center justify-center rounded-lg bg-brand-red-50 text-brand-red-600 dark:bg-brand-red-950 dark:text-brand-red-400">
                     <Icon size={18} />
@@ -96,7 +96,7 @@ export default async function AdminDashboardPage() {
         </section>
       )}
 
-      <section className="rounded-xl border border-stone-200 bg-white p-6 dark:border-stone-800 dark:bg-stone-900">
+      <section className="rounded-xl border border-stone-200/70 bg-white shadow-sm shadow-stone-900/5 transition-shadow duration-200 hover:shadow-md p-6 dark:border-stone-800 dark:bg-stone-900">
         <h2 className="text-sm font-semibold text-stone-500 dark:text-stone-400">
           Branches you can access ({branches.length})
         </h2>

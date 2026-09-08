@@ -13,7 +13,7 @@ export default async function AdminMenuPage() {
   const profile = await getUserAccessProfile(session.user.id);
   if (!hasAnyPermission(profile, "products", "read")) {
     return (
-      <div className="min-h-screen bg-stone-100 dark:bg-stone-950">
+      <div className="min-h-screen">
         <main className="mx-auto max-w-5xl px-6 py-8">
           <p className="text-sm text-stone-600 dark:text-stone-400">
             You don&apos;t have permission to view the menu.
@@ -32,7 +32,7 @@ export default async function AdminMenuPage() {
   const overrideCountByProduct = new Map(overrideCounts.map((o) => [o.productId, o._count.productId]));
 
   return (
-    <div className="min-h-screen bg-stone-100 dark:bg-stone-950">
+    <div className="min-h-screen">
       <main className="mx-auto max-w-5xl px-6 py-8">
         <h1 className="mb-6 font-display text-2xl uppercase tracking-tight text-stone-900 dark:text-stone-50">Menu</h1>
         <MenuManager

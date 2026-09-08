@@ -16,7 +16,7 @@ export default async function AdminDeliveryPage({
   const profile = await getUserAccessProfile(session.user.id);
   if (!hasAnyPermission(profile, "delivery", "read")) {
     return (
-      <div className="min-h-screen bg-stone-100 dark:bg-stone-950">
+      <div className="min-h-screen">
         <main className="mx-auto max-w-5xl px-6 py-8">
           <p className="text-sm text-stone-600 dark:text-stone-400">You don&apos;t have permission to view delivery.</p>
         </main>
@@ -33,7 +33,7 @@ export default async function AdminDeliveryPage({
 
   if (!branchId || !currentBranch) {
     return (
-      <div className="min-h-screen bg-stone-100 dark:bg-stone-950">
+      <div className="min-h-screen">
         <main className="mx-auto max-w-5xl px-6 py-8">
           <p className="text-sm text-stone-600 dark:text-stone-400">No branch access configured for delivery.</p>
         </main>
@@ -45,7 +45,7 @@ export default async function AdminDeliveryPage({
   const board = await getDeliveryBoardAction(branchId);
 
   return (
-    <div className="min-h-screen bg-stone-100 dark:bg-stone-950">
+    <div className="min-h-screen">
       <DeliveryBoard
         branchId={branchId}
         branchName={currentBranch.name}

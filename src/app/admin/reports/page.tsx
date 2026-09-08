@@ -41,7 +41,7 @@ export default async function ReportsPage() {
   const availableCards = REPORT_CARDS.filter((card) => hasAnyPermission(profile, card.permission.resource, card.permission.action));
 
   return (
-    <div className="min-h-screen bg-stone-100 dark:bg-stone-950">
+    <div className="min-h-screen">
       <main className="mx-auto max-w-5xl px-6 py-8">
         <div className="mb-6">
           <h2 className="text-lg font-semibold text-stone-900 dark:text-stone-50">Reports</h2>
@@ -53,7 +53,7 @@ export default async function ReportsPage() {
         ) : (
           <div className="grid grid-cols-2 gap-4">
             {availableCards.map((card) => (
-              <div key={card.key} className="rounded-xl border border-stone-200 bg-white p-6 dark:border-stone-800 dark:bg-stone-900">
+              <div key={card.key} className="rounded-xl border border-stone-200/70 bg-white shadow-sm shadow-stone-900/5 transition-shadow duration-200 hover:shadow-md p-6 dark:border-stone-800 dark:bg-stone-900">
                 <p className="text-sm font-semibold text-stone-900 dark:text-stone-50">{card.title}</p>
                 <p className="mt-1 text-sm text-stone-500 dark:text-stone-400">{card.description}</p>
                 <a

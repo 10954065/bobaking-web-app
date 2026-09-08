@@ -116,6 +116,28 @@ body {
   animation: marquee 22s linear infinite;
 }
 
+/* Admin dashboard content — staggered card entrance on every route change.
+   Scoped to .dashboard-main (the admin shell's <main>) so it never touches
+   the customer-facing app, which has its own hand-tuned animations. */
+.dashboard-main section {
+  animation: fade-slide-up 0.45s ease-out both;
+}
+.dashboard-main section:nth-of-type(1) {
+  animation-delay: 0ms;
+}
+.dashboard-main section:nth-of-type(2) {
+  animation-delay: 60ms;
+}
+.dashboard-main section:nth-of-type(3) {
+  animation-delay: 120ms;
+}
+.dashboard-main section:nth-of-type(4) {
+  animation-delay: 180ms;
+}
+.dashboard-main section:nth-of-type(n + 5) {
+  animation-delay: 240ms;
+}
+
 /* Delivery map markers — see components/maps/. Plain DOM (not React-rendered
    Tailwind classes), since MapLibre markers own raw elements outside the
    React tree; kept minimal and dependency-free rather than importing an

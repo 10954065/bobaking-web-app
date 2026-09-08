@@ -19,7 +19,7 @@ export default async function ReviewsPage({ searchParams }: { searchParams: Prom
   const profile = await getUserAccessProfile(session.user.id);
   if (!hasAnyPermission(profile, "reviews", "read")) {
     return (
-      <div className="min-h-screen bg-stone-100 dark:bg-stone-950">
+      <div className="min-h-screen">
         <main className="mx-auto max-w-5xl px-6 py-8">
           <p className="text-sm text-stone-600 dark:text-stone-400">You don&apos;t have permission to view reviews.</p>
         </main>
@@ -33,7 +33,7 @@ export default async function ReviewsPage({ searchParams }: { searchParams: Prom
   const reviews = await listReviews(branchIds, { status: status === "HIDDEN" ? "HIDDEN" : status === "PUBLISHED" ? "PUBLISHED" : undefined });
 
   return (
-    <div className="min-h-screen bg-stone-100 dark:bg-stone-950">
+    <div className="min-h-screen">
       <main className="mx-auto max-w-5xl px-6 py-8">
         <div className="mb-6 flex items-center justify-between">
           <div>
@@ -68,7 +68,7 @@ export default async function ReviewsPage({ searchParams }: { searchParams: Prom
           ))}
         </div>
 
-        <section className="rounded-xl border border-stone-200 bg-white dark:border-stone-800 dark:bg-stone-900">
+        <section className="rounded-xl border border-stone-200/70 bg-white shadow-sm shadow-stone-900/5 transition-shadow duration-200 hover:shadow-md dark:border-stone-800 dark:bg-stone-900">
           <ul className="divide-y divide-stone-100 dark:divide-stone-800">
             {reviews.map((review) => (
               <li key={review.id} className="flex items-start justify-between gap-4 px-6 py-4">

@@ -18,7 +18,7 @@ export default async function RecipeEditorPage({ params }: { params: Promise<{ p
   const profile = await getUserAccessProfile(session.user.id);
   if (!hasAnyPermission(profile, "recipes", "read")) {
     return (
-      <div className="min-h-screen bg-stone-100 dark:bg-stone-950">
+      <div className="min-h-screen">
         <main className="mx-auto max-w-5xl px-6 py-8">
           <p className="text-sm text-stone-600 dark:text-stone-400">You don&apos;t have permission to view recipes.</p>
         </main>
@@ -30,7 +30,7 @@ export default async function RecipeEditorPage({ params }: { params: Promise<{ p
   const [recipeItems, ingredients] = await Promise.all([getRecipeForProduct(productId), listIngredients()]);
 
   return (
-    <div className="min-h-screen bg-stone-100 dark:bg-stone-950">
+    <div className="min-h-screen">
       <main className="mx-auto max-w-5xl px-6 py-8">
         <div className="mb-6 flex items-center justify-between">
           <div>

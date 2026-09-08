@@ -25,7 +25,7 @@ export default async function PurchaseOrderDetailPage({ params }: { params: Prom
   const profile = await getUserAccessProfile(session.user.id);
   if (!hasPermission(profile, "purchase_orders", "read", po.branchId)) {
     return (
-      <div className="min-h-screen bg-stone-100 dark:bg-stone-950">
+      <div className="min-h-screen">
         <main className="mx-auto max-w-5xl px-6 py-8">
           <p className="text-sm text-stone-600 dark:text-stone-400">
             You don&apos;t have permission to view this purchase order.
@@ -40,7 +40,7 @@ export default async function PurchaseOrderDetailPage({ params }: { params: Prom
   const canSubmit = canUpdate && po.status === "DRAFT";
 
   return (
-    <div className="min-h-screen bg-stone-100 dark:bg-stone-950">
+    <div className="min-h-screen">
       <main className="mx-auto max-w-5xl px-6 py-8">
         <div className="mb-6 flex items-center justify-between">
           <div>
@@ -65,7 +65,7 @@ export default async function PurchaseOrderDetailPage({ params }: { params: Prom
           {canSubmit && <SubmitPurchaseOrderButton purchaseOrderId={po.id} />}
         </div>
 
-        <section className="mb-8 rounded-xl border border-stone-200 bg-white dark:border-stone-800 dark:bg-stone-900">
+        <section className="mb-8 rounded-xl border border-stone-200/70 bg-white shadow-sm shadow-stone-900/5 transition-shadow duration-200 hover:shadow-md dark:border-stone-800 dark:bg-stone-900">
           <h3 className="px-6 pt-6 text-sm font-semibold text-stone-500 dark:text-stone-400">Line items</h3>
           <div className="mt-4 overflow-x-auto">
             <table className="w-full text-left text-sm">

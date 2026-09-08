@@ -12,7 +12,7 @@ export default async function LoyaltyConfigPage() {
   const profile = await getUserAccessProfile(session.user.id);
   if (!hasAnyPermission(profile, "loyalty", "read")) {
     return (
-      <div className="min-h-screen bg-stone-100 dark:bg-stone-950">
+      <div className="min-h-screen">
         <main className="mx-auto max-w-5xl px-6 py-8">
           <p className="text-sm text-stone-600 dark:text-stone-400">You don&apos;t have permission to view loyalty settings.</p>
         </main>
@@ -29,7 +29,7 @@ export default async function LoyaltyConfigPage() {
   const redeemExample = Math.round(config.minPointsToRedeem * redemptionValue * 100) / 100;
 
   return (
-    <div className="min-h-screen bg-stone-100 dark:bg-stone-950">
+    <div className="min-h-screen">
       <main className="mx-auto max-w-5xl px-6 py-8">
         <div className="mb-6 flex items-center justify-between">
           <div>
@@ -46,14 +46,14 @@ export default async function LoyaltyConfigPage() {
           </Link>
         </div>
 
-        <section className="mb-6 rounded-xl border border-stone-200 bg-white p-6 dark:border-stone-800 dark:bg-stone-900">
+        <section className="mb-6 rounded-xl border border-stone-200/70 bg-white shadow-sm shadow-stone-900/5 transition-shadow duration-200 hover:shadow-md p-6 dark:border-stone-800 dark:bg-stone-900">
           <p className="text-sm text-stone-600 dark:text-stone-400">
             With the current settings: a GHS 50.00 order earns <strong>{earnExample} points</strong>. The minimum redemption
             of {config.minPointsToRedeem} points is worth <strong>GHS {redeemExample.toFixed(2)}</strong>.
           </p>
         </section>
 
-        <section className="rounded-xl border border-stone-200 bg-white p-6 dark:border-stone-800 dark:bg-stone-900">
+        <section className="rounded-xl border border-stone-200/70 bg-white shadow-sm shadow-stone-900/5 transition-shadow duration-200 hover:shadow-md p-6 dark:border-stone-800 dark:bg-stone-900">
           <h3 className="text-sm font-semibold text-stone-500 dark:text-stone-400">Settings</h3>
           <form action={updateLoyaltyConfigFormAction} className="mt-4 space-y-4">
             <div className="flex flex-wrap items-end gap-4">

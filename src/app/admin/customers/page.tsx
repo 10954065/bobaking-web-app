@@ -15,7 +15,7 @@ export default async function AdminCustomersPage({
   const profile = await getUserAccessProfile(session.user.id);
   if (!hasAnyPermission(profile, "customers", "read")) {
     return (
-      <div className="min-h-screen bg-stone-100 dark:bg-stone-950">
+      <div className="min-h-screen">
         <main className="mx-auto max-w-5xl px-6 py-8">
           <p className="text-sm text-stone-600 dark:text-stone-400">
             You don&apos;t have permission to view customers.
@@ -29,9 +29,9 @@ export default async function AdminCustomersPage({
   const customers = q ? await searchCustomers(q) : [];
 
   return (
-    <div className="min-h-screen bg-stone-100 dark:bg-stone-950">
+    <div className="min-h-screen">
       <main className="mx-auto max-w-5xl px-6 py-8">
-        <section className="rounded-xl border border-stone-200 bg-white p-6 dark:border-stone-800 dark:bg-stone-900">
+        <section className="rounded-xl border border-stone-200/70 bg-white shadow-sm shadow-stone-900/5 transition-shadow duration-200 hover:shadow-md p-6 dark:border-stone-800 dark:bg-stone-900">
           <h2 className="text-sm font-semibold text-stone-500 dark:text-stone-400">Customer search</h2>
           <form method="GET" className="mt-3 flex gap-2">
             <input

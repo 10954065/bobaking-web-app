@@ -17,7 +17,7 @@ export default async function DeliveryZonesPage({
   const profile = await getUserAccessProfile(session.user.id);
   if (!hasAnyPermission(profile, "delivery", "read")) {
     return (
-      <div className="min-h-screen bg-stone-100 dark:bg-stone-950">
+      <div className="min-h-screen">
         <main className="mx-auto max-w-5xl px-6 py-8">
           <p className="text-sm text-stone-600 dark:text-stone-400">You don&apos;t have permission to view delivery zones.</p>
         </main>
@@ -34,7 +34,7 @@ export default async function DeliveryZonesPage({
 
   if (!branchId || !currentBranch) {
     return (
-      <div className="min-h-screen bg-stone-100 dark:bg-stone-950">
+      <div className="min-h-screen">
         <main className="mx-auto max-w-5xl px-6 py-8">
           <p className="text-sm text-stone-600 dark:text-stone-400">No branch access configured for delivery.</p>
         </main>
@@ -46,7 +46,7 @@ export default async function DeliveryZonesPage({
   const zones = await listZonesForBranch(branchId, { includeInactive: true });
 
   return (
-    <div className="min-h-screen bg-stone-100 dark:bg-stone-950">
+    <div className="min-h-screen">
       <main className="mx-auto max-w-5xl px-6 py-8">
         <div className="mb-6 flex items-center justify-between">
           <div>
@@ -81,7 +81,7 @@ export default async function DeliveryZonesPage({
           </div>
         )}
 
-        <section className="mb-8 rounded-xl border border-stone-200 bg-white dark:border-stone-800 dark:bg-stone-900">
+        <section className="mb-8 rounded-xl border border-stone-200/70 bg-white shadow-sm shadow-stone-900/5 transition-shadow duration-200 hover:shadow-md dark:border-stone-800 dark:bg-stone-900">
           <h3 className="px-6 pt-6 text-sm font-semibold text-stone-500 dark:text-stone-400">
             Zones &middot; {currentBranch.name} ({zones.length})
           </h3>
@@ -144,7 +144,7 @@ export default async function DeliveryZonesPage({
         </section>
 
         {canManage && (
-          <section className="rounded-xl border border-stone-200 bg-white p-6 dark:border-stone-800 dark:bg-stone-900">
+          <section className="rounded-xl border border-stone-200/70 bg-white shadow-sm shadow-stone-900/5 transition-shadow duration-200 hover:shadow-md p-6 dark:border-stone-800 dark:bg-stone-900">
             <h3 className="text-sm font-semibold text-stone-500 dark:text-stone-400">Add zone</h3>
             <form action={createZoneFormAction.bind(null, branchId)} className="mt-3 flex flex-wrap items-end gap-3">
               <div>
