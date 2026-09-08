@@ -35,6 +35,32 @@ export async function createUser(input: CreateUserInput) {
   });
 }
 
+export async function listStaffUsers() {
+  return prisma.user.findMany({
+    where: { deletedAt: null },
+    include: {
+      userRoles: { include: { role: true, branch: true } },
+    },
+    orderBy: { createdAt: "desc" },
+  });
+}
+
+export async function userHasRole(userId: string, roleName: string): Promise<boolean> {
+  const match = await prisma.userRole.findFirst({
+    where: { userId, role: { name: roleName } },
+    select: { id: true },
+  });
+  return match !== null;
+}
+
+export async function setUserStatus(userId: string, status: "ACTIVE" | "DEACTIVATED") {
+  return prisma.user.update({ where: { id: userId }, data: { status } });
+}
+
+export async function revokeUserRole(userRoleId: string) {
+  return prisma.userRole.delete({ where: { id: userRoleId } });
+}
+
 export async function assignRoleToUser(params: { userId: string; roleId: string; branchId?: string | null }) {
   const branchId = params.branchId ?? null;
 

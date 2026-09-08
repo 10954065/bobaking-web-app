@@ -7,6 +7,7 @@ import {
   Truck,
   Megaphone,
   Users,
+  UserCog,
   BarChart3,
   LifeBuoy,
   FileBarChart,
@@ -92,6 +93,7 @@ export const NAV_ITEMS: NavItem[] = [
     ],
   },
   { href: "/admin/customers", label: "Customers", icon: Users, anyOf: [{ resource: "customers", action: "read" }] },
+  { href: "/admin/staff", label: "Staff", icon: UserCog, anyOf: [{ resource: "users", action: "read" }] },
   { href: "/admin/analytics", label: "Analytics", icon: BarChart3, anyOf: [{ resource: "analytics", action: "read" }] },
   {
     href: "/admin/support",
