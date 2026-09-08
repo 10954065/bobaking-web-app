@@ -103,6 +103,8 @@ model Branch {
   deliveryZones    DeliveryZone[]
   riderProfiles    RiderProfile[]
   promotions       Promotion[]
+  supportTickets   SupportTicket[]
+  reviews          Review[]
 
   @@index([cityId])
   @@index([status])
@@ -160,6 +162,9 @@ model User {
   riderProfile       RiderProfile?
   assignedDeliveries Order[]              @relation("OrderAssignedRider")
   loyaltyAdjustments LoyaltyTransaction[]
+  assignedTickets    SupportTicket[]      @relation("SupportTicketAssignee")
+  supportMessages    SupportMessage[]
+  moderatedReviews   Review[]             @relation("ReviewModerator")
 
   @@index([status])
   @@index([email])
@@ -468,6 +473,9 @@ model Customer {
   orders              Order[]
   loyaltyAccount      LoyaltyAccount?
   loyaltyTransactions LoyaltyTransaction[]
+  supportTickets      SupportTicket[]
+  reviews             Review[]
+  notifications       Notification[]
 
   @@index([status])
   @@index([email])
@@ -649,6 +657,9 @@ model Order {
   statusHistory       OrderStatusHistory[]
   payments            Payment[]
   loyaltyTransactions LoyaltyTransaction[]
+  supportTickets      SupportTicket[]
+  review              Review?
+  notifications       Notification[]
 
   @@index([branchId])
   @@index([customerId])
@@ -1226,4 +1237,139 @@ model Campaign {
   promotion Promotion? @relation(fields: [promotionId], references: [id], onDelete: SetNull)
 
   @@map("campaigns")
+}
+
+// ---------------------------------------------------------------------------
+// Support — order-scoped tickets raised from the public tracking page (see
+// getPublicOrderTracking's own PII rule: no login exists for customers, so a
+// ticket is created/replied to using only the order number as the capability,
+// exactly like tracking itself). Staff work tickets from /admin/support.
+// ---------------------------------------------------------------------------
+
+enum SupportTicketStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+model SupportTicket {
+  id               String              @id @default(uuid())
+  customerId       String              @map("customer_id")
+  orderId          String?             @map("order_id")
+  branchId         String?             @map("branch_id")
+  subject          String
+  status           SupportTicketStatus @default(OPEN)
+  assignedToUserId String?             @map("assigned_to_user_id")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  customer   Customer         @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  order      Order?           @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  branch     Branch?          @relation(fields: [branchId], references: [id], onDelete: SetNull)
+  assignedTo User?            @relation("SupportTicketAssignee", fields: [assignedToUserId], references: [id], onDelete: SetNull)
+  messages   SupportMessage[]
+
+  @@index([customerId])
+  @@index([orderId])
+  @@index([branchId])
+  @@index([status])
+  @@map("support_tickets")
+}
+
+enum SupportMessageAuthorType {
+  CUSTOMER
+  STAFF
+}
+
+model SupportMessage {
+  id           String                   @id @default(uuid())
+  ticketId     String                   @map("ticket_id")
+  authorType   SupportMessageAuthorType @map("author_type")
+  /// Set only when authorType = STAFF. The public thread never shows which
+  /// staff member wrote a reply (see the no-PII rule above) — this is for
+  /// internal accountability only, resolved to a display name in admin UI.
+  authorUserId String?                  @map("author_user_id")
+  body         String
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  ticket     SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  authorUser User?         @relation(fields: [authorUserId], references: [id], onDelete: SetNull)
+
+  @@index([ticketId])
+  @@map("support_messages")
+}
+
+// ---------------------------------------------------------------------------
+// Reviews — one per order, submittable from the public tracking page once an
+// order reaches a terminal successful state. `status` lets staff hide abusive
+// content without deleting it (same never-hard-delete posture as orders).
+// ---------------------------------------------------------------------------
+
+enum ReviewStatus {
+  PUBLISHED
+  HIDDEN
+}
+
+model Review {
+  id                String       @id @default(uuid())
+  orderId           String       @unique @map("order_id")
+  customerId        String       @map("customer_id")
+  branchId          String       @map("branch_id")
+  rating            Int
+  comment           String?
+  status            ReviewStatus @default(PUBLISHED)
+  moderatedByUserId String?      @map("moderated_by_user_id")
+  moderatedAt       DateTime?    @map("moderated_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  customer    Customer @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  branch      Branch   @relation(fields: [branchId], references: [id], onDelete: Restrict)
+  moderatedBy User?    @relation("ReviewModerator", fields: [moderatedByUserId], references: [id], onDelete: SetNull)
+
+  @@index([branchId])
+  @@index([status])
+  @@map("reviews")
+}
+
+// ---------------------------------------------------------------------------
+// Notifications — a dev-stub send log, same posture as the Mobile Money
+// payment provider (see payment.service.ts): no real SMS/email gateway is
+// wired up, so recording a Notification row here IS the "send". A real
+// provider slots in later behind the same notifyOrderStatus() call site.
+// ---------------------------------------------------------------------------
+
+enum NotificationChannel {
+  SMS
+  EMAIL
+}
+
+enum NotificationStatus {
+  SENT
+  FAILED
+}
+
+model Notification {
+  id         String              @id @default(uuid())
+  customerId String              @map("customer_id")
+  orderId    String?             @map("order_id")
+  channel    NotificationChannel
+  status     NotificationStatus  @default(SENT)
+  subject    String
+  body       String
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  order    Order?   @relation(fields: [orderId], references: [id], onDelete: SetNull)
+
+  @@index([customerId])
+  @@index([orderId])
+  @@index([createdAt])
+  @@map("notifications")
 }

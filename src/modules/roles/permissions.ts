@@ -104,6 +104,7 @@ export const PERMISSION_CATALOG: PermissionDefinition[] = [
   perm("marketing", "delete", "Remove marketing campaigns"),
   perm("loyalty", "read", "View loyalty configuration/accounts"),
   perm("loyalty", "update", "Edit loyalty rules"),
+  perm("notifications", "read", "View the customer notification log"),
 
   // Analytics & audit
   perm("analytics", "read", "View analytics dashboards"),

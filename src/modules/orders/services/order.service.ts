@@ -3,6 +3,7 @@ import { Prisma, type Order, type OrderStatus } from "@prisma/client";
 import { canTransition, InvalidOrderTransitionError } from "@/modules/orders/services/order-state-machine";
 import { recordAuditLog } from "@/modules/audit/services/audit.service";
 import { publishKitchenEvent } from "@/modules/kitchen/services/kitchen-events";
+import { notifyOrderStatus } from "@/modules/notifications/services/notification.service";
 
 const orderWithDetails = Prisma.validator<Prisma.OrderDefaultArgs>()({
   include: {
@@ -100,6 +101,10 @@ export async function transitionOrder(params: {
   // across a network call to Redis would extend lock time for no benefit.
   const eventType = params.toStatus === "SENT_TO_KITCHEN" ? "order.new" : "order.updated";
   await publishKitchenEvent(updated.branchId, { type: eventType, orderId: updated.id }).catch(() => {});
+
+  // Same "never load-bearing" posture — notifyOrderStatus already never
+  // throws, but the .catch() is cheap insurance against that invariant ever slipping.
+  await notifyOrderStatus(updated).catch(() => {});
 
   return updated;
 }
