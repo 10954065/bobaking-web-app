@@ -1,6 +1,10 @@
 import Link from "next/link";
 import { UtensilsCrossed } from "lucide-react";
 
+// See order/page.tsx — must not be statically prerendered, or the CSP nonce
+// baked into its inline scripts goes stale and breaks hydration.
+export const dynamic = "force-dynamic";
+
 export default function Home() {
   return (
     <div className="flex flex-1 flex-col items-center justify-center bg-stone-950 px-6 text-center">

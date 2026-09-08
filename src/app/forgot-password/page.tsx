@@ -1,6 +1,10 @@
 import { KeyRound } from "lucide-react";
 import { ForgotPasswordForm } from "@/components/auth/ForgotPasswordForm";
 
+// See app/order/page.tsx — must not be statically prerendered, or the CSP
+// nonce baked into its inline scripts goes stale and breaks hydration.
+export const dynamic = "force-dynamic";
+
 export default function ForgotPasswordPage() {
   return (
     <div className="flex flex-1 items-center justify-center bg-stone-950 px-4 py-16">

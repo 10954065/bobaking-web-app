@@ -17,7 +17,10 @@ const nextConfig: NextConfig = {
   // Standalone output traces only the files each route actually needs into
   // .next/standalone — the Dockerfile copies just that instead of the full
   // node_modules tree, which is most of why the production image stays small.
-  output: "standalone",
+  // Vercel does its own equivalent file tracing/bundling and does not expect
+  // (or support) "standalone" mode — enabling it there breaks Vercel's build
+  // output step, so it's only applied for the Docker build path.
+  ...(process.env.VERCEL ? {} : { output: "standalone" as const }),
   async headers() {
     return [{ source: "/(.*)", headers: SECURITY_HEADERS }];
   },
