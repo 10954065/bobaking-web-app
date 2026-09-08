@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
 import { ArrowLeft, ChevronUp, Minus, Plus, ShoppingBag, Trash2, X } from "lucide-react";
@@ -8,6 +8,7 @@ import { ProductGrid } from "@/components/pos/ProductGrid";
 import { ModifierModal, type ModifierSelection } from "@/components/pos/ModifierModal";
 import { MenuImage } from "@/components/menu/MenuImage";
 import { Logo } from "@/components/brand/Logo";
+import { SplashVisual, EXIT_BLOOM_COVER_MS, useReducedMotionPreference, type SplashEntranceTimings } from "@/components/brand/SplashVisual";
 import { BranchStep } from "@/components/storefront/BranchStep";
 import { CheckoutStep, type GuestCheckoutValues } from "@/components/storefront/CheckoutStep";
 import { PaymentStep } from "@/components/storefront/PaymentStep";
@@ -23,6 +24,19 @@ import type { PosProduct } from "@/modules/pos/services/pos-catalog.service";
 
 type Step = "branch" | "menu" | "checkout" | "payment";
 
+// A compressed replay of the homepage splash's entrance, used as a brand
+// beat on the hand-off into checkout — same choreography, much shorter hold.
+const CHECKOUT_TRANSITION_TIMINGS: SplashEntranceTimings = {
+  flood: 0,
+  wordmark: 100,
+  ampersand: 560,
+  dropletBase: 760,
+  dropletStagger: 60,
+  glow: 980,
+  tagline: 1060,
+};
+const CHECKOUT_TRANSITION_HOLD_MS = 1450;
+
 export function StorefrontApp({ branches, initialDishId = null }: { branches: StorefrontBranch[]; initialDishId?: string | null }) {
   const router = useRouter();
   const [step, setStep] = useState<Step>("branch");
@@ -36,6 +50,25 @@ export function StorefrontApp({ branches, initialDishId = null }: { branches: St
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const [isPlacing, setIsPlacing] = useState(false);
   const [order, setOrder] = useState<StorefrontOrderSummary | null>(null);
+  const [checkoutTransition, setCheckoutTransition] = useState(false);
+  const reducedMotion = useReducedMotionPreference();
+  const transitionTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
+
+  useEffect(() => {
+    return () => transitionTimers.current.forEach(clearTimeout);
+  }, []);
+
+  function handleCheckoutClick() {
+    if (reducedMotion) {
+      setStep("checkout");
+      return;
+    }
+    setCheckoutTransition(true);
+    transitionTimers.current.push(
+      setTimeout(() => setCheckoutTransition(false), CHECKOUT_TRANSITION_HOLD_MS),
+      setTimeout(() => setStep("checkout"), CHECKOUT_TRANSITION_HOLD_MS + EXIT_BLOOM_COVER_MS)
+    );
+  }
 
   const cartTotal = useMemo(() => cart.reduce((sum, item) => sum + item.lineTotal, 0), [cart]);
   const cartCount = useMemo(() => cart.reduce((sum, item) => sum + item.quantity, 0), [cart]);
@@ -153,6 +186,8 @@ export function StorefrontApp({ branches, initialDishId = null }: { branches: St
 
   return (
     <div className="flex min-h-screen flex-col bg-stone-950 text-stone-100">
+      <SplashVisual visible={checkoutTransition} reducedMotion={false} timings={CHECKOUT_TRANSITION_TIMINGS} tagline="Almost there" />
+
       <header className="sticky top-0 z-20 flex items-center gap-3 border-b border-stone-800 bg-stone-950/95 px-4 py-3 backdrop-blur">
         <button
           onClick={() => setStep("branch")}
@@ -240,7 +275,7 @@ export function StorefrontApp({ branches, initialDishId = null }: { branches: St
                 </span>
               </button>
               <button
-                onClick={() => setStep("checkout")}
+                onClick={handleCheckoutClick}
                 className="rounded-xl bg-brand-red px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-brand-red/20 transition-transform hover:scale-[1.02] active:scale-[0.98]"
               >
                 Checkout
