@@ -80,7 +80,7 @@ export async function markOrderItemReady(orderItemId: string, actorUserId: strin
 export async function listKitchenQueueForBranch(branchId: string) {
   return prisma.order.findMany({
     where: { branchId, status: { in: ["SENT_TO_KITCHEN", "PREPARING", "READY"] } },
-    include: { items: { include: { modifiers: true } } },
+    include: { items: { include: { modifiers: true, product: { select: { imageUrl: true } } } } },
     orderBy: { createdAt: "asc" },
   });
 }
@@ -88,6 +88,7 @@ export async function listKitchenQueueForBranch(branchId: string) {
 export interface KdsOrderItem {
   id: string;
   productName: string;
+  productImageUrl: string | null;
   quantity: number;
   notes: string | null;
   kitchenStatus: "PENDING" | "PREPARING" | "READY";
@@ -127,6 +128,7 @@ export function toKdsOrder(
     items: order.items.map((item) => ({
       id: item.id,
       productName: item.productName,
+      productImageUrl: item.product.imageUrl,
       quantity: item.quantity,
       notes: item.notes,
       kitchenStatus: item.kitchenStatus,

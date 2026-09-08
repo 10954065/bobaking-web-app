@@ -1,8 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { motion, AnimatePresence } from "motion/react";
-import { Bike, Package, MapPin, Phone, Navigation2, CheckCircle2, Radio, UtensilsCrossed } from "lucide-react";
+import { Bike, Package, MapPin, Phone, Navigation2, CheckCircle2, Radio, UtensilsCrossed, UserRound, LogOut } from "lucide-react";
+import { signOutAction } from "@/modules/auth/actions/sign-out.action";
 import {
   getMyDeliveriesAction,
   toggleAvailabilityAction,
@@ -114,23 +116,41 @@ export function RiderApp({
   return (
     <div className="flex min-h-screen flex-col bg-stone-950 text-stone-100">
       <header className="sticky top-0 z-10 flex items-center justify-between border-b border-stone-800 bg-stone-950/95 px-4 py-3 backdrop-blur">
-        <div className="flex items-center gap-2.5">
-          <span className="flex size-9 items-center justify-center rounded-xl bg-orange-600 text-white">
+        <div className="flex min-w-0 items-center gap-2.5">
+          <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-orange-600 text-white">
             <UtensilsCrossed size={17} strokeWidth={2.25} />
           </span>
-          <div>
+          <div className="min-w-0">
             <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-orange-500">Flicks &amp; Licks</p>
-            <h1 className="text-base font-semibold leading-tight">{riderName}</h1>
+            <h1 className="truncate text-base font-semibold leading-tight">{riderName}</h1>
           </div>
         </div>
-        <span
-          className={`flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${
-            isOnline ? "bg-emerald-950/60 text-emerald-400" : "bg-stone-800 text-stone-500"
-          }`}
-        >
-          <Radio size={12} className={isOnline ? "animate-pulse" : ""} />
-          {isOnDelivery ? "On delivery" : isOnline ? "Online" : "Offline"}
-        </span>
+        <div className="flex shrink-0 items-center gap-1.5">
+          <span
+            className={`flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${
+              isOnline ? "bg-emerald-950/60 text-emerald-400" : "bg-stone-800 text-stone-500"
+            }`}
+          >
+            <Radio size={12} className={isOnline ? "animate-pulse" : ""} />
+            {isOnDelivery ? "On delivery" : isOnline ? "Online" : "Offline"}
+          </span>
+          <Link
+            href="/account"
+            title="My account"
+            className="flex size-8 items-center justify-center rounded-lg text-stone-400 transition-colors hover:bg-stone-800 hover:text-stone-100"
+          >
+            <UserRound size={16} />
+          </Link>
+          <form action={signOutAction}>
+            <button
+              type="submit"
+              title="Sign out"
+              className="flex size-8 items-center justify-center rounded-lg text-stone-400 transition-colors hover:bg-red-950/50 hover:text-red-400"
+            >
+              <LogOut size={16} />
+            </button>
+          </form>
+        </div>
       </header>
 
       {/* Bottom padding reserves room for the fixed action bar so the last card is never hidden behind it. */}

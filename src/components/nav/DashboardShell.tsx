@@ -125,18 +125,25 @@ function SidebarContent({
       </nav>
 
       <div className="border-t border-stone-800 p-3">
-        <div className={`flex items-center gap-3 rounded-xl px-1.5 py-2 ${collapsed ? "justify-center" : ""}`}>
-          <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-stone-800 text-xs font-semibold text-stone-200">
-            {initials(userName)}
-          </span>
-          {!collapsed && (
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-medium text-stone-100">{userName}</p>
-              <p className="truncate text-xs text-stone-500">
-                {roleLabel} · {branchLabel}
-              </p>
-            </div>
-          )}
+        <div className={`flex items-center gap-1 ${collapsed ? "flex-col" : ""}`}>
+          <Link
+            href="/account"
+            title="My account"
+            onClick={onNavigate}
+            className={`flex min-w-0 flex-1 items-center gap-3 rounded-xl px-1.5 py-2 transition-colors hover:bg-stone-800/70 ${collapsed ? "justify-center" : ""}`}
+          >
+            <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-stone-800 text-xs font-semibold text-stone-200">
+              {initials(userName)}
+            </span>
+            {!collapsed && (
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-medium text-stone-100">{userName}</p>
+                <p className="truncate text-xs text-stone-500">
+                  {roleLabel} · {branchLabel}
+                </p>
+              </div>
+            )}
+          </Link>
           <form action={signOutAction}>
             <button
               type="submit"

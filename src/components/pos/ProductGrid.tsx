@@ -1,6 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { Search } from "lucide-react";
+import { MenuImage } from "@/components/menu/MenuImage";
 import type { PosProduct } from "@/modules/pos/services/pos-catalog.service";
 
 interface Category {
@@ -31,12 +33,15 @@ export function ProductGrid({
   return (
     <div className="flex h-full flex-col">
       <div className="border-b border-stone-800 p-4">
-        <input
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search products…"
-          className="mb-3 w-full rounded-lg border border-stone-700 bg-stone-900 px-3.5 py-2 text-sm text-stone-100 outline-none focus:border-orange-500"
-        />
+        <div className="relative mb-3">
+          <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-stone-500" />
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search products…"
+            className="w-full rounded-lg border border-stone-700 bg-stone-900 py-2 pl-9 pr-3.5 text-sm text-stone-100 outline-none focus:border-orange-500"
+          />
+        </div>
         <div className="flex flex-wrap gap-2">
           <button
             onClick={() => setActiveCategory("all")}
@@ -60,21 +65,28 @@ export function ProductGrid({
         </div>
       </div>
 
-      <div className="grid flex-1 grid-cols-2 gap-3 overflow-y-auto p-4 sm:grid-cols-3 lg:grid-cols-4">
+      <div className="scrollbar-thin grid flex-1 grid-cols-2 gap-4 overflow-y-auto p-4 sm:grid-cols-3 xl:grid-cols-4">
         {filtered.map((product) => (
           <button
             key={product.id}
             onClick={() => product.isAvailable && onSelectProduct(product)}
             disabled={!product.isAvailable}
-            className={`flex flex-col items-start rounded-xl border p-3 text-left transition-colors ${
+            className={`group flex flex-col overflow-hidden rounded-2xl border text-left transition-all ${
               product.isAvailable
-                ? "border-stone-800 bg-stone-900 hover:border-orange-600"
+                ? "border-stone-800 bg-stone-900 hover:-translate-y-0.5 hover:border-orange-600 hover:shadow-lg hover:shadow-black/30"
                 : "cursor-not-allowed border-stone-900 bg-stone-950 opacity-40"
             }`}
           >
-            <span className="text-sm font-medium text-stone-100">{product.name}</span>
-            <span className="mt-1 text-sm font-semibold text-orange-500">GHS {product.price.toFixed(2)}</span>
-            {!product.isAvailable && <span className="mt-1 text-xs text-stone-500">Unavailable at this branch</span>}
+            <MenuImage
+              src={product.imageUrl}
+              alt={product.name}
+              className={`aspect-square w-full transition-transform duration-300 ${product.isAvailable ? "group-hover:scale-105" : ""}`}
+            />
+            <div className="flex flex-1 flex-col gap-1 p-3">
+              <span className="text-sm font-semibold leading-snug text-stone-100 sm:text-base">{product.name}</span>
+              <span className="mt-auto text-sm font-bold text-orange-500 sm:text-base">GHS {product.price.toFixed(2)}</span>
+              {!product.isAvailable && <span className="text-xs text-stone-500">Unavailable at this branch</span>}
+            </div>
           </button>
         ))}
         {filtered.length === 0 && <p className="col-span-full py-8 text-center text-sm text-stone-500">No products found.</p>}

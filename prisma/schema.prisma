@@ -80,8 +80,13 @@ model Branch {
   /// Configurable, not hard-coded — see CRITICAL rule against hard-coded tax rates. Defaults to 0 until finance configures it.
   taxRate Decimal @default(0) @map("tax_rate") @db.Decimal(5, 4)
 
-  /// Fallback delivery fee used when an order's delivery address doesn't match any DeliveryZone for this branch — configurable per branch, never hard-coded.
+  /// Fallback delivery fee used when an order's delivery address doesn't match any DeliveryZone for this branch AND there are no coordinates to price a distance-based fare from — configurable per branch, never hard-coded. Also acts as the minimum fare floor for the distance-based calculation below.
   defaultDeliveryFee Decimal @default(0) @map("default_delivery_fee") @db.Decimal(10, 2)
+
+  /// Distance-based delivery fare model (same linear shape as Bolt/Yango/Uber: base + per-km + per-minute), used whenever both the branch and the delivery address have coordinates and no explicit DeliveryZone matches. See fare.service.ts.
+  deliveryBaseFare      Decimal @default(5) @map("delivery_base_fare") @db.Decimal(10, 2)
+  deliveryPerKmRate     Decimal @default(2) @map("delivery_per_km_rate") @db.Decimal(10, 2)
+  deliveryPerMinuteRate Decimal @default(0.3) @map("delivery_per_minute_rate") @db.Decimal(10, 2)
 
   // JSON schedule: { mon: {open, close}, tue: {...}, ... }. Configurable per branch, not hard-coded.
   openingHours Json? @map("opening_hours")
@@ -153,23 +158,42 @@ model User {
   userRoles UserRole[]
   auditLogs AuditLog[] @relation("AuditActor")
 
-  placedOrders       Order[]              @relation("OrderPlacedBy")
-  orderStatusChanges OrderStatusHistory[]
-  paymentsInitiated  Payment[]
-  refundsInitiated   Refund[]
-  stockMovements     StockMovement[]
-  purchaseOrders     PurchaseOrder[]
-  riderProfile       RiderProfile?
-  assignedDeliveries Order[]              @relation("OrderAssignedRider")
-  loyaltyAdjustments LoyaltyTransaction[]
-  assignedTickets    SupportTicket[]      @relation("SupportTicketAssignee")
-  supportMessages    SupportMessage[]
-  moderatedReviews   Review[]             @relation("ReviewModerator")
+  placedOrders        Order[]              @relation("OrderPlacedBy")
+  orderStatusChanges  OrderStatusHistory[]
+  paymentsInitiated   Payment[]
+  refundsInitiated    Refund[]
+  stockMovements      StockMovement[]
+  purchaseOrders      PurchaseOrder[]
+  riderProfile        RiderProfile?
+  assignedDeliveries  Order[]              @relation("OrderAssignedRider")
+  loyaltyAdjustments  LoyaltyTransaction[]
+  assignedTickets     SupportTicket[]      @relation("SupportTicketAssignee")
+  supportMessages     SupportMessage[]
+  moderatedReviews    Review[]             @relation("ReviewModerator")
+  passwordResetTokens PasswordResetToken[]
 
   @@index([status])
   @@index([email])
   @@index([phone])
   @@map("users")
+}
+
+/// Self-service "forgot password" flow. Only the SHA-256 hash of the token is
+/// stored (never the raw token) — same reasoning as a password hash: a DB
+/// leak must not hand out working reset links. Single-use (usedAt) and
+/// short-lived (expiresAt); see password-reset.service.ts.
+model PasswordResetToken {
+  id        String    @id @default(uuid())
+  userId    String    @map("user_id")
+  tokenHash String    @unique @map("token_hash")
+  expiresAt DateTime  @map("expires_at")
+  usedAt    DateTime? @map("used_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("password_reset_tokens")
 }
 
 // Reserved for future OAuth / SSO providers. Credentials auth does not use this table today.

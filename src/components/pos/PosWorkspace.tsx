@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { UtensilsCrossed, ChevronDown } from "lucide-react";
+import Link from "next/link";
+import { UtensilsCrossed, ChevronDown, UserRound, LogOut } from "lucide-react";
 import { CustomerPanel, type PosCustomer } from "@/components/pos/CustomerPanel";
 import { DeliveryAddressPanel } from "@/components/pos/DeliveryAddressPanel";
 import { ProductGrid } from "@/components/pos/ProductGrid";
@@ -15,6 +16,7 @@ import {
   updateCartItemQuantityAction,
   removeCartItemAction,
 } from "@/modules/pos/actions/pos.actions";
+import { signOutAction } from "@/modules/auth/actions/sign-out.action";
 import type { PosProduct, PosCart } from "@/modules/pos/services/pos-catalog.service";
 
 interface Category {
@@ -166,22 +168,40 @@ function PosHeader({
           <h1 className="truncate text-lg font-semibold text-stone-50">POS — {branchName}</h1>
         </div>
       </div>
-      {branches.length > 1 && (
-        <div className="relative shrink-0">
-          <select
-            defaultValue={branchId}
-            onChange={(e) => router.push(`/pos?branch=${e.target.value}`)}
-            className="appearance-none rounded-lg border border-stone-700 bg-stone-900 py-2 pl-3 pr-8 text-sm text-stone-100"
+      <div className="flex shrink-0 items-center gap-2">
+        {branches.length > 1 && (
+          <div className="relative">
+            <select
+              defaultValue={branchId}
+              onChange={(e) => router.push(`/pos?branch=${e.target.value}`)}
+              className="appearance-none rounded-lg border border-stone-700 bg-stone-900 py-2 pl-3 pr-8 text-sm text-stone-100"
+            >
+              {branches.map((b) => (
+                <option key={b.id} value={b.id}>
+                  {b.name}
+                </option>
+              ))}
+            </select>
+            <ChevronDown size={14} className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-stone-500" />
+          </div>
+        )}
+        <Link
+          href="/account"
+          title="My account"
+          className="flex size-9 items-center justify-center rounded-lg text-stone-400 transition-colors hover:bg-stone-800 hover:text-stone-100"
+        >
+          <UserRound size={17} />
+        </Link>
+        <form action={signOutAction}>
+          <button
+            type="submit"
+            title="Sign out"
+            className="flex size-9 items-center justify-center rounded-lg text-stone-400 transition-colors hover:bg-red-950/50 hover:text-red-400"
           >
-            {branches.map((b) => (
-              <option key={b.id} value={b.id}>
-                {b.name}
-              </option>
-            ))}
-          </select>
-          <ChevronDown size={14} className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-stone-500" />
-        </div>
-      )}
+            <LogOut size={17} />
+          </button>
+        </form>
+      </div>
     </header>
   );
 }

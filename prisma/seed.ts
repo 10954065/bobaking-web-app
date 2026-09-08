@@ -36,20 +36,20 @@ async function seedGeography() {
 
 async function seedBranches(cityId: string) {
   const branchSeeds = [
-    { name: "Mile 7 T-Junction", slug: "mile-7", address: "Mile 7 T-Junction, Accra" },
-    { name: "Kingsby Achimota", slug: "achimota", address: "Achimota, Accra" },
-    { name: "East Legon", slug: "east-legon", address: "East Legon, Accra" },
-    { name: "Dansoman", slug: "dansoman", address: "Dansoman, Accra" },
+    { name: "Mile 7 T-Junction", slug: "mile-7", address: "Mile 7 T-Junction, Accra", latitude: 5.62, longitude: -0.235 },
+    { name: "Kingsby Achimota", slug: "achimota", address: "Achimota, Accra", latitude: 5.618, longitude: -0.23 },
+    { name: "East Legon", slug: "east-legon", address: "East Legon, Accra", latitude: 5.6494, longitude: -0.1531 },
+    { name: "Dansoman", slug: "dansoman", address: "Dansoman, Accra", latitude: 5.54, longitude: -0.26 },
   ];
 
   const branches = [];
   for (const seed of branchSeeds) {
-    // update: also backfills defaultDeliveryFee on branches seeded before this
-    // field existed — an empty update object here would silently leave
-    // pre-existing rows at the column's schema default (0) forever.
+    // update: also backfills defaultDeliveryFee/coordinates on branches seeded
+    // before those fields existed — an empty update object here would
+    // silently leave pre-existing rows at the columns' schema defaults forever.
     const branch = await prisma.branch.upsert({
       where: { slug: seed.slug },
-      update: { defaultDeliveryFee: 12 },
+      update: { defaultDeliveryFee: 12, latitude: seed.latitude, longitude: seed.longitude },
       create: { ...seed, cityId, status: "ACTIVE", defaultDeliveryFee: 12 },
     });
     branches.push(branch);
@@ -247,21 +247,42 @@ async function seedCustomers() {
       firstName: "Ama",
       lastName: "Owusu",
       phone: "+233241000001",
-      address: { addressLine1: "12 Lagos Ave", area: "East Legon", city: "Accra", isDefault: true },
+      address: {
+        addressLine1: "12 Lagos Ave",
+        area: "East Legon",
+        city: "Accra",
+        isDefault: true,
+        latitude: 5.6521,
+        longitude: -0.1498,
+      },
     },
     {
       email: "kwame.mensah@dev.flicksandlicks.local",
       firstName: "Kwame",
       lastName: "Mensah",
       phone: "+233241000002",
-      address: { addressLine1: "5 Achimota Ring Road", area: "Achimota", city: "Accra", isDefault: true },
+      address: {
+        addressLine1: "5 Achimota Ring Road",
+        area: "Achimota",
+        city: "Accra",
+        isDefault: true,
+        latitude: 5.615,
+        longitude: -0.2265,
+      },
     },
     {
       email: "abena.boateng@dev.flicksandlicks.local",
       firstName: "Abena",
       lastName: "Boateng",
       phone: "+233241000003",
-      address: { addressLine1: "34 Dansoman High Street", area: "Dansoman", city: "Accra", isDefault: true },
+      address: {
+        addressLine1: "34 Dansoman High Street",
+        area: "Dansoman",
+        city: "Accra",
+        isDefault: true,
+        latitude: 5.5375,
+        longitude: -0.2635,
+      },
     },
   ];
 
@@ -283,6 +304,15 @@ async function seedCustomers() {
     const existingAddress = await prisma.customerAddress.findFirst({ where: { customerId: customer.id } });
     if (!existingAddress) {
       await prisma.customerAddress.create({ data: { ...seed.address, customerId: customer.id } });
+    } else if (existingAddress.latitude == null || existingAddress.longitude == null) {
+      // Backfills coordinates onto addresses seeded before this field was
+      // populated here, so the distance-based fare path (fare.service.ts)
+      // has real data to exercise instead of always falling through to the
+      // flat zone/default fee.
+      await prisma.customerAddress.update({
+        where: { id: existingAddress.id },
+        data: { latitude: seed.address.latitude, longitude: seed.address.longitude },
+      });
     }
 
     customers.push(customer);
@@ -419,8 +449,12 @@ async function seedInitialStock(
  * areaMatch values are chosen to line up with seedCustomers' addresses below
  * (Ama Owusu -> East Legon, Kwame Mensah -> Achimota, Abena Boateng ->
  * Dansoman) so the dev flow demonstrates real zone matching end-to-end.
- * Mile 7 intentionally gets no zones, to also exercise the
- * Branch.defaultDeliveryFee fallback path.
+ * Mile 7 intentionally gets no zones, to also exercise the distance-based
+ * fare fallback (fare.service.ts) — both Mile 7 and the seeded customer
+ * addresses now carry coordinates, so a delivery order placed from Mile 7
+ * prices via the Bolt/Yango-style base+per-km+per-minute model instead of
+ * a configured zone. Branch.defaultDeliveryFee only kicks in as a final
+ * floor/fallback when coordinates are missing entirely.
  */
 async function seedDeliveryZones(branches: Awaited<ReturnType<typeof seedBranches>>) {
   const zoneSeeds: Array<{ branchSlug: string; name: string; areaMatch: string; fee: number; estimatedMinutes: number }> = [

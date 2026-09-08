@@ -5,6 +5,7 @@ import { getOrderByIdempotencyKey, getOrderById, type OrderWithDetails } from "@
 import { recordAuditLog } from "@/modules/audit/services/audit.service";
 import { evaluatePromotionCode } from "@/modules/promotions/services/promotion.service";
 import { evaluatePointsRedemption, recordLoyaltyTransaction } from "@/modules/loyalty/services/loyalty.service";
+import { estimateDeliveryFare } from "@/modules/delivery/services/fare.service";
 
 export class EmptyCartError extends Error {
   constructor() {
@@ -169,8 +170,28 @@ export async function checkout(input: CheckoutInput): Promise<OrderWithDetails> 
             where: { branchId: cart.branchId, isActive: true, areaMatch: { equals: address.area, mode: "insensitive" } },
           })
         : null;
-      deliveryFee = zone?.fee ?? cart.branch.defaultDeliveryFee;
-      deliveryZoneId = zone?.id ?? null;
+
+      if (zone) {
+        // An explicit zone configuration always wins — it's a deliberate
+        // per-area override an admin set up, not a fallback.
+        deliveryFee = zone.fee;
+        deliveryZoneId = zone.id;
+      } else if (address.latitude != null && address.longitude != null && cart.branch.latitude != null && cart.branch.longitude != null) {
+        const estimate = estimateDeliveryFare(
+          { latitude: Number(cart.branch.latitude), longitude: Number(cart.branch.longitude) },
+          { latitude: Number(address.latitude), longitude: Number(address.longitude) },
+          {
+            baseFare: Number(cart.branch.deliveryBaseFare),
+            perKmRate: Number(cart.branch.deliveryPerKmRate),
+            perMinuteRate: Number(cart.branch.deliveryPerMinuteRate),
+            minimumFare: Number(cart.branch.defaultDeliveryFee),
+          }
+        );
+        deliveryFee = new Prisma.Decimal(estimate.fare);
+      } else {
+        // No zone match and no coordinates to price a distance-based fare from.
+        deliveryFee = cart.branch.defaultDeliveryFee;
+      }
     }
 
     const taxTotal = subtotal.times(cart.branch.taxRate);

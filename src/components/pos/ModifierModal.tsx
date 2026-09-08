@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { MenuImage } from "@/components/menu/MenuImage";
 import type { PosProduct } from "@/modules/pos/services/pos-catalog.service";
 
 export interface ModifierSelection {
@@ -54,6 +55,7 @@ export function ModifierModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
       <div className="max-h-[85vh] w-full max-w-md overflow-y-auto rounded-xl border border-stone-800 bg-stone-900 p-6">
+        <MenuImage src={product.imageUrl} alt={product.name} className="mb-4 aspect-2/1 w-full rounded-lg" />
         <h2 className="text-lg font-semibold text-stone-50">{product.name}</h2>
         <p className="mt-1 text-sm text-stone-400">GHS {product.price.toFixed(2)}</p>
 

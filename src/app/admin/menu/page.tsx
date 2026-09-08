@@ -4,6 +4,7 @@ import { getUserAccessProfile, hasAnyPermission } from "@/modules/auth/services/
 import { listCategories } from "@/modules/categories/services/category.service";
 import { listProducts } from "@/modules/products/services/product.service";
 import { prisma } from "@/db/client";
+import { MenuImage } from "@/components/menu/MenuImage";
 
 export default async function AdminMenuPage() {
   const session = await getCurrentSession();
@@ -61,6 +62,9 @@ export default async function AdminMenuPage() {
             <table className="w-full text-left text-sm">
               <thead className="border-t border-stone-100 text-stone-500 dark:border-stone-800 dark:text-stone-400">
                 <tr>
+                  <th className="px-6 py-2 font-medium">
+                    <span className="sr-only">Image</span>
+                  </th>
                   <th className="px-6 py-2 font-medium">Product</th>
                   <th className="px-6 py-2 font-medium">Category</th>
                   <th className="px-6 py-2 font-medium">Base price</th>
@@ -71,6 +75,9 @@ export default async function AdminMenuPage() {
               <tbody className="divide-y divide-stone-100 dark:divide-stone-800">
                 {products.map((product) => (
                   <tr key={product.id}>
+                    <td className="py-2 pl-6">
+                      <MenuImage src={product.imageUrl} alt={product.name} className="size-11 rounded-lg" />
+                    </td>
                     <td className="px-6 py-3 font-medium text-stone-900 dark:text-stone-50">{product.name}</td>
                     <td className="px-6 py-3 text-stone-600 dark:text-stone-400">{product.category.name}</td>
                     <td className="px-6 py-3 text-stone-600 dark:text-stone-400">

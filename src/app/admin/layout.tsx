@@ -1,16 +1,11 @@
 import type { ReactNode } from "react";
 import { redirect } from "next/navigation";
-import { signOut } from "@/auth";
 import { getCurrentSession } from "@/modules/auth/services/current-session.service";
 import { getUserAccessProfile, hasAnyPermission } from "@/modules/auth/services/authorization.service";
 import { prisma } from "@/db/client";
 import { resolvePrimarySurface, surfaceHomeHref, visibleNavHrefs } from "@/lib/dashboard-nav";
 import { DashboardShell } from "@/components/nav/DashboardShell";
-
-async function signOutAction() {
-  "use server";
-  await signOut({ redirectTo: "/login" });
-}
+import { signOutAction } from "@/modules/auth/actions/sign-out.action";
 
 function formatRoleLabel(name: string): string {
   return name
