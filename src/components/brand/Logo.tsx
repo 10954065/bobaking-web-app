@@ -1,3 +1,5 @@
+import type { CSSProperties } from "react";
+
 type LogoProps = {
   /** Edge length in pixels. */
   size?: number;
@@ -5,6 +7,42 @@ type LogoProps = {
   ring?: boolean;
   className?: string;
 };
+
+type LogoWordmarkProps = {
+  /** Fixed pixel size, matching the badge usage below. Omit for a responsive
+   * "hero" size instead, inherited from the wrapping element's font-size —
+   * used by the splash screen, which sets its own clamp() there. */
+  size?: number;
+  className?: string;
+  /** Blur the wordmark in and pop the "&" a beat later instead of rendering
+   * fully formed — used only by the splash screen's first-visit intro. */
+  animateReveal?: boolean;
+  style?: CSSProperties;
+  ampersandStyle?: CSSProperties;
+};
+
+/**
+ * The hand-lettered "Flicks Licks&" wordmark on its own, with no badge card
+ * around it — for contexts (the splash) that place the mark directly on a
+ * brand-red field rather than inside the rounded-square logo badge.
+ */
+export function LogoWordmark({ size, className = "", animateReveal = false, style, ampersandStyle }: LogoWordmarkProps) {
+  const lineStyle = size != null ? { fontSize: size * 0.26 } : undefined;
+  return (
+    <span
+      className={`flex flex-col items-start justify-center text-brand-cream ${animateReveal ? "splash-wordmark-reveal" : ""} ${className}`}
+      style={{ fontFamily: "var(--font-marker)", fontWeight: 800, lineHeight: 0.92, ...style }}
+    >
+      <span style={lineStyle}>Flicks</span>
+      <span style={size != null ? { fontSize: size * 0.26, marginTop: size * 0.03 } : { marginTop: "0.12em" }}>
+        Licks
+        <span className={`text-[0.6em] align-top ${animateReveal ? "splash-ampersand-pop" : ""}`} style={animateReveal ? ampersandStyle : undefined}>
+          &amp;
+        </span>
+      </span>
+    </span>
+  );
+}
 
 /**
  * The Flicks & Licks mark — a rounded-square red badge with the hand-lettered
@@ -22,14 +60,8 @@ export function Logo({ size = 56, ring = false, className = "" }: LogoProps) {
         boxShadow: ring ? `0 0 0 ${Math.max(2, size * 0.035)}px var(--color-brand-cyan), 0 10px 24px -8px rgba(228,35,19,0.55)` : undefined,
       }}
     >
-      <span
-        className="flex flex-col items-start justify-center text-brand-cream"
-        style={{ fontFamily: "var(--font-marker)", fontWeight: 800, lineHeight: 0.92, paddingLeft: size * 0.16 }}
-      >
-        <span style={{ fontSize: size * 0.26 }}>Flicks</span>
-        <span style={{ fontSize: size * 0.26, marginTop: size * 0.03 }}>
-          Licks<span className="text-[0.6em] align-top">&amp;</span>
-        </span>
+      <span style={{ paddingLeft: size * 0.16 }}>
+        <LogoWordmark size={size} />
       </span>
     </span>
   );
