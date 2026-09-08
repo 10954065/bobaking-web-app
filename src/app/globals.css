@@ -171,17 +171,6 @@ body {
   height: 30px;
   background: #16a34a;
 }
-.map-marker-rider-photo {
-  width: 48px;
-  height: 48px;
-  border-width: 3px;
-  background-color: #292524;
-  background-size: cover;
-  background-position: center;
-  box-shadow:
-    0 3px 10px rgba(0, 0, 0, 0.45),
-    0 0 0 3px rgba(228, 35, 19, 0.4);
-}
 .map-marker-rider-arrow {
   width: 0;
   height: 0;

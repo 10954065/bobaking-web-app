@@ -12,7 +12,7 @@ export interface PublicOrderTracking {
   branchCoordinates: { latitude: number; longitude: number } | null;
   customerCoordinates: { latitude: number; longitude: number } | null;
   createdAt: string;
-  items: { productName: string; quantity: number; imageUrl: string | null }[];
+  items: { productName: string; quantity: number }[];
   total: number;
   statusHistory: { toStatus: string; createdAt: string }[];
   rider: { firstName: string } | null;
@@ -36,7 +36,7 @@ export async function getPublicOrderTracking(trackingToken: string): Promise<Pub
     include: {
       branch: true,
       deliveryAddress: true,
-      items: { include: { product: { select: { imageUrl: true } } } },
+      items: true,
       statusHistory: { orderBy: { createdAt: "asc" } },
       assignedRider: true,
     },
@@ -60,7 +60,7 @@ export async function getPublicOrderTracking(trackingToken: string): Promise<Pub
         ? { latitude: Number(order.deliveryAddress.latitude), longitude: Number(order.deliveryAddress.longitude) }
         : null,
     createdAt: order.createdAt.toISOString(),
-    items: order.items.map((item) => ({ productName: item.productName, quantity: item.quantity, imageUrl: item.product.imageUrl })),
+    items: order.items.map((item) => ({ productName: item.productName, quantity: item.quantity })),
     total: Number(order.total),
     statusHistory: order.statusHistory.map((h) => ({ toStatus: h.toStatus, createdAt: h.createdAt.toISOString() })),
     rider: isLiveTrackable && order.assignedRider ? { firstName: order.assignedRider.firstName } : null,
