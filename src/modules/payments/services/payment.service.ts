@@ -14,6 +14,7 @@ import {
 import { transitionOrder } from "@/modules/orders/services/order.service";
 import { canTransition } from "@/modules/orders/services/order-state-machine";
 import { recordAuditLog } from "@/modules/audit/services/audit.service";
+import { awardPointsForOrderSafely } from "@/modules/loyalty/services/loyalty.service";
 
 const cashProvider = new CashPaymentProvider();
 const mobileMoneyProvider = new MobileMoneyDevProvider();
@@ -80,6 +81,8 @@ export async function confirmCashPayment(paymentId: string, actorUserId: string)
     });
   }
 
+  await awardPointsForOrderSafely(order.id);
+
   return payment;
 }
 
@@ -135,6 +138,7 @@ export async function processWebhookEvent(input: WebhookEventInput) {
       actorUserId: null,
       reason: `Payment confirmed via ${data.provider} webhook`,
     });
+    await awardPointsForOrderSafely(order.id);
   } else if (data.status === "FAILED" && canTransition(order.status, "PAYMENT_FAILED")) {
     await transitionOrder({
       orderId: order.id,

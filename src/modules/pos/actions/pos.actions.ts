@@ -163,6 +163,8 @@ export async function checkoutAction(input: Omit<CheckoutInput, "placedByUserId"
     total: Number(order.total),
     subtotal: Number(order.subtotal),
     taxTotal: Number(order.taxTotal),
+    deliveryFee: Number(order.deliveryFee),
+    discountTotal: Number(order.discountTotal),
   };
 }
 

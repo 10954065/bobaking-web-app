@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentSession } from "@/modules/auth/services/current-session.service";
 import { getUserAccessProfile, hasAnyPermission } from "@/modules/auth/services/authorization.service";
@@ -53,18 +54,23 @@ export default async function AdminCustomersPage({
 
           <ul className="mt-6 divide-y divide-stone-100 dark:divide-stone-800">
             {customers.map((customer) => (
-              <li key={customer.id} className="flex items-center justify-between py-3">
-                <div>
-                  <p className="font-medium text-stone-900 dark:text-stone-50">
-                    {customer.firstName} {customer.lastName}
-                  </p>
-                  <p className="text-sm text-stone-500 dark:text-stone-400">
-                    {customer.email ?? "—"} · {customer.phone ?? "—"}
-                  </p>
-                </div>
-                <span className="rounded-full bg-stone-100 px-2.5 py-1 text-xs font-medium text-stone-700 dark:bg-stone-800 dark:text-stone-300">
-                  {customer.status}
-                </span>
+              <li key={customer.id}>
+                <Link
+                  href={`/admin/customers/${customer.id}`}
+                  className="flex items-center justify-between py-3 transition-colors hover:text-orange-600"
+                >
+                  <div>
+                    <p className="font-medium text-stone-900 dark:text-stone-50">
+                      {customer.firstName} {customer.lastName}
+                    </p>
+                    <p className="text-sm text-stone-500 dark:text-stone-400">
+                      {customer.email ?? "—"} · {customer.phone ?? "—"}
+                    </p>
+                  </div>
+                  <span className="rounded-full bg-stone-100 px-2.5 py-1 text-xs font-medium text-stone-700 dark:bg-stone-800 dark:text-stone-300">
+                    {customer.status}
+                  </span>
+                </Link>
               </li>
             ))}
             {q && customers.length === 0 && (

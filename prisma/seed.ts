@@ -463,6 +463,54 @@ async function seedRider(eastLegonBranchId: string) {
   });
 }
 
+async function seedPromotions() {
+  const promotionSeeds = [
+    {
+      code: "WELCOME10",
+      name: "Welcome 10% off",
+      description: "10% off for new and returning customers, up to GHS 20.",
+      discountType: "PERCENTAGE" as const,
+      discountValue: 10,
+      maxDiscountAmount: 20,
+      usageLimitPerCustomer: 1,
+    },
+    {
+      code: "FLAT5",
+      name: "GHS 5 off orders over GHS 30",
+      description: "Flat GHS 5 off any order of at least GHS 30.",
+      discountType: "FIXED_AMOUNT" as const,
+      discountValue: 5,
+      minSubtotal: 30,
+      usageLimitPerCustomer: 5,
+    },
+  ];
+
+  const promotions: Record<string, { id: string }> = {};
+  for (const seed of promotionSeeds) {
+    promotions[seed.code] = await prisma.promotion.upsert({
+      where: { code: seed.code },
+      update: {},
+      create: seed,
+    });
+  }
+  return promotions;
+}
+
+async function seedCampaign(promotions: Awaited<ReturnType<typeof seedPromotions>>) {
+  const existing = await prisma.campaign.findFirst({ where: { name: "New Customer Welcome" } });
+  if (existing) return existing;
+
+  return prisma.campaign.create({
+    data: {
+      name: "New Customer Welcome",
+      description: "Encourage first-time customers to place their first order with a 10% discount.",
+      status: "ACTIVE",
+      audience: "NEW_CUSTOMERS",
+      promotionId: promotions["WELCOME10"].id,
+    },
+  });
+}
+
 async function seedUsers(roleMap: Record<string, { id: string }>, eastLegonBranchId: string) {
   const passwordHash = await hashPassword(DEV_PASSWORD);
 
@@ -598,12 +646,17 @@ async function main() {
   console.log("Seeding customers...");
   const customers = await seedCustomers();
 
+  console.log("Seeding promotions & campaign...");
+  const promotions = await seedPromotions();
+  await seedCampaign(promotions);
+
   console.log("\nSeed complete.");
   console.log(`Branches: ${branches.map((b) => b.name).join(", ")}`);
   console.log(`Roles: ${Object.keys(roleMap).join(", ")}`);
   console.log(`Categories: ${Object.keys(categories).length}, Products: ${Object.keys(products).length}`);
   console.log(`Ingredients: ${Object.keys(ingredients).length}, Suppliers: ${suppliers.length}`);
   console.log(`Customers: ${customers.length}`);
+  console.log(`Promotions: ${Object.keys(promotions).join(", ")}`);
   console.log("\nDev-only login credentials (never valid outside local/dev):");
   console.log(`  Super Admin — ${superAdminUser.email} / ${DEV_PASSWORD}`);
   console.log(`  Branch Admin (East Legon) — ${branchAdminUser.email} / ${DEV_PASSWORD}`);

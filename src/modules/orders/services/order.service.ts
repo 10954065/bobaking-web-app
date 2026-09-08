@@ -39,6 +39,16 @@ export async function listOrdersForBranch(
   });
 }
 
+/** A customer's full order history — the CRM 360 view (see /admin/customers/[customerId]). */
+export async function listOrdersForCustomer(customerId: string, limit = 20) {
+  return prisma.order.findMany({
+    where: { customerId },
+    include: { branch: true, items: true },
+    orderBy: { createdAt: "desc" },
+    take: limit,
+  });
+}
+
 /**
  * The only way an order's status changes. Validates the transition, updates
  * the row, appends to OrderStatusHistory, and writes an audit log — all in

@@ -3,6 +3,8 @@ import { Prisma } from "@prisma/client";
 import { generateOrderNumber } from "@/modules/orders/services/order-number.service";
 import { getOrderByIdempotencyKey, getOrderById, type OrderWithDetails } from "@/modules/orders/services/order.service";
 import { recordAuditLog } from "@/modules/audit/services/audit.service";
+import { evaluatePromotionCode } from "@/modules/promotions/services/promotion.service";
+import { evaluatePointsRedemption, recordLoyaltyTransaction } from "@/modules/loyalty/services/loyalty.service";
 
 export class EmptyCartError extends Error {
   constructor() {
@@ -39,6 +41,10 @@ export interface CheckoutInput {
   scheduledFor?: Date;
   placedByUserId?: string;
   notes?: string;
+  /** A coupon code, case-insensitive — re-validated fresh here, never trusted from a client-supplied discount amount. */
+  promotionCode?: string;
+  /** Loyalty points to spend on this order — re-validated against the customer's real balance here, not trusted from a client-supplied discount amount. */
+  redeemPoints?: number;
 }
 
 /**
@@ -118,9 +124,34 @@ export async function checkout(input: CheckoutInput): Promise<OrderWithDetails> 
       });
     }
 
-    // Discounts (Phase 7 promotions engine) aren't built yet — explicit zero
-    // stub, not silently omitted.
-    const discountTotal = new Prisma.Decimal(0);
+    // Promotion codes and loyalty-point redemption are independent discount
+    // sources that can both apply to the same order — combined and capped at
+    // subtotal so a heavily-discounted order can never go negative before tax
+    // and delivery fee are added back in.
+    let promotionId: string | null = null;
+    let promotionDiscount = 0;
+    if (input.promotionCode) {
+      const evaluation = await evaluatePromotionCode(tx, {
+        code: input.promotionCode,
+        branchId: cart.branchId,
+        customerId: cart.customerId,
+        subtotal: Number(subtotal),
+      });
+      promotionId = evaluation.promotionId;
+      promotionDiscount = evaluation.discountAmount;
+    }
+
+    const pointsRedeemed = input.redeemPoints ?? 0;
+    let pointsDiscount = 0;
+    if (pointsRedeemed > 0) {
+      const evaluation = await evaluatePointsRedemption(tx, { customerId: cart.customerId, points: pointsRedeemed });
+      pointsDiscount = evaluation.discountAmount;
+    }
+
+    const discountTotal = Prisma.Decimal.min(
+      new Prisma.Decimal(promotionDiscount).plus(pointsDiscount),
+      subtotal
+    );
 
     let deliveryFee = new Prisma.Decimal(0);
     let deliveryZoneId: string | null = null;
@@ -159,6 +190,8 @@ export async function checkout(input: CheckoutInput): Promise<OrderWithDetails> 
         taxTotal,
         deliveryFee,
         deliveryZoneId,
+        promotionId,
+        pointsRedeemed,
         total,
         notes: input.notes ?? cart.notes,
         deliveryAddressId: input.deliveryAddressId,
@@ -182,6 +215,22 @@ export async function checkout(input: CheckoutInput): Promise<OrderWithDetails> 
     await tx.orderStatusHistory.create({
       data: { orderId: order.id, fromStatus: null, toStatus: "DRAFT", changedByUserId: input.placedByUserId ?? null },
     });
+
+    // Points are debited immediately at checkout (order creation), not
+    // deferred to payment success like earning is — the order's discountTotal
+    // is already fixed at this point and must match what was actually taken
+    // from the balance. Known gap: a later-cancelled/failed order does not
+    // currently refund these points, same as this app's other unresolved
+    // cancel-side-effects (recipe stock isn't refunded on cancel either).
+    if (pointsRedeemed > 0) {
+      await recordLoyaltyTransaction(tx, {
+        customerId: cart.customerId,
+        orderId: order.id,
+        type: "REDEEMED",
+        points: -pointsRedeemed,
+        reason: `Redeemed at checkout for order ${order.orderNumber}`,
+      });
+    }
 
     await tx.cart.update({ where: { id: cart.id }, data: { status: "CONVERTED" } });
 

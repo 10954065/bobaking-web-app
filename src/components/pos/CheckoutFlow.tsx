@@ -8,6 +8,8 @@ import {
   devSimulateMobileMoneySuccessAction,
   sendToKitchenAction,
 } from "@/modules/pos/actions/pos.actions";
+import { previewPromotionCodeAction } from "@/modules/promotions/actions/promotion.actions";
+import { previewPointsRedemptionAction } from "@/modules/loyalty/actions/loyalty.actions";
 
 type Stage = "confirm" | "payment-method" | "payment-pending" | "complete";
 
@@ -16,6 +18,7 @@ interface OrderSummary {
   orderNumber: string;
   status: string;
   total: number;
+  discountTotal: number;
 }
 
 interface PaymentSummary {
@@ -26,12 +29,16 @@ interface PaymentSummary {
 
 export function CheckoutFlow({
   cartId,
+  branchId,
+  customerId,
   subtotal,
   deliveryAddressId,
   onClose,
   onOrderComplete,
 }: {
   cartId: string;
+  branchId: string;
+  customerId: string;
   subtotal: number;
   deliveryAddressId?: string;
   onClose: () => void;
@@ -43,12 +50,49 @@ export function CheckoutFlow({
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
+  const [promoCode, setPromoCode] = useState("");
+  const [promoMessage, setPromoMessage] = useState<string | null>(null);
+  const [appliedPromoCode, setAppliedPromoCode] = useState<string | null>(null);
+  const [isPromoPending, startPromoTransition] = useTransition();
+
+  const [pointsInput, setPointsInput] = useState("");
+  const [pointsMessage, setPointsMessage] = useState<string | null>(null);
+  const [appliedPoints, setAppliedPoints] = useState(0);
+  const [isPointsPending, startPointsTransition] = useTransition();
+
+  function handleApplyPromo() {
+    if (!promoCode.trim()) return;
+    setPromoMessage(null);
+    startPromoTransition(async () => {
+      const result = await previewPromotionCodeAction({ code: promoCode, branchId, customerId, subtotal });
+      setPromoMessage(result.message);
+      setAppliedPromoCode(result.valid ? promoCode.trim() : null);
+    });
+  }
+
+  function handleApplyPoints() {
+    const points = Number(pointsInput);
+    if (!points || points <= 0) return;
+    setPointsMessage(null);
+    startPointsTransition(async () => {
+      const result = await previewPointsRedemptionAction(customerId, points);
+      setPointsMessage(result.message);
+      setAppliedPoints(result.valid ? points : 0);
+    });
+  }
+
   function handlePlaceOrder() {
     setError(null);
     startTransition(async () => {
       try {
         const idempotencyKey = `pos-checkout-${cartId}`;
-        const created = await checkoutAction({ cartId, idempotencyKey, deliveryAddressId });
+        const created = await checkoutAction({
+          cartId,
+          idempotencyKey,
+          deliveryAddressId,
+          promotionCode: appliedPromoCode ?? undefined,
+          redeemPoints: appliedPoints > 0 ? appliedPoints : undefined,
+        });
         setOrder(created);
         setStage("payment-method");
       } catch (e) {
@@ -98,6 +142,61 @@ export function CheckoutFlow({
           <>
             <h2 className="text-lg font-semibold text-stone-50">Confirm order</h2>
             <p className="mt-2 text-sm text-stone-400">Subtotal: GHS {subtotal.toFixed(2)} (tax applied at checkout)</p>
+
+            <div className="mt-4 space-y-1.5">
+              <label className="text-xs font-medium text-stone-400">Promo code</label>
+              <div className="flex gap-2">
+                <input
+                  value={promoCode}
+                  onChange={(e) => {
+                    setPromoCode(e.target.value);
+                    setAppliedPromoCode(null);
+                    setPromoMessage(null);
+                  }}
+                  placeholder="e.g. WELCOME10"
+                  className="w-full rounded-lg border border-stone-700 bg-stone-950 px-3 py-2 text-sm text-stone-100 outline-none focus:border-orange-500"
+                />
+                <button
+                  onClick={handleApplyPromo}
+                  disabled={isPromoPending || !promoCode.trim()}
+                  className="whitespace-nowrap rounded-lg border border-stone-700 px-3 py-2 text-sm font-medium text-stone-200 hover:border-orange-600 disabled:opacity-50"
+                >
+                  Apply
+                </button>
+              </div>
+              {promoMessage && (
+                <p className={`text-xs ${appliedPromoCode ? "text-emerald-400" : "text-red-400"}`}>{promoMessage}</p>
+              )}
+            </div>
+
+            <div className="mt-4 space-y-1.5">
+              <label className="text-xs font-medium text-stone-400">Redeem loyalty points</label>
+              <div className="flex gap-2">
+                <input
+                  value={pointsInput}
+                  onChange={(e) => {
+                    setPointsInput(e.target.value);
+                    setAppliedPoints(0);
+                    setPointsMessage(null);
+                  }}
+                  type="number"
+                  min="0"
+                  placeholder="e.g. 20"
+                  className="w-full rounded-lg border border-stone-700 bg-stone-950 px-3 py-2 text-sm text-stone-100 outline-none focus:border-orange-500"
+                />
+                <button
+                  onClick={handleApplyPoints}
+                  disabled={isPointsPending || !pointsInput}
+                  className="whitespace-nowrap rounded-lg border border-stone-700 px-3 py-2 text-sm font-medium text-stone-200 hover:border-orange-600 disabled:opacity-50"
+                >
+                  Apply
+                </button>
+              </div>
+              {pointsMessage && (
+                <p className={`text-xs ${appliedPoints > 0 ? "text-emerald-400" : "text-red-400"}`}>{pointsMessage}</p>
+              )}
+            </div>
+
             <div className="mt-6 flex gap-2">
               <button onClick={onClose} className="w-full rounded-lg border border-stone-700 py-2.5 text-sm text-stone-300 hover:bg-stone-800">
                 Cancel
@@ -116,6 +215,9 @@ export function CheckoutFlow({
         {stage === "payment-method" && order && (
           <>
             <h2 className="text-lg font-semibold text-stone-50">Order {order.orderNumber}</h2>
+            {order.discountTotal > 0 && (
+              <p className="mt-1 text-sm text-emerald-400">Discount applied: -GHS {order.discountTotal.toFixed(2)}</p>
+            )}
             <p className="mt-1 text-sm text-stone-400">Total: GHS {order.total.toFixed(2)}</p>
             <p className="mt-4 text-sm font-medium text-stone-300">Choose a payment method</p>
             <div className="mt-3 space-y-2">

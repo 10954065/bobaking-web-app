@@ -102,6 +102,7 @@ model Branch {
   purchaseOrders   PurchaseOrder[]
   deliveryZones    DeliveryZone[]
   riderProfiles    RiderProfile[]
+  promotions       Promotion[]
 
   @@index([cityId])
   @@index([status])
@@ -158,6 +159,7 @@ model User {
   purchaseOrders     PurchaseOrder[]
   riderProfile       RiderProfile?
   assignedDeliveries Order[]              @relation("OrderAssignedRider")
+  loyaltyAdjustments LoyaltyTransaction[]
 
   @@index([status])
   @@index([email])
@@ -461,9 +463,11 @@ model Customer {
   updatedAt DateTime  @updatedAt @map("updated_at")
   deletedAt DateTime? @map("deleted_at")
 
-  addresses CustomerAddress[]
-  carts     Cart[]
-  orders    Order[]
+  addresses           CustomerAddress[]
+  carts               Cart[]
+  orders              Order[]
+  loyaltyAccount      LoyaltyAccount?
+  loyaltyTransactions LoyaltyTransaction[]
 
   @@index([status])
   @@index([email])
@@ -616,9 +620,16 @@ model Order {
   placedByUserId    String?   @map("placed_by_user_id")
 
   /// Which DeliveryZone (if any) priced this order's deliveryFee — null means the branch's defaultDeliveryFee applied instead. Kept for reference even if the zone is later edited/deactivated (SetNull, not a hard dependency).
-  deliveryZoneId  String?    @map("delivery_zone_id")
-  assignedRiderId String?    @map("assigned_rider_id")
-  riderAssignedAt DateTime?  @map("rider_assigned_at")
+  deliveryZoneId  String?   @map("delivery_zone_id")
+  assignedRiderId String?   @map("assigned_rider_id")
+  riderAssignedAt DateTime? @map("rider_assigned_at")
+
+  /// Which Promotion (if any) discounted this order — discountTotal is the
+  /// resolved GHS amount, computed once at checkout and never recomputed.
+  promotionId    String? @map("promotion_id")
+  /// Loyalty points spent on this order (0 = none) — the GHS value they were
+  /// worth is folded into discountTotal alongside any promotion discount.
+  pointsRedeemed Int     @default(0) @map("points_redeemed")
 
   /// Guards checkout retries from creating duplicate orders — see checkout.service.ts.
   idempotencyKey String @unique @map("idempotency_key")
@@ -632,16 +643,19 @@ model Order {
   placedByUser    User?            @relation("OrderPlacedBy", fields: [placedByUserId], references: [id], onDelete: SetNull)
   deliveryZone    DeliveryZone?    @relation(fields: [deliveryZoneId], references: [id], onDelete: SetNull)
   assignedRider   User?            @relation("OrderAssignedRider", fields: [assignedRiderId], references: [id], onDelete: SetNull)
+  promotion       Promotion?       @relation(fields: [promotionId], references: [id], onDelete: SetNull)
 
-  items         OrderItem[]
-  statusHistory OrderStatusHistory[]
-  payments      Payment[]
+  items               OrderItem[]
+  statusHistory       OrderStatusHistory[]
+  payments            Payment[]
+  loyaltyTransactions LoyaltyTransaction[]
 
   @@index([branchId])
   @@index([customerId])
   @@index([status])
   @@index([createdAt])
   @@index([assignedRiderId])
+  @@index([promotionId])
   @@map("orders")
 }
 
@@ -1057,4 +1071,159 @@ model RiderProfile {
   @@index([branchId])
   @@index([status])
   @@map("rider_profiles")
+}
+
+// ---------------------------------------------------------------------------
+// Promotions — code-based only (no automatic "best discount" selection —
+// out of scope until there's a real need for stacking/priority rules).
+// Usage limits are enforced by counting real Orders against this promotion
+// rather than a separate redemption ledger, so a cancelled/rejected/failed
+// order naturally stops counting against the limit — see promotion.service.ts.
+// ---------------------------------------------------------------------------
+
+enum PromotionDiscountType {
+  PERCENTAGE
+  FIXED_AMOUNT
+}
+
+model Promotion {
+  id            String                @id @default(uuid())
+  code          String                @unique
+  name          String
+  description   String?
+  discountType  PromotionDiscountType @map("discount_type")
+  discountValue Decimal               @map("discount_value") @db.Decimal(10, 2)
+
+  /// Order subtotal must be at least this much for the code to apply.
+  minSubtotal       Decimal? @map("min_subtotal") @db.Decimal(10, 2)
+  /// Caps the discount a PERCENTAGE promotion can give (e.g. "20% off, up to GHS 30").
+  maxDiscountAmount Decimal? @map("max_discount_amount") @db.Decimal(10, 2)
+
+  /// null = valid at every branch, matching ProductBranchOverride's convention.
+  branchId String? @map("branch_id")
+
+  startsAt DateTime? @map("starts_at")
+  endsAt   DateTime? @map("ends_at")
+
+  usageLimit            Int? @map("usage_limit")
+  usageLimitPerCustomer Int? @default(1) @map("usage_limit_per_customer")
+
+  isActive Boolean @default(true) @map("is_active")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  branch    Branch?    @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  orders    Order[]
+  campaigns Campaign[]
+
+  @@index([isActive])
+  @@index([branchId])
+  @@map("promotions")
+}
+
+// ---------------------------------------------------------------------------
+// Loyalty — LoyaltyAccount.pointsBalance is a cache kept in lockstep with
+// LoyaltyTransaction (the append-only ledger) inside one transaction, the
+// same recordStockMovement pattern as BranchIngredientStock/StockMovement in
+// Phase 5. Config is a single configurable row rather than hard-coded
+// earn/redeem rates — see the CRITICAL rule against hard-coded business
+// constants (same reasoning as Branch.taxRate / defaultDeliveryFee).
+// ---------------------------------------------------------------------------
+
+model LoyaltyProgramConfig {
+  /// Always "default" — singleton row, upserted rather than auto-generated.
+  id String @id
+
+  /// Points earned = floor(amountPaid * pointsPerCurrency).
+  pointsPerCurrency Decimal @default(0.1) @map("points_per_currency") @db.Decimal(6, 4)
+  /// GHS value of a single point when redeemed.
+  redemptionValue   Decimal @default(0.5) @map("redemption_value") @db.Decimal(6, 4)
+  minPointsToRedeem Int     @default(10) @map("min_points_to_redeem")
+  isActive          Boolean @default(true) @map("is_active")
+
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("loyalty_program_config")
+}
+
+model LoyaltyAccount {
+  id                   String @id @default(uuid())
+  customerId           String @unique @map("customer_id")
+  pointsBalance        Int    @default(0) @map("points_balance")
+  lifetimePointsEarned Int    @default(0) @map("lifetime_points_earned")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@map("loyalty_accounts")
+}
+
+enum LoyaltyTransactionType {
+  EARNED
+  REDEEMED
+  ADJUSTED
+}
+
+/// points is signed: positive for EARNED and upward ADJUSTED, negative for
+/// REDEEMED and downward ADJUSTED. balanceAfter snapshots the running total
+/// so history can be audited without replaying the whole ledger.
+model LoyaltyTransaction {
+  id           String                 @id @default(uuid())
+  customerId   String                 @map("customer_id")
+  orderId      String?                @map("order_id")
+  type         LoyaltyTransactionType
+  points       Int
+  balanceAfter Int                    @map("balance_after")
+  reason       String?
+  actorUserId  String?                @map("actor_user_id")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  customer  Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  order     Order?   @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  actorUser User?    @relation(fields: [actorUserId], references: [id], onDelete: SetNull)
+
+  @@index([customerId])
+  @@index([orderId])
+  @@map("loyalty_transactions")
+}
+
+// ---------------------------------------------------------------------------
+// Marketing campaigns — a named initiative pairing a target audience with an
+// incentive (a Promotion code). There's no messaging/send infrastructure
+// yet (Phase 9), so a campaign doesn't "send" anything itself; audience size
+// is computed live from real Customer/Order data, not a fabricated number.
+// ---------------------------------------------------------------------------
+
+enum CampaignStatus {
+  DRAFT
+  ACTIVE
+  ENDED
+}
+
+enum CampaignAudience {
+  ALL_CUSTOMERS
+  NEW_CUSTOMERS
+  RETURNING_CUSTOMERS
+}
+
+model Campaign {
+  id          String           @id @default(uuid())
+  name        String
+  description String?
+  status      CampaignStatus   @default(DRAFT)
+  audience    CampaignAudience @default(ALL_CUSTOMERS)
+  promotionId String?          @map("promotion_id")
+  startsAt    DateTime?        @map("starts_at")
+  endsAt      DateTime?        @map("ends_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  promotion Promotion? @relation(fields: [promotionId], references: [id], onDelete: SetNull)
+
+  @@map("campaigns")
 }

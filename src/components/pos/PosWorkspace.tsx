@@ -131,6 +131,8 @@ export function PosWorkspace({
       {checkoutOpen && (
         <CheckoutFlow
           cartId={cart.id}
+          branchId={branchId}
+          customerId={customer.id}
           subtotal={cart.subtotal}
           deliveryAddressId={deliveryAddressId ?? undefined}
           onClose={() => setCheckoutOpen(false)}
