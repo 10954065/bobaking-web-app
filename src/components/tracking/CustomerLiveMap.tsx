@@ -27,12 +27,16 @@ export function CustomerLiveMap({
   branchCoordinates,
   customerCoordinates,
   riderFirstName,
+  dishImageUrl = null,
+  dishName = null,
 }: {
   orderId: string;
   trackingToken: string;
   branchCoordinates: Coordinates | null;
   customerCoordinates: Coordinates | null;
   riderFirstName: string | null;
+  dishImageUrl?: string | null;
+  dishName?: string | null;
 }) {
   const { connection, location, isStale } = useLiveDeliveryLocation(orderId, trackingToken);
   const [route, setRoute] = useState<DeliveryRouteResult | null>(null);
@@ -91,7 +95,15 @@ export function CustomerLiveMap({
       <DeliveryMap fitPoints={fitPoints} fitKey={fitPoints.length} className="h-72 w-full sm:h-80">
         {branchCoordinates && <RestaurantMarker latitude={branchCoordinates.latitude} longitude={branchCoordinates.longitude} />}
         {customerCoordinates && <CustomerMarker latitude={customerCoordinates.latitude} longitude={customerCoordinates.longitude} />}
-        {location && <RiderMarker latitude={location.latitude} longitude={location.longitude} heading={location.heading} />}
+        {location && (
+          <RiderMarker
+            latitude={location.latitude}
+            longitude={location.longitude}
+            heading={location.heading}
+            dishImageUrl={dishImageUrl}
+            dishName={dishName}
+          />
+        )}
         {route && <DeliveryRoute geometry={route.geometry} isEstimate={route.isEstimate} />}
         <MapControls />
       </DeliveryMap>

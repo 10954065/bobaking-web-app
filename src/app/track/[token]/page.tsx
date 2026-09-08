@@ -52,6 +52,10 @@ export default async function TrackOrderPage({
   ]);
 
   const canReview = reviewState ? REVIEWABLE_STATUSES.has(reviewState.orderStatus) : false;
+  // What the rider marker shows on the live map — the first item with a real
+  // photo, so a multi-item order still gets a recognizable dish rather than
+  // no image at all.
+  const featuredItem = tracking.items.find((item) => item.imageUrl != null) ?? null;
 
   return (
     <div className="min-h-screen bg-stone-100 dark:bg-stone-950">
@@ -100,6 +104,8 @@ export default async function TrackOrderPage({
                 branchCoordinates={tracking.branchCoordinates}
                 customerCoordinates={tracking.customerCoordinates}
                 riderFirstName={tracking.rider?.firstName ?? null}
+                dishImageUrl={featuredItem?.imageUrl ?? null}
+                dishName={featuredItem?.productName ?? null}
               />
             </div>
           )}
