@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ChevronDown, UserRound, LogOut, ArrowLeft } from "lucide-react";
+import { ChevronDown, UserRound, LogOut, ArrowLeft, Truck } from "lucide-react";
 import { Logo } from "@/components/brand/Logo";
 import { CustomerPanel, type PosCustomer } from "@/components/pos/CustomerPanel";
 import { DeliveryAddressPanel } from "@/components/pos/DeliveryAddressPanel";
@@ -12,6 +12,7 @@ import { ModifierModal, type ModifierSelection } from "@/components/pos/Modifier
 import { CartPanel } from "@/components/pos/CartPanel";
 import { CheckoutFlow } from "@/components/pos/CheckoutFlow";
 import { OrderDesk } from "@/components/pos/OrderDesk";
+import { PosDeliveryPanel } from "@/components/pos/PosDeliveryPanel";
 import {
   getOrCreateCartAction,
   addItemToCartAction,
@@ -32,12 +33,16 @@ export function PosWorkspace({
   branches,
   categories,
   products,
+  canViewDelivery,
+  canAssignDelivery,
 }: {
   branchId: string;
   branchName: string;
   branches: { id: string; name: string }[];
   categories: Category[];
   products: PosProduct[];
+  canViewDelivery: boolean;
+  canAssignDelivery: boolean;
 }) {
   const router = useRouter();
   const [view, setView] = useState<"desk" | "manual">("desk");
@@ -47,6 +52,7 @@ export function PosWorkspace({
   const [selectedProduct, setSelectedProduct] = useState<PosProduct | null>(null);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [isBusy, setIsBusy] = useState(false);
+  const [deliveryPanelOpen, setDeliveryPanelOpen] = useState(false);
 
   async function handleStartOrder(selectedCustomer: PosCustomer, type: "DELIVERY" | "PICKUP" | "DINE_IN") {
     setCustomer(selectedCustomer);
@@ -96,8 +102,23 @@ export function PosWorkspace({
   if (view === "desk" && !customer) {
     return (
       <div className="min-h-screen bg-stone-950">
-        <PosHeader branchName={branchName} branches={branches} branchId={branchId} router={router} />
+        <PosHeader
+          branchName={branchName}
+          branches={branches}
+          branchId={branchId}
+          router={router}
+          canViewDelivery={canViewDelivery}
+          onOpenDelivery={() => setDeliveryPanelOpen(true)}
+        />
         <OrderDesk onNewOrder={() => setView("manual")} />
+        {deliveryPanelOpen && (
+          <PosDeliveryPanel
+            branchId={branchId}
+            branchName={branchName}
+            canAssign={canAssignDelivery}
+            onClose={() => setDeliveryPanelOpen(false)}
+          />
+        )}
       </div>
     );
   }
@@ -105,7 +126,14 @@ export function PosWorkspace({
   if (!customer || !cart) {
     return (
       <div className="min-h-screen bg-stone-950">
-        <PosHeader branchName={branchName} branches={branches} branchId={branchId} router={router} />
+        <PosHeader
+          branchName={branchName}
+          branches={branches}
+          branchId={branchId}
+          router={router}
+          canViewDelivery={canViewDelivery}
+          onOpenDelivery={() => setDeliveryPanelOpen(true)}
+        />
         <button
           onClick={() => setView("desk")}
           className="mx-auto mt-4 flex w-fit items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-stone-400 transition-colors hover:bg-stone-900 hover:text-stone-100"
@@ -113,6 +141,14 @@ export function PosWorkspace({
           <ArrowLeft size={14} /> Back to order desk
         </button>
         <CustomerPanel onStart={handleStartOrder} />
+        {deliveryPanelOpen && (
+          <PosDeliveryPanel
+            branchId={branchId}
+            branchName={branchName}
+            canAssign={canAssignDelivery}
+            onClose={() => setDeliveryPanelOpen(false)}
+          />
+        )}
       </div>
     );
   }
@@ -120,19 +156,41 @@ export function PosWorkspace({
   if (cart.type === "DELIVERY" && !deliveryAddressId) {
     return (
       <div className="min-h-screen bg-stone-950">
-        <PosHeader branchName={branchName} branches={branches} branchId={branchId} router={router} />
+        <PosHeader
+          branchName={branchName}
+          branches={branches}
+          branchId={branchId}
+          router={router}
+          canViewDelivery={canViewDelivery}
+          onOpenDelivery={() => setDeliveryPanelOpen(true)}
+        />
         <DeliveryAddressPanel
           customerId={customer.id}
           customerName={`${customer.firstName} ${customer.lastName}`}
           onSelect={setDeliveryAddressId}
         />
+        {deliveryPanelOpen && (
+          <PosDeliveryPanel
+            branchId={branchId}
+            branchName={branchName}
+            canAssign={canAssignDelivery}
+            onClose={() => setDeliveryPanelOpen(false)}
+          />
+        )}
       </div>
     );
   }
 
   return (
     <div className="flex h-screen flex-col bg-stone-950">
-      <PosHeader branchName={branchName} branches={branches} branchId={branchId} router={router} />
+      <PosHeader
+        branchName={branchName}
+        branches={branches}
+        branchId={branchId}
+        router={router}
+        canViewDelivery={canViewDelivery}
+        onOpenDelivery={() => setDeliveryPanelOpen(true)}
+      />
       <div className="grid flex-1 grid-cols-[1fr_360px] overflow-hidden">
         <ProductGrid categories={categories} products={products} onSelectProduct={setSelectedProduct} />
         <CartPanel
@@ -161,6 +219,15 @@ export function PosWorkspace({
           onOrderComplete={handleOrderComplete}
         />
       )}
+
+      {deliveryPanelOpen && (
+        <PosDeliveryPanel
+          branchId={branchId}
+          branchName={branchName}
+          canAssign={canAssignDelivery}
+          onClose={() => setDeliveryPanelOpen(false)}
+        />
+      )}
     </div>
   );
 }
@@ -170,11 +237,15 @@ function PosHeader({
   branches,
   branchId,
   router,
+  canViewDelivery,
+  onOpenDelivery,
 }: {
   branchName: string;
   branches: { id: string; name: string }[];
   branchId: string;
   router: ReturnType<typeof useRouter>;
+  canViewDelivery: boolean;
+  onOpenDelivery: () => void;
 }) {
   return (
     <header className="flex items-center justify-between border-b border-stone-800 px-4 py-3 sm:px-6">
@@ -182,10 +253,19 @@ function PosHeader({
         <Logo size={36} ring={false} />
         <div className="min-w-0">
           <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-brand-red-light">Flicks &amp; Licks</p>
-          <h1 className="truncate text-lg font-semibold text-stone-50">POS — {branchName}</h1>
+          <h1 className="truncate text-lg font-semibold text-stone-50">POS &middot; {branchName}</h1>
         </div>
       </div>
       <div className="flex shrink-0 items-center gap-2">
+        {canViewDelivery && (
+          <button
+            onClick={onOpenDelivery}
+            title="Delivery board"
+            className="flex size-9 items-center justify-center rounded-lg text-stone-400 transition-colors hover:bg-stone-800 hover:text-brand-red-light"
+          >
+            <Truck size={17} />
+          </button>
+        )}
         {branches.length > 1 && (
           <div className="relative">
             <select

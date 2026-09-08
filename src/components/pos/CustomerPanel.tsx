@@ -110,7 +110,7 @@ export function CustomerPanel({
                 <span className="font-medium text-stone-100">
                   {c.firstName} {c.lastName}
                 </span>
-                <span className="text-sm text-stone-500">{c.phone ?? c.email ?? "—"}</span>
+                <span className="text-sm text-stone-500">{c.phone ?? c.email ?? "No contact info"}</span>
               </button>
             </li>
           ))}

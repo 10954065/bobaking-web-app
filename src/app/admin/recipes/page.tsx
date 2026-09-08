@@ -32,7 +32,7 @@ export default async function RecipesPage() {
         <div className="mb-6">
           <h2 className="text-lg font-semibold text-stone-900 dark:text-stone-50">Recipes</h2>
           <p className="text-sm text-stone-500 dark:text-stone-400">
-            What each menu item consumes — drives automatic stock deduction when the kitchen starts making it.
+            What each menu item consumes. Drives automatic stock deduction when the kitchen starts making it.
           </p>
         </div>
 

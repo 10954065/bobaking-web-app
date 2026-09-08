@@ -55,7 +55,7 @@ export default async function AccountPage() {
           </span>
           <div className="min-w-0">
             <p className="truncate text-lg font-semibold text-stone-50">{user.name ?? "Staff"}</p>
-            <p className="truncate text-sm text-stone-400">{user.email ?? user.phone ?? "—"}</p>
+            <p className="truncate text-sm text-stone-400">{user.email ?? user.phone ?? "No contact info"}</p>
             <div className="mt-2 flex flex-wrap gap-1.5">
               {userRoles.map((ur) => (
                 <span key={ur.id} className="rounded-full bg-brand-red-950 px-2.5 py-0.5 text-xs font-medium text-brand-red-300">

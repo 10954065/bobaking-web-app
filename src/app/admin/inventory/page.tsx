@@ -97,7 +97,7 @@ export default async function AdminInventoryPage({
 
         <section className="mb-8 rounded-xl border border-stone-200 bg-white dark:border-stone-800 dark:bg-stone-900">
           <h3 className="px-6 pt-6 text-sm font-semibold text-stone-500 dark:text-stone-400">
-            Stock on hand — {currentBranch.name} ({stock.length})
+            Stock on hand &middot; {currentBranch.name} ({stock.length})
           </h3>
           <div className="mt-4 overflow-x-auto">
             <table className="w-full text-left text-sm">

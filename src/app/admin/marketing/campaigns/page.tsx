@@ -77,7 +77,7 @@ export default async function CampaignsPage() {
                     <td className="px-6 py-3 font-medium text-stone-900 dark:text-stone-50">{campaign.name}</td>
                     <td className="px-6 py-3 text-stone-600 dark:text-stone-400">{AUDIENCE_LABELS[campaign.audience]}</td>
                     <td className="px-6 py-3 text-stone-600 dark:text-stone-400">{audienceSizes[index]} customers</td>
-                    <td className="px-6 py-3 font-mono text-stone-600 dark:text-stone-400">{campaign.promotion?.code ?? "—"}</td>
+                    <td className="px-6 py-3 font-mono text-stone-600 dark:text-stone-400">{campaign.promotion?.code ?? "N/A"}</td>
                     <td className="px-6 py-3">
                       <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${STATUS_COLORS[campaign.status]}`}>
                         {campaign.status}

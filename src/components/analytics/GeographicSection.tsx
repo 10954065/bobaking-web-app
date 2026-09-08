@@ -46,7 +46,7 @@ export function GeographicSection({
         <h3 className="text-sm font-semibold text-stone-500 dark:text-stone-400">Delivery performance</h3>
         <p className="mt-2 text-sm text-stone-600 dark:text-stone-400">
           {deliveryPerformance.overallDeliveries} completed deliveries · avg{" "}
-          <strong>{deliveryPerformance.overallAvgMinutes ?? "—"} min</strong> from rider pickup to arrival
+          <strong>{deliveryPerformance.overallAvgMinutes ?? "N/A"} min</strong> from rider pickup to arrival
         </p>
         <ul className="mt-4 space-y-3">
           {deliveryPerformance.byZone.map((zone) => (

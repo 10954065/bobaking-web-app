@@ -102,7 +102,7 @@ export function AdminDeliveryMapPanel({
 
         <div className="flex items-center justify-between px-4 py-3 text-xs text-stone-400">
           <span>Status: {status.replaceAll("_", " ")}</span>
-          {location && <span>{isStale ? "Stale — " : ""}Last update {new Date(location.recordedAt).toLocaleTimeString()}</span>}
+          {location && <span>{isStale ? "Stale. " : ""}Last update {new Date(location.recordedAt).toLocaleTimeString()}</span>}
           {navigation && (
             <span className="font-medium text-stone-200">
               {navigation.route.etaMinutesLow}–{navigation.route.etaMinutesHigh} min · {navigation.route.distanceKm.toFixed(1)} km

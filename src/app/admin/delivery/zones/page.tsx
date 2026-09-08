@@ -83,7 +83,7 @@ export default async function DeliveryZonesPage({
 
         <section className="mb-8 rounded-xl border border-stone-200 bg-white dark:border-stone-800 dark:bg-stone-900">
           <h3 className="px-6 pt-6 text-sm font-semibold text-stone-500 dark:text-stone-400">
-            Zones — {currentBranch.name} ({zones.length})
+            Zones &middot; {currentBranch.name} ({zones.length})
           </h3>
           <div className="mt-4 overflow-x-auto">
             <table className="w-full text-left text-sm">
@@ -103,7 +103,7 @@ export default async function DeliveryZonesPage({
                     <td className="px-6 py-3 font-medium text-stone-900 dark:text-stone-50">{zone.name}</td>
                     <td className="px-6 py-3 text-stone-600 dark:text-stone-400">{zone.areaMatch}</td>
                     <td className="px-6 py-3 text-stone-600 dark:text-stone-400">GHS {Number(zone.fee).toFixed(2)}</td>
-                    <td className="px-6 py-3 text-stone-600 dark:text-stone-400">{zone.estimatedMinutes ?? "—"}</td>
+                    <td className="px-6 py-3 text-stone-600 dark:text-stone-400">{zone.estimatedMinutes ?? "N/A"}</td>
                     <td className="px-6 py-3">
                       <span
                         className={`rounded-full px-2.5 py-1 text-xs font-medium ${
@@ -134,7 +134,7 @@ export default async function DeliveryZonesPage({
                 {zones.length === 0 && (
                   <tr>
                     <td colSpan={canManage ? 6 : 5} className="px-6 py-6 text-center text-sm text-stone-500 dark:text-stone-400">
-                      No zones configured — deliveries at this branch use the default fee.
+                      No zones configured. Deliveries at this branch use the default fee.
                     </td>
                   </tr>
                 )}

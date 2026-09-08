@@ -61,7 +61,7 @@ export default async function AdminCustomersPage({
                       {customer.firstName} {customer.lastName}
                     </p>
                     <p className="text-sm text-stone-500 dark:text-stone-400">
-                      {customer.email ?? "—"} · {customer.phone ?? "—"}
+                      {customer.email ?? "N/A"} · {customer.phone ?? "N/A"}
                     </p>
                   </div>
                   <span className="rounded-full bg-stone-100 px-2.5 py-1 text-xs font-medium text-stone-700 dark:bg-stone-800 dark:text-stone-300">

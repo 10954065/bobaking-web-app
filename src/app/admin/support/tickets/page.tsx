@@ -103,8 +103,8 @@ export default async function SupportTicketsPage({
                     <td className="px-6 py-3 text-stone-600 dark:text-stone-400">
                       {ticket.customer.firstName} {ticket.customer.lastName}
                     </td>
-                    <td className="px-6 py-3 text-stone-600 dark:text-stone-400">{ticket.order?.orderNumber ?? "—"}</td>
-                    <td className="px-6 py-3 text-stone-600 dark:text-stone-400">{ticket.branch?.name ?? "—"}</td>
+                    <td className="px-6 py-3 text-stone-600 dark:text-stone-400">{ticket.order?.orderNumber ?? "N/A"}</td>
+                    <td className="px-6 py-3 text-stone-600 dark:text-stone-400">{ticket.branch?.name ?? "N/A"}</td>
                     <td className="px-6 py-3">
                       <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${STATUS_COLORS[ticket.status]}`}>
                         {ticket.status.replaceAll("_", " ")}

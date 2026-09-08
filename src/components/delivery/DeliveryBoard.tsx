@@ -79,8 +79,8 @@ export function DeliveryBoard({
     <main className="mx-auto max-w-5xl px-6 py-8">
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-semibold text-stone-900 dark:text-stone-50">Delivery — {branchName}</h2>
-          <p className="text-sm text-stone-500 dark:text-stone-400">Live board — updates automatically as orders and riders change.</p>
+          <h2 className="text-lg font-semibold text-stone-900 dark:text-stone-50">Delivery &middot; {branchName}</h2>
+          <p className="text-sm text-stone-500 dark:text-stone-400">Live board, updates automatically as orders and riders change.</p>
         </div>
         <nav className="flex gap-2">
           <Link
@@ -199,7 +199,7 @@ export function DeliveryBoard({
                 <tr key={order.id}>
                   <td className="px-6 py-3 font-medium text-stone-900 dark:text-stone-50">{order.orderNumber}</td>
                   <td className="px-6 py-3 text-stone-600 dark:text-stone-400">{order.customerName}</td>
-                  <td className="px-6 py-3 text-stone-600 dark:text-stone-400">{order.assignedRiderName ?? "—"}</td>
+                  <td className="px-6 py-3 text-stone-600 dark:text-stone-400">{order.assignedRiderName ?? "Unassigned"}</td>
                   <td className="px-6 py-3">
                     <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${STATUS_COLORS[order.status] ?? ""}`}>
                       {order.status.replaceAll("_", " ")}

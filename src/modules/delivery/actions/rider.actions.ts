@@ -8,6 +8,9 @@ import {
   riderMarkDelivered,
   getRiderEarningsToday,
   getActiveAssignedOrderId,
+  listCompletedDeliveriesForRider,
+  getRiderDeliveryStats,
+  type RiderDeliveryHistoryEntry,
 } from "@/modules/delivery/services/delivery-order.service";
 import { getRiderProfileByUserId, setRiderStatus, updateRiderLocation } from "@/modules/delivery/services/rider.service";
 import type { LocationPingInput } from "@/modules/delivery/schemas/rider.schema";
@@ -81,6 +84,20 @@ export async function getRiderEarningsSummaryAction(): Promise<RiderEarningsSumm
   const userId = await requireUserId();
   await requireRiderProfile(userId);
   return getRiderEarningsToday(userId);
+}
+
+export interface RiderDeliveryHistory {
+  totalDeliveries: number;
+  totalEarned: number;
+  entries: RiderDeliveryHistoryEntry[];
+}
+
+/** The rider's own delivery history/stats — riderId is always the authenticated session, never client-supplied. */
+export async function getRiderDeliveryHistoryAction(): Promise<RiderDeliveryHistory> {
+  const userId = await requireUserId();
+  await requireRiderProfile(userId);
+  const [stats, entries] = await Promise.all([getRiderDeliveryStats(userId), listCompletedDeliveriesForRider(userId)]);
+  return { ...stats, entries };
 }
 
 export async function toggleAvailabilityAction(goOnline: boolean): Promise<RiderStatusSummary> {

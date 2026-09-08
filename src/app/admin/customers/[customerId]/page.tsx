@@ -60,7 +60,7 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
               {customer.firstName} {customer.lastName}
             </h2>
             <p className="text-sm text-stone-500 dark:text-stone-400">
-              {customer.email ?? "—"} · {customer.phone ?? "—"} · {customer.status}
+              {customer.email ?? "N/A"} · {customer.phone ?? "N/A"} · {customer.status}
             </p>
           </div>
           <Link
@@ -155,7 +155,7 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
         {canViewLoyalty && (
           <section className="rounded-xl border border-stone-200 bg-white dark:border-stone-800 dark:bg-stone-900">
             <h3 className="px-6 pt-6 text-sm font-semibold text-stone-500 dark:text-stone-400">
-              Loyalty activity — balance: {loyaltyAccount?.pointsBalance ?? 0} points
+              Loyalty activity, balance: {loyaltyAccount?.pointsBalance ?? 0} points
             </h3>
             <div className="mt-4 overflow-x-auto">
               <table className="w-full text-left text-sm">
@@ -177,7 +177,7 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
                         {tx.points}
                       </td>
                       <td className="px-6 py-3 text-stone-600 dark:text-stone-400">{tx.balanceAfter}</td>
-                      <td className="px-6 py-3 text-stone-600 dark:text-stone-400">{tx.reason ?? "—"}</td>
+                      <td className="px-6 py-3 text-stone-600 dark:text-stone-400">{tx.reason ?? "N/A"}</td>
                       <td className="px-6 py-3 text-stone-600 dark:text-stone-400">
                         {new Date(tx.createdAt).toLocaleDateString()}
                       </td>

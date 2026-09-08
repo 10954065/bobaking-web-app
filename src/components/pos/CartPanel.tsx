@@ -32,7 +32,7 @@ export function CartPanel({
       </div>
 
       <div className="flex-1 overflow-y-auto p-4">
-        {items.length === 0 && <p className="text-sm text-stone-500">No items yet — tap a product to add it.</p>}
+        {items.length === 0 && <p className="text-sm text-stone-500">No items yet. Tap a product to add it.</p>}
         <ul className="space-y-3">
           {items.map((item) => (
             <li key={item.id} className="rounded-lg border border-stone-800 p-3">

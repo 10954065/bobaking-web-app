@@ -174,7 +174,7 @@ export function OrderDesk({ onNewOrder }: { onNewOrder: () => void }) {
             <div className="col-span-2 rounded-xl border border-stone-800 bg-stone-900 p-4 sm:col-span-1">
               <p className="text-xs text-stone-500">By method</p>
               <div className="mt-1 space-y-0.5 text-sm text-stone-300">
-                {Object.entries(today.byMethod).length === 0 && <p className="text-stone-600">—</p>}
+                {Object.entries(today.byMethod).length === 0 && <p className="text-stone-600">No payments yet</p>}
                 {Object.entries(today.byMethod).map(([method, amount]) => (
                   <p key={method}>
                     {method.replaceAll("_", " ")}: <span className="font-semibold text-stone-100">GHS {amount.toFixed(2)}</span>

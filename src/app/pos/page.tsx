@@ -43,6 +43,8 @@ export default async function PosPage({ searchParams }: { searchParams: Promise<
       branches={branches.map((b) => ({ id: b.id, name: b.name }))}
       categories={categories.map((c) => ({ id: c.id, name: c.name }))}
       products={products}
+      canViewDelivery={hasAnyPermission(profile, "delivery", "read")}
+      canAssignDelivery={hasAnyPermission(profile, "delivery", "assign")}
     />
   );
 }

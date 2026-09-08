@@ -77,6 +77,51 @@ export async function getRiderEarningsToday(riderUserId: string) {
   };
 }
 
+export interface RiderDeliveryHistoryEntry {
+  orderId: string;
+  orderNumber: string;
+  customerName: string;
+  addressLabel: string;
+  deliveryFee: number;
+  deliveredAt: Date;
+}
+
+/** Every delivery this rider has personally completed, most recent first — keyed off OrderStatusHistory (same reasoning as getRiderEarningsToday) rather than Order.updatedAt. */
+export async function listCompletedDeliveriesForRider(riderUserId: string, limit = 50): Promise<RiderDeliveryHistoryEntry[]> {
+  const entries = await prisma.orderStatusHistory.findMany({
+    where: { toStatus: "DELIVERED", changedByUserId: riderUserId },
+    include: { order: { select: { id: true, orderNumber: true, deliveryFee: true, customer: true, deliveryAddress: true } } },
+    orderBy: { createdAt: "desc" },
+    take: limit,
+  });
+
+  return entries.map((entry) => ({
+    orderId: entry.order.id,
+    orderNumber: entry.order.orderNumber,
+    customerName: `${entry.order.customer.firstName} ${entry.order.customer.lastName}`,
+    addressLabel: entry.order.deliveryAddress
+      ? entry.order.deliveryAddress.area
+        ? `${entry.order.deliveryAddress.addressLine1}, ${entry.order.deliveryAddress.area}`
+        : entry.order.deliveryAddress.addressLine1
+      : "Pickup",
+    deliveryFee: Number(entry.order.deliveryFee),
+    deliveredAt: entry.createdAt,
+  }));
+}
+
+/** All-time totals for this rider's profile/stats view. */
+export async function getRiderDeliveryStats(riderUserId: string) {
+  const delivered = await prisma.orderStatusHistory.findMany({
+    where: { toStatus: "DELIVERED", changedByUserId: riderUserId },
+    include: { order: { select: { deliveryFee: true } } },
+  });
+
+  return {
+    totalDeliveries: delivered.length,
+    totalEarned: delivered.reduce((sum, entry) => sum + Number(entry.order.deliveryFee), 0),
+  };
+}
+
 async function requireOrderAssignedToRider(orderId: string, riderUserId: string) {
   const order = await prisma.order.findUniqueOrThrow({ where: { id: orderId } });
   if (order.assignedRiderId !== riderUserId) {

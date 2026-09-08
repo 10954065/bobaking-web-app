@@ -18,6 +18,8 @@ import {
   KeyRound,
   WifiOff,
   AlertTriangle,
+  History,
+  X,
 } from "lucide-react";
 import { signOutAction } from "@/modules/auth/actions/sign-out.action";
 import {
@@ -26,8 +28,10 @@ import {
   markPickedUpAction,
   markDeliveredAction,
   getRiderEarningsSummaryAction,
+  getRiderDeliveryHistoryAction,
   type RiderDeliveryOrder,
   type RiderEarningsSummary,
+  type RiderDeliveryHistory,
 } from "@/modules/delivery/actions/rider.actions";
 import { useRiderLocationTracker } from "@/modules/delivery/hooks/useRiderLocationTracker";
 import { RiderNavigationMap } from "@/components/delivery/RiderNavigationMap";
@@ -50,6 +54,8 @@ export function RiderApp({
   const [earnings, setEarnings] = useState<RiderEarningsSummary>({ deliveriesToday: 0, earningsToday: 0 });
   const [codeInputs, setCodeInputs] = useState<Record<string, string>>({});
   const [codeErrors, setCodeErrors] = useState<Record<string, string | null>>({});
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [history, setHistory] = useState<RiderDeliveryHistory | null>(null);
   const refetchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const isOnline = status !== "OFFLINE";
@@ -180,6 +186,16 @@ export function RiderApp({
             </p>
           </div>
         </div>
+        <button
+          onClick={() => {
+            setHistoryOpen(true);
+            getRiderDeliveryHistoryAction().then(setHistory).catch(() => {});
+          }}
+          title="Delivery history"
+          className="flex size-11 shrink-0 items-center justify-center rounded-xl border border-stone-800 bg-stone-900 text-stone-400 transition-colors hover:border-brand-red hover:text-brand-red-light"
+        >
+          <History size={17} />
+        </button>
       </div>
 
       {/* Bottom padding reserves room for the fixed action bar so the last card is never hidden behind it. */}
@@ -191,7 +207,7 @@ export function RiderApp({
         )}
         {isOnline && !tracker.isOnline && (
           <p className="flex items-center gap-1.5 rounded-lg border border-red-900/60 bg-red-950/30 px-3 py-2 text-xs text-red-300">
-            <WifiOff size={13} className="shrink-0" /> No internet connection — your location will resume sharing once you&apos;re back
+            <WifiOff size={13} className="shrink-0" /> No internet connection. Your location will resume sharing once you&apos;re back
             online.
           </p>
         )}
@@ -210,7 +226,7 @@ export function RiderApp({
         {deliveries.length === 0 && isOnline && (
           <div className="flex flex-col items-center gap-3 rounded-2xl border border-stone-800 bg-stone-900 px-4 py-10 text-center">
             <Package size={28} className="text-stone-600" />
-            <p className="text-sm text-stone-400">No deliveries assigned right now — sit tight.</p>
+            <p className="text-sm text-stone-400">No deliveries assigned right now. Sit tight.</p>
           </div>
         )}
 
@@ -325,9 +341,75 @@ export function RiderApp({
           }`}
         >
           <Bike size={19} />
-          {isOnDelivery ? "On delivery — finish to go offline" : isTogglePending ? "Updating…" : isOnline ? "Go offline" : "Go online"}
+          {isOnDelivery ? "On delivery, finish to go offline" : isTogglePending ? "Updating…" : isOnline ? "Go offline" : "Go online"}
         </button>
       </div>
+
+      <AnimatePresence>
+        {historyOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 sm:items-center"
+            onClick={() => setHistoryOpen(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, y: 24 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 24 }}
+              transition={{ duration: 0.2 }}
+              onClick={(e) => e.stopPropagation()}
+              className="max-h-[80vh] w-full max-w-lg overflow-y-auto rounded-t-2xl border border-stone-800 bg-stone-950 p-5 sm:rounded-2xl"
+            >
+              <div className="flex items-center justify-between">
+                <h2 className="font-display text-lg uppercase tracking-tight text-stone-50">My deliveries</h2>
+                <button onClick={() => setHistoryOpen(false)} className="flex size-8 items-center justify-center rounded-lg text-stone-400 hover:bg-stone-800">
+                  <X size={16} />
+                </button>
+              </div>
+
+              {!history ? (
+                <p className="mt-6 text-sm text-stone-500">Loading…</p>
+              ) : (
+                <>
+                  <div className="mt-4 grid grid-cols-2 gap-3">
+                    <div className="rounded-xl border border-stone-800 bg-stone-900 px-4 py-3">
+                      <p className="text-[10px] uppercase tracking-wide text-stone-500">Total deliveries</p>
+                      <p className="mt-1 font-display text-2xl text-stone-50">{history.totalDeliveries}</p>
+                    </div>
+                    <div className="rounded-xl border border-stone-800 bg-stone-900 px-4 py-3">
+                      <p className="text-[10px] uppercase tracking-wide text-stone-500">Total earned</p>
+                      <p className="mt-1 font-display text-2xl text-brand-red-light">GHS {history.totalEarned.toFixed(2)}</p>
+                    </div>
+                  </div>
+
+                  {history.entries.length === 0 ? (
+                    <p className="mt-6 text-center text-sm text-stone-500">No completed deliveries yet.</p>
+                  ) : (
+                    <ul className="mt-5 space-y-2">
+                      {history.entries.map((entry) => (
+                        <li key={entry.orderId} className="flex items-center gap-3 rounded-xl border border-stone-800 bg-stone-900 px-3.5 py-3">
+                          <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-emerald-950/60 text-emerald-400">
+                            <CheckCircle2 size={15} />
+                          </span>
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate text-sm font-medium text-stone-100">{entry.customerName}</p>
+                            <p className="truncate text-xs text-stone-500">
+                              {entry.addressLabel} &middot; {new Date(entry.deliveredAt).toLocaleDateString()}
+                            </p>
+                          </div>
+                          <p className="shrink-0 text-sm font-semibold text-brand-red-light">+GHS {entry.deliveryFee.toFixed(2)}</p>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </>
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

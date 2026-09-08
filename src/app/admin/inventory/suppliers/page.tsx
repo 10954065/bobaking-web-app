@@ -58,8 +58,8 @@ export default async function SuppliersPage() {
                 {suppliers.map((supplier) => (
                   <tr key={supplier.id}>
                     <td className="px-6 py-3 font-medium text-stone-900 dark:text-stone-50">{supplier.name}</td>
-                    <td className="px-6 py-3 text-stone-600 dark:text-stone-400">{supplier.phone ?? "—"}</td>
-                    <td className="px-6 py-3 text-stone-600 dark:text-stone-400">{supplier.email ?? "—"}</td>
+                    <td className="px-6 py-3 text-stone-600 dark:text-stone-400">{supplier.phone ?? "N/A"}</td>
+                    <td className="px-6 py-3 text-stone-600 dark:text-stone-400">{supplier.email ?? "N/A"}</td>
                     <td className="px-6 py-3">
                       <span
                         className={`rounded-full px-2.5 py-1 text-xs font-medium ${

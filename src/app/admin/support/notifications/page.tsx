@@ -28,7 +28,7 @@ export default async function NotificationsLogPage() {
           <div>
             <h2 className="text-lg font-semibold text-stone-900 dark:text-stone-50">Notifications</h2>
             <p className="text-sm text-stone-500 dark:text-stone-400">
-              Order-status messages sent to customers. No real SMS/email gateway is wired up yet — this is a log of
+              Order-status messages sent to customers. No real SMS/email gateway is wired up yet, so this is a log of
               what would have been sent.
             </p>
           </div>
@@ -58,7 +58,7 @@ export default async function NotificationsLogPage() {
                     <td className="px-6 py-3 font-medium text-stone-900 dark:text-stone-50">
                       {notification.customer.firstName} {notification.customer.lastName}
                     </td>
-                    <td className="px-6 py-3 text-stone-600 dark:text-stone-400">{notification.order?.orderNumber ?? "—"}</td>
+                    <td className="px-6 py-3 text-stone-600 dark:text-stone-400">{notification.order?.orderNumber ?? "N/A"}</td>
                     <td className="px-6 py-3 text-stone-600 dark:text-stone-400">{notification.channel}</td>
                     <td className="px-6 py-3 text-stone-600 dark:text-stone-400">{notification.subject}</td>
                     <td className="px-6 py-3 text-stone-600 dark:text-stone-400">

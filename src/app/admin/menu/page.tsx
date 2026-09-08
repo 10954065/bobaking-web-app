@@ -1,10 +1,10 @@
 import { redirect } from "next/navigation";
 import { getCurrentSession } from "@/modules/auth/services/current-session.service";
-import { getUserAccessProfile, hasAnyPermission } from "@/modules/auth/services/authorization.service";
+import { getUserAccessProfile, hasAnyPermission, hasPermission } from "@/modules/auth/services/authorization.service";
 import { listCategories } from "@/modules/categories/services/category.service";
 import { listProducts } from "@/modules/products/services/product.service";
 import { prisma } from "@/db/client";
-import { MenuImage } from "@/components/menu/MenuImage";
+import { MenuManager } from "@/components/admin/MenuManager";
 
 export default async function AdminMenuPage() {
   const session = await getCurrentSession();
@@ -34,75 +34,23 @@ export default async function AdminMenuPage() {
   return (
     <div className="min-h-screen bg-stone-100 dark:bg-stone-950">
       <main className="mx-auto max-w-5xl px-6 py-8">
-        <section className="mb-8 rounded-xl border border-stone-200 bg-white p-6 dark:border-stone-800 dark:bg-stone-900">
-          <h2 className="text-sm font-semibold text-stone-500 dark:text-stone-400">
-            Categories ({categories.length})
-          </h2>
-          <div className="mt-4 flex flex-wrap gap-2">
-            {categories.map((category) => (
-              <span
-                key={category.id}
-                className={`rounded-full px-3 py-1 text-xs font-medium ${
-                  category.isActive
-                    ? "bg-brand-red-100 text-brand-red-800 dark:bg-brand-red-950 dark:text-brand-red-300"
-                    : "bg-stone-200 text-stone-500 dark:bg-stone-800 dark:text-stone-500"
-                }`}
-              >
-                {category.name}
-              </span>
-            ))}
-          </div>
-        </section>
-
-        <section className="rounded-xl border border-stone-200 bg-white dark:border-stone-800 dark:bg-stone-900">
-          <h2 className="px-6 pt-6 text-sm font-semibold text-stone-500 dark:text-stone-400">
-            Products ({products.length})
-          </h2>
-          <div className="mt-4 overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead className="border-t border-stone-100 text-stone-500 dark:border-stone-800 dark:text-stone-400">
-                <tr>
-                  <th className="px-6 py-2 font-medium">
-                    <span className="sr-only">Image</span>
-                  </th>
-                  <th className="px-6 py-2 font-medium">Product</th>
-                  <th className="px-6 py-2 font-medium">Category</th>
-                  <th className="px-6 py-2 font-medium">Base price</th>
-                  <th className="px-6 py-2 font-medium">Branch overrides</th>
-                  <th className="px-6 py-2 font-medium">Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-stone-100 dark:divide-stone-800">
-                {products.map((product) => (
-                  <tr key={product.id}>
-                    <td className="py-2 pl-6">
-                      <MenuImage src={product.imageUrl} alt={product.name} className="size-11 rounded-lg" />
-                    </td>
-                    <td className="px-6 py-3 font-medium text-stone-900 dark:text-stone-50">{product.name}</td>
-                    <td className="px-6 py-3 text-stone-600 dark:text-stone-400">{product.category.name}</td>
-                    <td className="px-6 py-3 text-stone-600 dark:text-stone-400">
-                      GHS {Number(product.basePrice).toFixed(2)}
-                    </td>
-                    <td className="px-6 py-3 text-stone-600 dark:text-stone-400">
-                      {overrideCountByProduct.get(product.id) ?? 0}
-                    </td>
-                    <td className="px-6 py-3">
-                      <span
-                        className={`rounded-full px-2.5 py-1 text-xs font-medium ${
-                          product.isActive
-                            ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300"
-                            : "bg-stone-200 text-stone-500 dark:bg-stone-800 dark:text-stone-500"
-                        }`}
-                      >
-                        {product.isActive ? "Active" : "Inactive"}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
+        <h1 className="mb-6 font-display text-2xl uppercase tracking-tight text-stone-900 dark:text-stone-50">Menu</h1>
+        <MenuManager
+          categories={categories.map((c) => ({ id: c.id, name: c.name, description: c.description, isActive: c.isActive }))}
+          products={products.map((p) => ({
+            id: p.id,
+            categoryId: p.categoryId,
+            name: p.name,
+            description: p.description,
+            basePrice: Number(p.basePrice),
+            imageUrl: p.imageUrl,
+            isActive: p.isActive,
+            category: { name: p.category.name },
+            overrideCount: overrideCountByProduct.get(p.id) ?? 0,
+          }))}
+          canEditCategories={hasPermission(profile, "categories", "create", null) || hasPermission(profile, "categories", "update", null)}
+          canEditProducts={hasPermission(profile, "products", "create", null) || hasPermission(profile, "products", "update", null)}
+        />
       </main>
     </div>
   );

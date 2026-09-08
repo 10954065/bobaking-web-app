@@ -87,7 +87,7 @@ export default async function DeliveryRidersPage({
 
         <section className="mb-8 rounded-xl border border-stone-200 bg-white dark:border-stone-800 dark:bg-stone-900">
           <h3 className="px-6 pt-6 text-sm font-semibold text-stone-500 dark:text-stone-400">
-            Riders — {currentBranch.name} ({riders.length})
+            Riders &middot; {currentBranch.name} ({riders.length})
           </h3>
           <div className="mt-4 overflow-x-auto">
             <table className="w-full text-left text-sm">
@@ -107,9 +107,9 @@ export default async function DeliveryRidersPage({
                     <td className="px-6 py-3 font-medium text-stone-900 dark:text-stone-50">
                       {rider.user.firstName} {rider.user.lastName}
                     </td>
-                    <td className="px-6 py-3 text-stone-600 dark:text-stone-400">{rider.user.phone ?? rider.user.email ?? "—"}</td>
+                    <td className="px-6 py-3 text-stone-600 dark:text-stone-400">{rider.user.phone ?? rider.user.email ?? "N/A"}</td>
                     <td className="px-6 py-3 text-stone-600 dark:text-stone-400">{rider.vehicleType.replaceAll("_", " ")}</td>
-                    <td className="px-6 py-3 text-stone-600 dark:text-stone-400">{rider.plateNumber ?? "—"}</td>
+                    <td className="px-6 py-3 text-stone-600 dark:text-stone-400">{rider.plateNumber ?? "N/A"}</td>
                     <td className="px-6 py-3">
                       <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${STATUS_COLORS[rider.status] ?? ""}`}>
                         {rider.status.replaceAll("_", " ")}
