@@ -8,8 +8,8 @@ import { StorefrontApp } from "@/components/storefront/StorefrontApp";
 // matches the real request's CSP header, silently breaking hydration.
 export const dynamic = "force-dynamic";
 
-export default async function OrderPage() {
-  const branches = await listBranches({ status: "ACTIVE" });
+export default async function OrderPage({ searchParams }: { searchParams: Promise<{ dish?: string }> }) {
+  const [branches, { dish }] = await Promise.all([listBranches({ status: "ACTIVE" }), searchParams]);
 
   return (
     <StorefrontApp
@@ -20,6 +20,7 @@ export default async function OrderPage() {
         latitude: b.latitude != null ? Number(b.latitude) : null,
         longitude: b.longitude != null ? Number(b.longitude) : null,
       }))}
+      initialDishId={dish ?? null}
     />
   );
 }

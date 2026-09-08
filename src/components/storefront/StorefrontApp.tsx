@@ -23,7 +23,7 @@ import type { PosProduct } from "@/modules/pos/services/pos-catalog.service";
 
 type Step = "branch" | "menu" | "checkout" | "payment";
 
-export function StorefrontApp({ branches }: { branches: StorefrontBranch[] }) {
+export function StorefrontApp({ branches, initialDishId = null }: { branches: StorefrontBranch[]; initialDishId?: string | null }) {
   const router = useRouter();
   const [step, setStep] = useState<Step>("branch");
   const [type, setType] = useState<"DELIVERY" | "PICKUP">("DELIVERY");
@@ -48,6 +48,12 @@ export function StorefrontApp({ branches }: { branches: StorefrontBranch[] }) {
       const loaded = await getStorefrontMenuAction(id);
       setMenu(loaded);
       setStep("menu");
+      // Came from tapping a dish on the homepage — jump straight into
+      // ordering that item instead of making them find it again in the grid.
+      if (initialDishId) {
+        const match = loaded.products.find((p) => p.id === initialDishId);
+        if (match) setSelectedProduct(match);
+      }
     } finally {
       setMenuLoading(false);
     }

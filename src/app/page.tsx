@@ -1,4 +1,5 @@
 import { listBranches } from "@/modules/branches/services/branch.service";
+import { prisma } from "@/db/client";
 import { HomePage } from "@/components/home/HomePage";
 
 // Must render per-request, not be statically prerendered — the CSP nonce
@@ -8,7 +9,51 @@ import { HomePage } from "@/components/home/HomePage";
 // matches the real request's CSP header, silently breaking hydration.
 export const dynamic = "force-dynamic";
 
+// Curated homepage picks — kept as real Product rows (not a hardcoded list)
+// so price/photo always match the live menu. "Popular" is an editorial tag,
+// not derived from order data.
+const FEATURED_SLUGS = [
+  "loaded-fries-with-cheese",
+  "fully-loaded-shawarma",
+  "flicks-special-pizza",
+  "chicken-suya",
+  "flicks-and-licks-combo",
+  "super-loaded-plantain",
+  "assorted-jollof",
+  "cheesy-shawarma",
+];
+const POPULAR_SLUGS = new Set(["loaded-fries-with-cheese", "fully-loaded-shawarma", "super-loaded-plantain"]);
+
 export default async function Home() {
-  const branches = await listBranches({ status: "ACTIVE" });
-  return <HomePage branches={branches.map((b) => ({ id: b.id, name: b.name, address: b.address }))} />;
+  const [branches, featuredProducts] = await Promise.all([
+    listBranches({ status: "ACTIVE" }),
+    prisma.product.findMany({
+      where: { slug: { in: FEATURED_SLUGS }, isActive: true },
+      select: { id: true, slug: true, name: true, basePrice: true, imageUrl: true },
+    }),
+  ]);
+
+  const productsBySlug = new Map(featuredProducts.map((p) => [p.slug, p]));
+  const dishes = FEATURED_SLUGS.map((slug) => productsBySlug.get(slug))
+    .filter((p): p is NonNullable<typeof p> => p != null)
+    .map((p) => ({
+      id: p.id,
+      name: p.name,
+      price: Number(p.basePrice),
+      image: p.imageUrl,
+      tag: POPULAR_SLUGS.has(p.slug) ? "Popular" : undefined,
+    }));
+
+  return (
+    <HomePage
+      branches={branches.map((b) => ({
+        id: b.id,
+        name: b.name,
+        address: b.address,
+        latitude: b.latitude != null ? Number(b.latitude) : null,
+        longitude: b.longitude != null ? Number(b.longitude) : null,
+      }))}
+      dishes={dishes}
+    />
+  );
 }
