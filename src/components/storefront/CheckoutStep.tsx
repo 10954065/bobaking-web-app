@@ -14,7 +14,7 @@ export interface GuestCheckoutValues {
 }
 
 const inputClass =
-  "w-full rounded-lg border border-stone-700 bg-stone-950 px-3 py-2.5 text-sm text-stone-100 outline-none focus:border-orange-500";
+  "w-full rounded-lg border border-stone-700 bg-stone-950 px-3 py-2.5 text-sm text-stone-100 outline-none focus:border-brand-red";
 
 export function CheckoutStep({
   type,
@@ -72,7 +72,7 @@ export function CheckoutStep({
         <ArrowLeft size={15} /> Back to menu
       </button>
 
-      <h1 className="mt-4 text-xl font-bold text-stone-50">Your details</h1>
+      <h1 className="mt-4 font-display text-2xl uppercase tracking-tight text-stone-50">Your details</h1>
       <p className="mt-1 text-sm text-stone-400">
         {type === "DELIVERY" ? "So we know where to send your order." : "So the branch knows who's collecting."}
       </p>
@@ -141,7 +141,7 @@ export function CheckoutStep({
       <button
         onClick={handleSubmit}
         disabled={!canSubmit || isPending}
-        className="mt-6 flex w-full items-center justify-center rounded-2xl bg-orange-600 py-3.5 text-base font-semibold text-white transition-colors hover:bg-orange-500 disabled:opacity-40"
+        className="mt-6 flex w-full items-center justify-center rounded-2xl bg-brand-red py-3.5 font-display text-base uppercase tracking-wide text-white shadow-lg shadow-brand-red/25 transition-transform hover:scale-[1.01] active:scale-[0.99] disabled:opacity-40 disabled:hover:scale-100"
       >
         {isPending ? "Placing order…" : `Place order · GHS ${cartTotal.toFixed(2)}`}
       </button>

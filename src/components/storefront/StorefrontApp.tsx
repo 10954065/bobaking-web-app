@@ -3,10 +3,11 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
-import { ArrowLeft, ChevronUp, Minus, Plus, ShoppingBag, Trash2, UtensilsCrossed, X } from "lucide-react";
+import { ArrowLeft, ChevronUp, Minus, Plus, ShoppingBag, Trash2, X } from "lucide-react";
 import { ProductGrid } from "@/components/pos/ProductGrid";
 import { ModifierModal, type ModifierSelection } from "@/components/pos/ModifierModal";
 import { MenuImage } from "@/components/menu/MenuImage";
+import { Logo } from "@/components/brand/Logo";
 import { BranchStep } from "@/components/storefront/BranchStep";
 import { CheckoutStep, type GuestCheckoutValues } from "@/components/storefront/CheckoutStep";
 import { PaymentStep } from "@/components/storefront/PaymentStep";
@@ -102,7 +103,7 @@ export function StorefrontApp({ branches }: { branches: StorefrontBranch[] }) {
       setCartOpen(false);
       setStep("payment");
     } catch (e) {
-      setCheckoutError(e instanceof Error ? e.message : "Couldn't place your order — please try again.");
+      setCheckoutError(e instanceof Error ? e.message : "Couldn't place your order, please try again.");
     } finally {
       setIsPlacing(false);
     }
@@ -153,11 +154,9 @@ export function StorefrontApp({ branches }: { branches: StorefrontBranch[] }) {
         >
           <ArrowLeft size={17} />
         </button>
-        <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-orange-600 text-white">
-          <UtensilsCrossed size={17} strokeWidth={2.25} />
-        </span>
+        <Logo size={36} ring={false} />
         <div className="min-w-0">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-orange-500">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-brand-cyan">
             {type === "DELIVERY" ? "Delivery" : "Pickup"}
           </p>
           <h1 className="truncate text-base font-semibold leading-tight">{currentBranch?.name}</h1>
@@ -195,7 +194,7 @@ export function StorefrontApp({ branches }: { branches: StorefrontBranch[] }) {
                         <div className="min-w-0 flex-1">
                           <p className="truncate text-sm font-medium text-stone-100">{item.productName}</p>
                           {item.modifiersLabel && <p className="truncate text-xs text-stone-500">{item.modifiersLabel}</p>}
-                          <p className="text-xs font-semibold text-orange-500">GHS {item.lineTotal.toFixed(2)}</p>
+                          <p className="text-xs font-semibold text-brand-red-light">GHS {item.lineTotal.toFixed(2)}</p>
                         </div>
                         <div className="flex shrink-0 items-center gap-1.5">
                           <button
@@ -224,9 +223,9 @@ export function StorefrontApp({ branches }: { branches: StorefrontBranch[] }) {
                 onClick={() => setCartOpen((v) => !v)}
                 className="flex flex-1 items-center gap-2.5 rounded-xl px-3 py-2.5 text-left transition-colors hover:bg-stone-800"
               >
-                <span className="relative flex size-9 shrink-0 items-center justify-center rounded-lg bg-orange-600 text-white">
+                <span className="relative flex size-9 shrink-0 items-center justify-center rounded-lg bg-brand-red text-white">
                   <ShoppingBag size={16} />
-                  <span className="absolute -right-1.5 -top-1.5 flex size-5 items-center justify-center rounded-full bg-stone-950 text-[10px] font-bold text-orange-400 ring-2 ring-stone-900">
+                  <span className="absolute -right-1.5 -top-1.5 flex size-5 items-center justify-center rounded-full bg-stone-950 text-[10px] font-bold text-brand-cyan ring-2 ring-stone-900">
                     {cartCount}
                   </span>
                 </span>
@@ -236,7 +235,7 @@ export function StorefrontApp({ branches }: { branches: StorefrontBranch[] }) {
               </button>
               <button
                 onClick={() => setStep("checkout")}
-                className="rounded-xl bg-orange-600 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-orange-500"
+                className="rounded-xl bg-brand-red px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-brand-red/20 transition-transform hover:scale-[1.02] active:scale-[0.98]"
               >
                 Checkout
               </button>

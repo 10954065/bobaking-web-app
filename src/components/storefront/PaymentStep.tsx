@@ -43,7 +43,7 @@ export function PaymentStep({ order, onDone }: { order: StorefrontOrderSummary; 
     <div className="mx-auto w-full max-w-lg px-4 py-10 text-center">
       {stage === "method" && (
         <>
-          <h1 className="text-xl font-bold text-stone-50">Order {order.orderNumber} placed</h1>
+          <h1 className="font-display text-2xl uppercase tracking-tight text-stone-50">Order {order.orderNumber} placed</h1>
           <p className="mt-1 text-sm text-stone-400">Total: GHS {order.total.toFixed(2)}</p>
           {error && <p className="mt-4 rounded-lg bg-red-950/40 px-3 py-2 text-sm text-red-300">{error}</p>}
           <p className="mt-6 text-left text-sm font-medium text-stone-300">Choose a payment method</p>
@@ -51,9 +51,9 @@ export function PaymentStep({ order, onDone }: { order: StorefrontOrderSummary; 
             <button
               onClick={() => handlePay("MOBILE_MONEY")}
               disabled={isPending}
-              className="flex w-full items-center gap-3 rounded-xl border border-stone-700 px-4 py-3.5 text-left transition-colors hover:border-orange-600 disabled:opacity-50"
+              className="flex w-full items-center gap-3 rounded-xl border border-stone-700 px-4 py-3.5 text-left transition-colors hover:border-brand-red disabled:opacity-50"
             >
-              <Smartphone size={18} className="text-orange-500" />
+              <Smartphone size={18} className="text-brand-red-light" />
               <div>
                 <p className="text-sm font-semibold text-stone-100">Mobile Money</p>
                 <p className="text-xs text-stone-500">Pay now on your phone</p>
@@ -62,9 +62,9 @@ export function PaymentStep({ order, onDone }: { order: StorefrontOrderSummary; 
             <button
               onClick={() => handlePay("CASH")}
               disabled={isPending}
-              className="flex w-full items-center gap-3 rounded-xl border border-stone-700 px-4 py-3.5 text-left transition-colors hover:border-orange-600 disabled:opacity-50"
+              className="flex w-full items-center gap-3 rounded-xl border border-stone-700 px-4 py-3.5 text-left transition-colors hover:border-brand-red disabled:opacity-50"
             >
-              <Banknote size={18} className="text-orange-500" />
+              <Banknote size={18} className="text-brand-red-light" />
               <div>
                 <p className="text-sm font-semibold text-stone-100">Cash</p>
                 <p className="text-xs text-stone-500">Pay the rider or at the counter</p>
@@ -76,7 +76,7 @@ export function PaymentStep({ order, onDone }: { order: StorefrontOrderSummary; 
 
       {stage === "momo-pending" && (
         <>
-          <h1 className="text-xl font-bold text-stone-50">Complete payment on your phone</h1>
+          <h1 className="font-display text-2xl uppercase tracking-tight text-stone-50">Complete payment on your phone</h1>
           <p className="mt-2 text-sm text-stone-400">
             Approve the GHS {order.total.toFixed(2)} Mobile Money prompt to confirm your order.
           </p>
@@ -96,13 +96,13 @@ export function PaymentStep({ order, onDone }: { order: StorefrontOrderSummary; 
       {stage === "done" && (
         <>
           <CheckCircle2 size={40} className="mx-auto text-emerald-500" />
-          <h1 className="mt-3 text-xl font-bold text-stone-50">You&apos;re all set!</h1>
+          <h1 className="mt-3 font-display text-2xl uppercase tracking-tight text-stone-50">You&apos;re all set!</h1>
           <p className="mt-1 text-sm text-stone-400">
             Order {order.orderNumber} is on its way through the kitchen. Track it live below.
           </p>
           <button
             onClick={onDone}
-            className="mt-6 w-full rounded-xl bg-orange-600 py-3 text-sm font-semibold text-white transition-colors hover:bg-orange-500"
+            className="mt-6 w-full rounded-xl bg-brand-red py-3 text-sm font-semibold text-white shadow-lg shadow-brand-red/20 transition-transform hover:scale-[1.02] active:scale-[0.98]"
           >
             Track my order
           </button>

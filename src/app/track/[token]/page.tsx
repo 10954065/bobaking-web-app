@@ -3,6 +3,7 @@ import { getPublicOrderTracking } from "@/modules/orders/services/order-tracking
 import { getTicketForOrder } from "@/modules/support/services/support-ticket.service";
 import { getReviewForOrder } from "@/modules/reviews/services/review.service";
 import { CustomerLiveMap } from "@/components/tracking/CustomerLiveMap";
+import { LogoLockup } from "@/components/brand/Logo";
 import { createSupportTicketFormAction, addTicketMessageFormAction, submitReviewFormAction } from "./actions";
 
 const REVIEWABLE_STATUSES = new Set(["DELIVERED", "COMPLETED"]);
@@ -31,7 +32,7 @@ function statusLabel(status: string): string {
 }
 
 const inputClass =
-  "w-full rounded-lg border border-stone-300 px-3 py-2 text-sm outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 dark:border-stone-700 dark:bg-stone-950 dark:text-stone-100";
+  "w-full rounded-lg border border-stone-300 px-3 py-2 text-sm outline-none focus:border-brand-red focus:ring-1 focus:ring-brand-red dark:border-stone-700 dark:bg-stone-950 dark:text-stone-100";
 
 export default async function TrackOrderPage({
   params,
@@ -54,9 +55,9 @@ export default async function TrackOrderPage({
 
   return (
     <div className="min-h-screen bg-stone-100 dark:bg-stone-950">
-      <header className="border-b border-stone-200 bg-white px-6 py-4 dark:border-stone-800 dark:bg-stone-900">
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-orange-600">Flicks &amp; Licks</p>
-        <h1 className="text-lg font-semibold text-stone-900 dark:text-stone-50">Track your order</h1>
+      <header className="border-b border-stone-200 bg-brand-ink px-6 py-4 dark:border-stone-800">
+        <LogoLockup size={36} />
+        <h1 className="mt-3 font-display text-lg uppercase tracking-wide text-brand-cream">Track your order</h1>
       </header>
 
       <main className="mx-auto max-w-lg px-6 py-8">
@@ -69,7 +70,7 @@ export default async function TrackOrderPage({
         <section className="rounded-xl border border-stone-200 bg-white p-6 dark:border-stone-800 dark:bg-stone-900">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-bold text-stone-900 dark:text-stone-50">{tracking.orderNumber}</h2>
-            <span className="rounded-full bg-orange-100 px-3 py-1 text-xs font-semibold text-orange-800 dark:bg-orange-950 dark:text-orange-300">
+            <span className="rounded-full bg-brand-red/10 px-3 py-1 text-xs font-semibold text-brand-red dark:bg-brand-red/15 dark:text-brand-red-light">
               {statusLabel(tracking.status)}
             </span>
           </div>
@@ -104,11 +105,11 @@ export default async function TrackOrderPage({
           )}
 
           {tracking.deliveryCode && (
-            <div className="mt-4 rounded-lg border border-orange-200 bg-orange-50 px-4 py-3 text-center dark:border-orange-900/60 dark:bg-orange-950/30">
-              <p className="text-xs font-medium text-orange-700 dark:text-orange-300">
+            <div className="mt-4 rounded-lg border border-brand-cyan/30 bg-brand-cyan/5 px-4 py-3 text-center dark:border-brand-cyan/30 dark:bg-brand-cyan/10">
+              <p className="text-xs font-medium text-brand-cyan dark:text-brand-cyan">
                 Give this code to your rider when they arrive
               </p>
-              <p className="mt-1 font-mono text-3xl font-bold tracking-[0.4em] text-orange-600 dark:text-orange-400">
+              <p className="mt-1 font-mono text-3xl font-bold tracking-[0.4em] text-brand-red dark:text-brand-red-light">
                 {tracking.deliveryCode}
               </p>
             </div>
@@ -120,7 +121,7 @@ export default async function TrackOrderPage({
           <ol className="mt-4 space-y-3">
             {tracking.statusHistory.map((entry, index) => (
               <li key={index} className="flex items-center gap-3">
-                <span className="h-2 w-2 shrink-0 rounded-full bg-orange-500" />
+                <span className="h-2 w-2 shrink-0 rounded-full bg-brand-red" />
                 <span className="text-sm text-stone-700 dark:text-stone-300">{statusLabel(entry.toStatus)}</span>
                 <span className="ml-auto text-xs text-stone-400 dark:text-stone-500">
                   {new Date(entry.createdAt).toLocaleTimeString()}
@@ -157,7 +158,7 @@ export default async function TrackOrderPage({
                 <textarea name="comment" rows={2} placeholder="Tell us about your experience (optional)" className={inputClass} />
                 <button
                   type="submit"
-                  className="rounded-lg bg-orange-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-orange-500"
+                  className="rounded-lg bg-brand-red px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-brand-red/20 transition-transform hover:scale-[1.02] active:scale-[0.98]"
                 >
                   Submit review
                 </button>
@@ -187,7 +188,7 @@ export default async function TrackOrderPage({
                   <li
                     key={message.id}
                     className={`rounded-lg p-2 text-sm ${
-                      message.authorType === "STAFF" ? "bg-orange-50 dark:bg-orange-950/40" : "bg-stone-50 dark:bg-stone-800/60"
+                      message.authorType === "STAFF" ? "bg-brand-red/5 dark:bg-brand-red/10" : "bg-stone-50 dark:bg-stone-800/60"
                     }`}
                   >
                     <p className="text-xs font-semibold uppercase text-stone-500 dark:text-stone-400">

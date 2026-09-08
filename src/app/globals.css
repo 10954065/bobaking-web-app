@@ -3,6 +3,18 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+
+  /* Flicks & Licks brand — matched against the real TikTok/storefront
+     identity (@flicks_n_licks): a saturated street-food red on near-black,
+     with a cyan ring accent lifted from the logo badge. Customer-facing
+     surfaces use these instead of the generic orange/stone palette used by
+     the staff/admin tools. */
+  --color-brand-red: #e42313;
+  --color-brand-red-dark: #b81a0d;
+  --color-brand-red-light: #ff5a45;
+  --color-brand-cyan: #2fd8d1;
+  --color-brand-ink: #120404;
+  --color-brand-cream: #fff4ec;
 }
 
 @theme inline {
@@ -10,6 +22,15 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-display: var(--font-anton);
+  --font-script: var(--font-marker);
+
+  --color-brand-red: var(--color-brand-red);
+  --color-brand-red-dark: var(--color-brand-red-dark);
+  --color-brand-red-light: var(--color-brand-red-light);
+  --color-brand-cyan: var(--color-brand-cyan);
+  --color-brand-ink: var(--color-brand-ink);
+  --color-brand-cream: var(--color-brand-cream);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -51,6 +72,21 @@ body {
 }
 .animate-fade-slide-up {
   animation: fade-slide-up 0.4s ease-out both;
+}
+
+/* Homepage brand marquee (branch names / tagline strip) — a single track
+   duplicated once in markup and scrolled exactly -50%, so the loop seam is
+   invisible. */
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+.animate-marquee {
+  animation: marquee 22s linear infinite;
 }
 
 /* Delivery map markers — see components/maps/. Plain DOM (not React-rendered

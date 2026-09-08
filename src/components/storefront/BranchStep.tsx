@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { motion } from "motion/react";
 import { Bike, Store, MapPin, Navigation, ChevronRight } from "lucide-react";
 import { haversineDistanceKm } from "@/modules/delivery/services/fare.service";
+import { Logo } from "@/components/brand/Logo";
 import type { StorefrontBranch } from "@/modules/storefront/actions/storefront.actions";
 
 export function BranchStep({
@@ -44,15 +45,18 @@ export function BranchStep({
 
   return (
     <div className="mx-auto w-full max-w-lg px-4 py-8 sm:py-12">
-      <p className="text-xs font-semibold uppercase tracking-[0.3em] text-orange-500">Flicks &amp; Licks</p>
-      <h1 className="mt-2 text-2xl font-bold text-stone-50 sm:text-3xl">How would you like your order?</h1>
+      <motion.div initial={{ opacity: 0, scale: 0.85 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.4 }}>
+        <Logo size={52} />
+      </motion.div>
+      <p className="mt-4 text-xs font-semibold uppercase tracking-[0.3em] text-brand-cyan">Flicks &amp; Licks</p>
+      <h1 className="mt-2 font-display text-2xl uppercase tracking-tight text-stone-50 sm:text-3xl">How would you like your order?</h1>
       <p className="mt-1.5 text-sm text-stone-400">Choose delivery or pick a branch to collect from.</p>
 
       <div className="mt-6 grid grid-cols-2 gap-3">
         <button
           onClick={() => onSelectType("DELIVERY")}
           className={`flex flex-col items-center gap-2 rounded-2xl border py-6 transition-colors ${
-            type === "DELIVERY" ? "border-orange-600 bg-orange-950/30 text-orange-300" : "border-stone-800 bg-stone-900 text-stone-400 hover:border-stone-700"
+            type === "DELIVERY" ? "border-brand-red bg-brand-red/10 text-brand-red-light" : "border-stone-800 bg-stone-900 text-stone-400 hover:border-stone-700"
           }`}
         >
           <Bike size={24} />
@@ -61,7 +65,7 @@ export function BranchStep({
         <button
           onClick={() => onSelectType("PICKUP")}
           className={`flex flex-col items-center gap-2 rounded-2xl border py-6 transition-colors ${
-            type === "PICKUP" ? "border-orange-600 bg-orange-950/30 text-orange-300" : "border-stone-800 bg-stone-900 text-stone-400 hover:border-stone-700"
+            type === "PICKUP" ? "border-brand-red bg-brand-red/10 text-brand-red-light" : "border-stone-800 bg-stone-900 text-stone-400 hover:border-stone-700"
           }`}
         >
           <Store size={24} />
@@ -79,9 +83,10 @@ export function BranchStep({
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.04 }}
+            whileTap={{ scale: 0.98 }}
             onClick={() => setSelectedBranchId(branch.id)}
             className={`flex w-full items-center gap-3 rounded-xl border px-4 py-3.5 text-left transition-colors ${
-              selectedBranchId === branch.id ? "border-orange-600 bg-orange-950/20" : "border-stone-800 bg-stone-900 hover:border-stone-700"
+              selectedBranchId === branch.id ? "border-brand-red bg-brand-red/10" : "border-stone-800 bg-stone-900 hover:border-stone-700"
             }`}
           >
             <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-stone-800 text-stone-400">
@@ -91,7 +96,7 @@ export function BranchStep({
               <div className="flex items-center gap-2">
                 <p className="truncate text-sm font-semibold text-stone-100">{branch.name}</p>
                 {branch.id === closestId && (
-                  <span className="flex shrink-0 items-center gap-1 rounded-full bg-emerald-950/60 px-2 py-0.5 text-[10px] font-semibold text-emerald-400">
+                  <span className="flex shrink-0 items-center gap-1 rounded-full bg-brand-cyan/15 px-2 py-0.5 text-[10px] font-semibold text-brand-cyan">
                     <Navigation size={9} /> Closest
                   </span>
                 )}
@@ -108,7 +113,7 @@ export function BranchStep({
       <button
         onClick={() => selectedBranchId && onContinue(selectedBranchId)}
         disabled={!selectedBranchId}
-        className="mt-8 flex w-full items-center justify-center gap-2 rounded-2xl bg-orange-600 py-3.5 text-base font-semibold text-white transition-colors hover:bg-orange-500 disabled:opacity-40"
+        className="mt-8 flex w-full items-center justify-center gap-2 rounded-2xl bg-brand-red py-3.5 font-display text-base uppercase tracking-wide text-white shadow-lg shadow-brand-red/25 transition-transform hover:scale-[1.01] active:scale-[0.99] disabled:opacity-40 disabled:hover:scale-100"
       >
         See the menu <ChevronRight size={18} />
       </button>
