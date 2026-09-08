@@ -169,7 +169,7 @@ body {
 .map-marker-rider {
   width: 30px;
   height: 30px;
-  background: #16a34a;
+  background: #e42313;
 }
 .map-marker-rider-arrow {
   width: 0;
@@ -182,7 +182,7 @@ body {
   position: absolute;
   inset: -8px;
   border-radius: 9999px;
-  background: rgba(22, 163, 74, 0.35);
+  background: rgba(228, 35, 19, 0.35);
   animation: map-marker-pulse 2s ease-out infinite;
 }
 @keyframes map-marker-pulse {
