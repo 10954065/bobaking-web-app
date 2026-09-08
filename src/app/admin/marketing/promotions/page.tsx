@@ -117,7 +117,7 @@ export default async function PromotionsPage() {
                   name="code"
                   required
                   placeholder="WELCOME10"
-                  className="mt-1 w-36 rounded-lg border border-stone-300 px-3 py-2 text-sm uppercase outline-none focus:border-brand-red-500 focus:ring-1 focus:ring-brand-red-500 dark:border-stone-700 dark:bg-stone-950 dark:text-stone-100"
+                  className="mt-1 w-36 rounded-lg border border-stone-300 px-3 py-2 text-sm uppercase outline-none focus:border-brand-red-500 focus:ring-1 focus:ring-brand-red-500 shadow-[inset_0_1px_3px_rgba(41,26,20,0.10),inset_0_-1px_0_rgba(255,255,255,0.85)] transition-shadow duration-150 focus:shadow-[inset_0_1px_2px_rgba(41,26,20,0.06),0_0_0_3px_rgba(228,35,19,0.12)] dark:border-stone-700 dark:bg-stone-950 dark:text-stone-100 dark:shadow-[inset_0_1px_3px_rgba(0,0,0,0.55),inset_0_-1px_0_rgba(255,255,255,0.04)] dark:focus:shadow-[inset_0_1px_2px_rgba(0,0,0,0.4),0_0_0_3px_rgba(228,35,19,0.18)]"
                 />
               </div>
               <div>
@@ -127,7 +127,7 @@ export default async function PromotionsPage() {
                   name="name"
                   required
                   placeholder="Welcome discount"
-                  className="mt-1 w-48 rounded-lg border border-stone-300 px-3 py-2 text-sm outline-none focus:border-brand-red-500 focus:ring-1 focus:ring-brand-red-500 dark:border-stone-700 dark:bg-stone-950 dark:text-stone-100"
+                  className="mt-1 w-48 rounded-lg border border-stone-300 px-3 py-2 text-sm outline-none focus:border-brand-red-500 focus:ring-1 focus:ring-brand-red-500 shadow-[inset_0_1px_3px_rgba(41,26,20,0.10),inset_0_-1px_0_rgba(255,255,255,0.85)] transition-shadow duration-150 focus:shadow-[inset_0_1px_2px_rgba(41,26,20,0.06),0_0_0_3px_rgba(228,35,19,0.12)] dark:border-stone-700 dark:bg-stone-950 dark:text-stone-100 dark:shadow-[inset_0_1px_3px_rgba(0,0,0,0.55),inset_0_-1px_0_rgba(255,255,255,0.04)] dark:focus:shadow-[inset_0_1px_2px_rgba(0,0,0,0.4),0_0_0_3px_rgba(228,35,19,0.18)]"
                 />
               </div>
               <div>
@@ -135,7 +135,7 @@ export default async function PromotionsPage() {
                 <select
                   name="discountType"
                   defaultValue="PERCENTAGE"
-                  className="mt-1 w-36 rounded-lg border border-stone-300 px-3 py-2 text-sm outline-none focus:border-brand-red-500 focus:ring-1 focus:ring-brand-red-500 dark:border-stone-700 dark:bg-stone-950 dark:text-stone-100"
+                  className="mt-1 w-36 rounded-lg border border-stone-300 px-3 py-2 text-sm outline-none focus:border-brand-red-500 focus:ring-1 focus:ring-brand-red-500 shadow-[inset_0_1px_3px_rgba(41,26,20,0.10),inset_0_-1px_0_rgba(255,255,255,0.85)] transition-shadow duration-150 focus:shadow-[inset_0_1px_2px_rgba(41,26,20,0.06),0_0_0_3px_rgba(228,35,19,0.12)] dark:border-stone-700 dark:bg-stone-950 dark:text-stone-100 dark:shadow-[inset_0_1px_3px_rgba(0,0,0,0.55),inset_0_-1px_0_rgba(255,255,255,0.04)] dark:focus:shadow-[inset_0_1px_2px_rgba(0,0,0,0.4),0_0_0_3px_rgba(228,35,19,0.18)]"
                 >
                   <option value="PERCENTAGE">Percentage</option>
                   <option value="FIXED_AMOUNT">Fixed amount</option>
@@ -150,7 +150,7 @@ export default async function PromotionsPage() {
                   min="0"
                   required
                   placeholder="10"
-                  className="mt-1 w-24 rounded-lg border border-stone-300 px-3 py-2 text-sm outline-none focus:border-brand-red-500 focus:ring-1 focus:ring-brand-red-500 dark:border-stone-700 dark:bg-stone-950 dark:text-stone-100"
+                  className="mt-1 w-24 rounded-lg border border-stone-300 px-3 py-2 text-sm outline-none focus:border-brand-red-500 focus:ring-1 focus:ring-brand-red-500 shadow-[inset_0_1px_3px_rgba(41,26,20,0.10),inset_0_-1px_0_rgba(255,255,255,0.85)] transition-shadow duration-150 focus:shadow-[inset_0_1px_2px_rgba(41,26,20,0.06),0_0_0_3px_rgba(228,35,19,0.12)] dark:border-stone-700 dark:bg-stone-950 dark:text-stone-100 dark:shadow-[inset_0_1px_3px_rgba(0,0,0,0.55),inset_0_-1px_0_rgba(255,255,255,0.04)] dark:focus:shadow-[inset_0_1px_2px_rgba(0,0,0,0.4),0_0_0_3px_rgba(228,35,19,0.18)]"
                 />
               </div>
               <div>
@@ -160,7 +160,7 @@ export default async function PromotionsPage() {
                   name="minSubtotal"
                   step="0.01"
                   min="0"
-                  className="mt-1 w-32 rounded-lg border border-stone-300 px-3 py-2 text-sm outline-none focus:border-brand-red-500 focus:ring-1 focus:ring-brand-red-500 dark:border-stone-700 dark:bg-stone-950 dark:text-stone-100"
+                  className="mt-1 w-32 rounded-lg border border-stone-300 px-3 py-2 text-sm outline-none focus:border-brand-red-500 focus:ring-1 focus:ring-brand-red-500 shadow-[inset_0_1px_3px_rgba(41,26,20,0.10),inset_0_-1px_0_rgba(255,255,255,0.85)] transition-shadow duration-150 focus:shadow-[inset_0_1px_2px_rgba(41,26,20,0.06),0_0_0_3px_rgba(228,35,19,0.12)] dark:border-stone-700 dark:bg-stone-950 dark:text-stone-100 dark:shadow-[inset_0_1px_3px_rgba(0,0,0,0.55),inset_0_-1px_0_rgba(255,255,255,0.04)] dark:focus:shadow-[inset_0_1px_2px_rgba(0,0,0,0.4),0_0_0_3px_rgba(228,35,19,0.18)]"
                 />
               </div>
               <div>
@@ -170,7 +170,7 @@ export default async function PromotionsPage() {
                   name="maxDiscountAmount"
                   step="0.01"
                   min="0"
-                  className="mt-1 w-32 rounded-lg border border-stone-300 px-3 py-2 text-sm outline-none focus:border-brand-red-500 focus:ring-1 focus:ring-brand-red-500 dark:border-stone-700 dark:bg-stone-950 dark:text-stone-100"
+                  className="mt-1 w-32 rounded-lg border border-stone-300 px-3 py-2 text-sm outline-none focus:border-brand-red-500 focus:ring-1 focus:ring-brand-red-500 shadow-[inset_0_1px_3px_rgba(41,26,20,0.10),inset_0_-1px_0_rgba(255,255,255,0.85)] transition-shadow duration-150 focus:shadow-[inset_0_1px_2px_rgba(41,26,20,0.06),0_0_0_3px_rgba(228,35,19,0.12)] dark:border-stone-700 dark:bg-stone-950 dark:text-stone-100 dark:shadow-[inset_0_1px_3px_rgba(0,0,0,0.55),inset_0_-1px_0_rgba(255,255,255,0.04)] dark:focus:shadow-[inset_0_1px_2px_rgba(0,0,0,0.4),0_0_0_3px_rgba(228,35,19,0.18)]"
                 />
               </div>
               <div>
@@ -178,7 +178,7 @@ export default async function PromotionsPage() {
                 <select
                   name="branchId"
                   defaultValue=""
-                  className="mt-1 w-40 rounded-lg border border-stone-300 px-3 py-2 text-sm outline-none focus:border-brand-red-500 focus:ring-1 focus:ring-brand-red-500 dark:border-stone-700 dark:bg-stone-950 dark:text-stone-100"
+                  className="mt-1 w-40 rounded-lg border border-stone-300 px-3 py-2 text-sm outline-none focus:border-brand-red-500 focus:ring-1 focus:ring-brand-red-500 shadow-[inset_0_1px_3px_rgba(41,26,20,0.10),inset_0_-1px_0_rgba(255,255,255,0.85)] transition-shadow duration-150 focus:shadow-[inset_0_1px_2px_rgba(41,26,20,0.06),0_0_0_3px_rgba(228,35,19,0.12)] dark:border-stone-700 dark:bg-stone-950 dark:text-stone-100 dark:shadow-[inset_0_1px_3px_rgba(0,0,0,0.55),inset_0_-1px_0_rgba(255,255,255,0.04)] dark:focus:shadow-[inset_0_1px_2px_rgba(0,0,0,0.4),0_0_0_3px_rgba(228,35,19,0.18)]"
                 >
                   <option value="">All branches</option>
                   {branches.map((b) => (
@@ -195,7 +195,7 @@ export default async function PromotionsPage() {
                   name="usageLimit"
                   min="1"
                   placeholder="Unlimited"
-                  className="mt-1 w-28 rounded-lg border border-stone-300 px-3 py-2 text-sm outline-none focus:border-brand-red-500 focus:ring-1 focus:ring-brand-red-500 dark:border-stone-700 dark:bg-stone-950 dark:text-stone-100"
+                  className="mt-1 w-28 rounded-lg border border-stone-300 px-3 py-2 text-sm outline-none focus:border-brand-red-500 focus:ring-1 focus:ring-brand-red-500 shadow-[inset_0_1px_3px_rgba(41,26,20,0.10),inset_0_-1px_0_rgba(255,255,255,0.85)] transition-shadow duration-150 focus:shadow-[inset_0_1px_2px_rgba(41,26,20,0.06),0_0_0_3px_rgba(228,35,19,0.12)] dark:border-stone-700 dark:bg-stone-950 dark:text-stone-100 dark:shadow-[inset_0_1px_3px_rgba(0,0,0,0.55),inset_0_-1px_0_rgba(255,255,255,0.04)] dark:focus:shadow-[inset_0_1px_2px_rgba(0,0,0,0.4),0_0_0_3px_rgba(228,35,19,0.18)]"
                 />
               </div>
               <div>
@@ -205,7 +205,7 @@ export default async function PromotionsPage() {
                   name="usageLimitPerCustomer"
                   min="1"
                   defaultValue={1}
-                  className="mt-1 w-24 rounded-lg border border-stone-300 px-3 py-2 text-sm outline-none focus:border-brand-red-500 focus:ring-1 focus:ring-brand-red-500 dark:border-stone-700 dark:bg-stone-950 dark:text-stone-100"
+                  className="mt-1 w-24 rounded-lg border border-stone-300 px-3 py-2 text-sm outline-none focus:border-brand-red-500 focus:ring-1 focus:ring-brand-red-500 shadow-[inset_0_1px_3px_rgba(41,26,20,0.10),inset_0_-1px_0_rgba(255,255,255,0.85)] transition-shadow duration-150 focus:shadow-[inset_0_1px_2px_rgba(41,26,20,0.06),0_0_0_3px_rgba(228,35,19,0.12)] dark:border-stone-700 dark:bg-stone-950 dark:text-stone-100 dark:shadow-[inset_0_1px_3px_rgba(0,0,0,0.55),inset_0_-1px_0_rgba(255,255,255,0.04)] dark:focus:shadow-[inset_0_1px_2px_rgba(0,0,0,0.4),0_0_0_3px_rgba(228,35,19,0.18)]"
                 />
               </div>
               <button

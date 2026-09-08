@@ -145,14 +145,14 @@ export default async function AdminInventoryPage({
                             step="0.01"
                             required
                             placeholder="±qty"
-                            className="w-20 rounded-lg border border-stone-300 px-2 py-1.5 text-xs outline-none focus:border-brand-red-500 focus:ring-1 focus:ring-brand-red-500 dark:border-stone-700 dark:bg-stone-950 dark:text-stone-100"
+                            className="w-20 rounded-lg border border-stone-300 px-2 py-1.5 text-xs outline-none focus:border-brand-red-500 focus:ring-1 focus:ring-brand-red-500 shadow-[inset_0_1px_3px_rgba(41,26,20,0.10),inset_0_-1px_0_rgba(255,255,255,0.85)] transition-shadow duration-150 focus:shadow-[inset_0_1px_2px_rgba(41,26,20,0.06),0_0_0_3px_rgba(228,35,19,0.12)] dark:border-stone-700 dark:bg-stone-950 dark:text-stone-100 dark:shadow-[inset_0_1px_3px_rgba(0,0,0,0.55),inset_0_-1px_0_rgba(255,255,255,0.04)] dark:focus:shadow-[inset_0_1px_2px_rgba(0,0,0,0.4),0_0_0_3px_rgba(228,35,19,0.18)]"
                           />
                           <input
                             type="text"
                             name="reason"
                             required
                             placeholder="Reason"
-                            className="w-28 rounded-lg border border-stone-300 px-2 py-1.5 text-xs outline-none focus:border-brand-red-500 focus:ring-1 focus:ring-brand-red-500 dark:border-stone-700 dark:bg-stone-950 dark:text-stone-100"
+                            className="w-28 rounded-lg border border-stone-300 px-2 py-1.5 text-xs outline-none focus:border-brand-red-500 focus:ring-1 focus:ring-brand-red-500 shadow-[inset_0_1px_3px_rgba(41,26,20,0.10),inset_0_-1px_0_rgba(255,255,255,0.85)] transition-shadow duration-150 focus:shadow-[inset_0_1px_2px_rgba(41,26,20,0.06),0_0_0_3px_rgba(228,35,19,0.12)] dark:border-stone-700 dark:bg-stone-950 dark:text-stone-100 dark:shadow-[inset_0_1px_3px_rgba(0,0,0,0.55),inset_0_-1px_0_rgba(255,255,255,0.04)] dark:focus:shadow-[inset_0_1px_2px_rgba(0,0,0,0.4),0_0_0_3px_rgba(228,35,19,0.18)]"
                           />
                           <button
                             type="submit"
@@ -187,7 +187,7 @@ export default async function AdminInventoryPage({
                   type="text"
                   name="name"
                   required
-                  className="mt-1 w-48 rounded-lg border border-stone-300 px-3 py-2 text-sm outline-none focus:border-brand-red-500 focus:ring-1 focus:ring-brand-red-500 dark:border-stone-700 dark:bg-stone-950 dark:text-stone-100"
+                  className="mt-1 w-48 rounded-lg border border-stone-300 px-3 py-2 text-sm outline-none focus:border-brand-red-500 focus:ring-1 focus:ring-brand-red-500 shadow-[inset_0_1px_3px_rgba(41,26,20,0.10),inset_0_-1px_0_rgba(255,255,255,0.85)] transition-shadow duration-150 focus:shadow-[inset_0_1px_2px_rgba(41,26,20,0.06),0_0_0_3px_rgba(228,35,19,0.12)] dark:border-stone-700 dark:bg-stone-950 dark:text-stone-100 dark:shadow-[inset_0_1px_3px_rgba(0,0,0,0.55),inset_0_-1px_0_rgba(255,255,255,0.04)] dark:focus:shadow-[inset_0_1px_2px_rgba(0,0,0,0.4),0_0_0_3px_rgba(228,35,19,0.18)]"
                 />
               </div>
               <div>
@@ -196,7 +196,7 @@ export default async function AdminInventoryPage({
                   type="text"
                   name="sku"
                   required
-                  className="mt-1 w-36 rounded-lg border border-stone-300 px-3 py-2 text-sm outline-none focus:border-brand-red-500 focus:ring-1 focus:ring-brand-red-500 dark:border-stone-700 dark:bg-stone-950 dark:text-stone-100"
+                  className="mt-1 w-36 rounded-lg border border-stone-300 px-3 py-2 text-sm outline-none focus:border-brand-red-500 focus:ring-1 focus:ring-brand-red-500 shadow-[inset_0_1px_3px_rgba(41,26,20,0.10),inset_0_-1px_0_rgba(255,255,255,0.85)] transition-shadow duration-150 focus:shadow-[inset_0_1px_2px_rgba(41,26,20,0.06),0_0_0_3px_rgba(228,35,19,0.12)] dark:border-stone-700 dark:bg-stone-950 dark:text-stone-100 dark:shadow-[inset_0_1px_3px_rgba(0,0,0,0.55),inset_0_-1px_0_rgba(255,255,255,0.04)] dark:focus:shadow-[inset_0_1px_2px_rgba(0,0,0,0.4),0_0_0_3px_rgba(228,35,19,0.18)]"
                 />
               </div>
               <div>
@@ -206,7 +206,7 @@ export default async function AdminInventoryPage({
                   name="unit"
                   required
                   placeholder="kg, l, pcs"
-                  className="mt-1 w-24 rounded-lg border border-stone-300 px-3 py-2 text-sm outline-none focus:border-brand-red-500 focus:ring-1 focus:ring-brand-red-500 dark:border-stone-700 dark:bg-stone-950 dark:text-stone-100"
+                  className="mt-1 w-24 rounded-lg border border-stone-300 px-3 py-2 text-sm outline-none focus:border-brand-red-500 focus:ring-1 focus:ring-brand-red-500 shadow-[inset_0_1px_3px_rgba(41,26,20,0.10),inset_0_-1px_0_rgba(255,255,255,0.85)] transition-shadow duration-150 focus:shadow-[inset_0_1px_2px_rgba(41,26,20,0.06),0_0_0_3px_rgba(228,35,19,0.12)] dark:border-stone-700 dark:bg-stone-950 dark:text-stone-100 dark:shadow-[inset_0_1px_3px_rgba(0,0,0,0.55),inset_0_-1px_0_rgba(255,255,255,0.04)] dark:focus:shadow-[inset_0_1px_2px_rgba(0,0,0,0.4),0_0_0_3px_rgba(228,35,19,0.18)]"
                 />
               </div>
               <div>
@@ -217,7 +217,7 @@ export default async function AdminInventoryPage({
                   step="0.01"
                   min={0}
                   defaultValue={0}
-                  className="mt-1 w-28 rounded-lg border border-stone-300 px-3 py-2 text-sm outline-none focus:border-brand-red-500 focus:ring-1 focus:ring-brand-red-500 dark:border-stone-700 dark:bg-stone-950 dark:text-stone-100"
+                  className="mt-1 w-28 rounded-lg border border-stone-300 px-3 py-2 text-sm outline-none focus:border-brand-red-500 focus:ring-1 focus:ring-brand-red-500 shadow-[inset_0_1px_3px_rgba(41,26,20,0.10),inset_0_-1px_0_rgba(255,255,255,0.85)] transition-shadow duration-150 focus:shadow-[inset_0_1px_2px_rgba(41,26,20,0.06),0_0_0_3px_rgba(228,35,19,0.12)] dark:border-stone-700 dark:bg-stone-950 dark:text-stone-100 dark:shadow-[inset_0_1px_3px_rgba(0,0,0,0.55),inset_0_-1px_0_rgba(255,255,255,0.04)] dark:focus:shadow-[inset_0_1px_2px_rgba(0,0,0,0.4),0_0_0_3px_rgba(228,35,19,0.18)]"
                 />
               </div>
               <button

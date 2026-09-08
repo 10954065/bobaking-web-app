@@ -39,7 +39,7 @@ export default async function AdminCustomersPage({
               name="q"
               defaultValue={q}
               placeholder="Search by name, email, or phone"
-              className="w-full max-w-sm rounded-lg border border-stone-300 px-3.5 py-2 text-sm outline-none focus:border-brand-red-500 focus:ring-1 focus:ring-brand-red-500 dark:border-stone-700 dark:bg-stone-950 dark:text-stone-100"
+              className="w-full max-w-sm rounded-lg border border-stone-300 px-3.5 py-2 text-sm outline-none focus:border-brand-red-500 focus:ring-1 focus:ring-brand-red-500 shadow-[inset_0_1px_3px_rgba(41,26,20,0.10),inset_0_-1px_0_rgba(255,255,255,0.85)] transition-shadow duration-150 focus:shadow-[inset_0_1px_2px_rgba(41,26,20,0.06),0_0_0_3px_rgba(228,35,19,0.12)] dark:border-stone-700 dark:bg-stone-950 dark:text-stone-100 dark:shadow-[inset_0_1px_3px_rgba(0,0,0,0.55),inset_0_-1px_0_rgba(255,255,255,0.04)] dark:focus:shadow-[inset_0_1px_2px_rgba(0,0,0,0.4),0_0_0_3px_rgba(228,35,19,0.18)]"
             />
             <button
               type="submit"
