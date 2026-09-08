@@ -4,12 +4,29 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createSupportTicketForOrder, addCustomerMessage, SupportTicketError } from "@/modules/support/services/support-ticket.service";
 import { createReview, ReviewError } from "@/modules/reviews/services/review.service";
+import { enforceRateLimit, getRequestIp, RateLimitError } from "@/lib/rate-limit";
 
 function errorRedirect(orderNumber: string, message: string): never {
   redirect(`/track/${orderNumber}?error=${encodeURIComponent(message)}`);
 }
 
+// Generous enough for a real customer submitting/replying a few times, tight
+// enough to stop a bot from hammering these public, unauthenticated writes.
+const PUBLIC_WRITE_RATE_LIMIT = { limit: 20, windowSeconds: 60 * 60 };
+
+async function enforcePublicWriteLimit(action: string, orderNumber: string) {
+  const ip = await getRequestIp();
+  try {
+    await enforceRateLimit(`track:${action}:${ip}`, PUBLIC_WRITE_RATE_LIMIT);
+  } catch (error) {
+    if (error instanceof RateLimitError) errorRedirect(orderNumber, error.message);
+    throw error;
+  }
+}
+
 export async function createSupportTicketFormAction(orderNumber: string, formData: FormData) {
+  await enforcePublicWriteLimit("support-ticket", orderNumber);
+
   const subject = String(formData.get("subject") ?? "").trim();
   const message = String(formData.get("message") ?? "").trim();
   if (!subject || !message) {
@@ -26,6 +43,8 @@ export async function createSupportTicketFormAction(orderNumber: string, formDat
 }
 
 export async function addTicketMessageFormAction(orderNumber: string, ticketId: string, formData: FormData) {
+  await enforcePublicWriteLimit("ticket-message", orderNumber);
+
   const body = String(formData.get("body") ?? "").trim();
   if (!body) errorRedirect(orderNumber, "Message can't be empty.");
 
@@ -39,6 +58,8 @@ export async function addTicketMessageFormAction(orderNumber: string, ticketId: 
 }
 
 export async function submitReviewFormAction(orderNumber: string, formData: FormData) {
+  await enforcePublicWriteLimit("review", orderNumber);
+
   const rating = Number(formData.get("rating"));
   const comment = String(formData.get("comment") ?? "").trim();
 
