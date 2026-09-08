@@ -10,6 +10,7 @@ const NAV_LINKS = [
   { href: "/admin/delivery", label: "Delivery" },
   { href: "/admin/marketing", label: "Marketing" },
   { href: "/admin/customers", label: "Customers" },
+  { href: "/admin/analytics", label: "Analytics" },
 ];
 
 export function AdminHeader() {
