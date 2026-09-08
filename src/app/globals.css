@@ -52,3 +52,61 @@ body {
 .animate-fade-slide-up {
   animation: fade-slide-up 0.4s ease-out both;
 }
+
+/* Delivery map markers — see components/maps/. Plain DOM (not React-rendered
+   Tailwind classes), since MapLibre markers own raw elements outside the
+   React tree; kept minimal and dependency-free rather than importing an
+   icon library into imperative marker code. */
+.map-marker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 9999px;
+  border: 2px solid white;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+  color: white;
+  font-size: 15px;
+}
+.map-marker-restaurant {
+  background: #ea580c;
+}
+.map-marker-customer {
+  background: #2563eb;
+}
+.map-marker-rider-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.map-marker-rider {
+  width: 30px;
+  height: 30px;
+  background: #16a34a;
+}
+.map-marker-rider-arrow {
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-bottom: 10px solid white;
+}
+.map-marker-pulse {
+  position: absolute;
+  inset: -8px;
+  border-radius: 9999px;
+  background: rgba(22, 163, 74, 0.35);
+  animation: map-marker-pulse 2s ease-out infinite;
+}
+@keyframes map-marker-pulse {
+  0% {
+    transform: scale(0.6);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(1.6);
+    opacity: 0;
+  }
+}

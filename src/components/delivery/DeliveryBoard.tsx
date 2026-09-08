@@ -3,7 +3,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { MapPinned } from "lucide-react";
 import { getDeliveryBoardAction, assignRiderToOrderAction, type DeliveryBoardData } from "@/modules/delivery/actions/board.actions";
+import { AdminDeliveryMapPanel } from "@/components/delivery/AdminDeliveryMapPanel";
 
 const STATUS_COLORS: Record<string, string> = {
   READY: "bg-stone-200 text-stone-600 dark:bg-stone-800 dark:text-stone-400",
@@ -35,6 +37,9 @@ export function DeliveryBoard({
   const [board, setBoard] = useState(initialBoard);
   const [assigning, setAssigning] = useState<Record<string, string>>({});
   const [pendingOrderId, setPendingOrderId] = useState<string | null>(null);
+  const [trackingOrder, setTrackingOrder] = useState<{ id: string; orderNumber: string; customerName: string; status: string } | null>(
+    null
+  );
   const refetchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const refetch = useCallback(() => {
@@ -186,6 +191,7 @@ export function DeliveryBoard({
                 <th className="px-6 py-2 font-medium">Customer</th>
                 <th className="px-6 py-2 font-medium">Rider</th>
                 <th className="px-6 py-2 font-medium">Status</th>
+                <th className="px-6 py-2 font-medium">Map</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-100 dark:divide-stone-800">
@@ -199,11 +205,21 @@ export function DeliveryBoard({
                       {order.status.replaceAll("_", " ")}
                     </span>
                   </td>
+                  <td className="px-6 py-3">
+                    <button
+                      onClick={() =>
+                        setTrackingOrder({ id: order.id, orderNumber: order.orderNumber, customerName: order.customerName, status: order.status })
+                      }
+                      className="flex items-center gap-1.5 rounded-lg border border-stone-300 px-2.5 py-1.5 text-xs font-medium text-stone-700 hover:bg-stone-100 dark:border-stone-700 dark:text-stone-200 dark:hover:bg-stone-800"
+                    >
+                      <MapPinned size={12} /> Track
+                    </button>
+                  </td>
                 </tr>
               ))}
               {board.active.length === 0 && (
                 <tr>
-                  <td colSpan={4} className="px-6 py-6 text-center text-sm text-stone-500 dark:text-stone-400">
+                  <td colSpan={5} className="px-6 py-6 text-center text-sm text-stone-500 dark:text-stone-400">
                     No deliveries in progress.
                   </td>
                 </tr>
@@ -249,6 +265,16 @@ export function DeliveryBoard({
           </table>
         </div>
       </section>
+
+      {trackingOrder && (
+        <AdminDeliveryMapPanel
+          orderId={trackingOrder.id}
+          orderNumber={trackingOrder.orderNumber}
+          customerName={trackingOrder.customerName}
+          initialStatus={trackingOrder.status}
+          onClose={() => setTrackingOrder(null)}
+        />
+      )}
     </main>
   );
 }

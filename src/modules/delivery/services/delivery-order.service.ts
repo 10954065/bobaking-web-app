@@ -43,6 +43,16 @@ export async function listAssignedDeliveriesForRider(riderUserId: string) {
   });
 }
 
+/** The one order (if any) this rider is actively navigating right now — used to route a GPS ping to the right DeliveryLocation row without trusting an orderId the client might supply. */
+export async function getActiveAssignedOrderId(riderUserId: string): Promise<string | null> {
+  const order = await prisma.order.findFirst({
+    where: { assignedRiderId: riderUserId, status: { in: ["ASSIGNED_TO_RIDER", "PICKED_UP", "OUT_FOR_DELIVERY"] } },
+    orderBy: { riderAssignedAt: "desc" },
+    select: { id: true },
+  });
+  return order?.id ?? null;
+}
+
 /**
  * "How much am I making" for a rider: every order this rider personally
  * marked DELIVERED today earns them that order's deliveryFee (the codebase

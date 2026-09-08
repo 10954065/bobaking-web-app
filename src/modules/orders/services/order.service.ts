@@ -4,6 +4,11 @@ import { canTransition, InvalidOrderTransitionError } from "@/modules/orders/ser
 import { recordAuditLog } from "@/modules/audit/services/audit.service";
 import { publishKitchenEvent } from "@/modules/kitchen/services/kitchen-events";
 import { notifyOrderStatus } from "@/modules/notifications/services/notification.service";
+import { clearDeliveryLocation } from "@/modules/delivery/services/delivery-location.service";
+import { publishDeliveryLocationEvent } from "@/modules/delivery/services/delivery-location-events";
+
+/** Once an order reaches one of these, live GPS tracking must stop — see the DeliveryLocation model doc comment and Phase 5 of the tracking module. */
+const TRACKING_STOPS_AT = new Set(["DELIVERED", "CANCELLED", "REJECTED"]);
 
 const orderWithDetails = Prisma.validator<Prisma.OrderDefaultArgs>()({
   include: {
@@ -105,6 +110,16 @@ export async function transitionOrder(params: {
   // Same "never load-bearing" posture — notifyOrderStatus already never
   // throws, but the .catch() is cheap insurance against that invariant ever slipping.
   await notifyOrderStatus(updated).catch(() => {});
+
+  // Live location tracking is status-gated: every consumer (customer,
+  // staff, admin) must stop receiving GPS the moment a delivery is no
+  // longer active, regardless of which transition got it there.
+  if (TRACKING_STOPS_AT.has(updated.status)) {
+    await clearDeliveryLocation(updated.id);
+    await publishDeliveryLocationEvent(updated.id, { type: "tracking.stopped" }).catch(() => {});
+  } else {
+    await publishDeliveryLocationEvent(updated.id, { type: "status.changed", status: updated.status }).catch(() => {});
+  }
 
   return updated;
 }

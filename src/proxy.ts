@@ -7,6 +7,21 @@ function isProtectedPath(pathname: string): boolean {
   return PROTECTED_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
 }
 
+// MapLibre GL fetches vector tiles/style/glyphs via fetch()/XHR from the
+// browser, so its origin must be explicitly allow-listed in connect-src —
+// derived from the same NEXT_PUBLIC_MAP_STYLE_URL that configures the map
+// itself (see providers/map-config.ts) so swapping to a self-hosted tile
+// server via env var doesn't also require a code change here. The routing
+// provider (OSRM) needs no entry: those requests happen server-side (see
+// routing.service.ts), never directly from the browser.
+function mapTileOrigin(): string | null {
+  try {
+    return new URL(process.env.NEXT_PUBLIC_MAP_STYLE_URL ?? "https://tiles.openfreemap.org/styles/liberty").origin;
+  } catch {
+    return null;
+  }
+}
+
 // Turbopack's dev HMR client and React Fast Refresh need 'unsafe-eval' —
 // relaxed only outside production so the dev experience isn't broken.
 // script-src otherwise only trusts this exact request's nonce, which Next.js
@@ -15,6 +30,8 @@ function isProtectedPath(pathname: string): boolean {
 function buildCsp(nonce: string): string {
   const isDev = process.env.NODE_ENV !== "production";
   const scriptSrc = isDev ? `'self' 'nonce-${nonce}' 'unsafe-eval'` : `'self' 'nonce-${nonce}'`;
+  const tileOrigin = mapTileOrigin();
+  const connectSrc = ["'self'", tileOrigin].filter(Boolean).join(" ");
   return [
     "default-src 'self'",
     `script-src ${scriptSrc}`,
@@ -23,9 +40,10 @@ function buildCsp(nonce: string): string {
     // bar heights, rendering as inline style="" attributes — same accepted
     // trade-off the web/security.md rules document for CSS-in-JS.
     "style-src 'self' 'unsafe-inline'",
-    "img-src 'self' data: https:",
-    "font-src 'self' data:",
-    "connect-src 'self'",
+    `img-src 'self' data: https: ${tileOrigin ?? ""}`.trim(),
+    `font-src 'self' data: ${tileOrigin ?? ""}`.trim(),
+    `connect-src ${connectSrc}`,
+    "worker-src 'self' blob:",
     "frame-ancestors 'none'",
     "object-src 'none'",
     "base-uri 'self'",

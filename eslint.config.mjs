@@ -22,6 +22,9 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     // vitest --coverage output — generated, gitignored, never hand-edited.
     "coverage/**",
+    // Vendored maplibre-gl worker build, synced verbatim from node_modules
+    // by scripts/copy-maplibre-worker.mjs — see DeliveryMap.tsx.
+    "public/maplibre/**",
   ]),
 ]);
 

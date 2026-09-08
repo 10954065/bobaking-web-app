@@ -16,20 +16,21 @@ import {
   LogOut,
   Wallet,
   KeyRound,
+  WifiOff,
+  AlertTriangle,
 } from "lucide-react";
 import { signOutAction } from "@/modules/auth/actions/sign-out.action";
 import {
   getMyDeliveriesAction,
   toggleAvailabilityAction,
-  pingLocationAction,
   markPickedUpAction,
   markDeliveredAction,
   getRiderEarningsSummaryAction,
   type RiderDeliveryOrder,
   type RiderEarningsSummary,
 } from "@/modules/delivery/actions/rider.actions";
-
-const LOCATION_PING_INTERVAL_MS = 20_000;
+import { useRiderLocationTracker } from "@/modules/delivery/hooks/useRiderLocationTracker";
+import { RiderNavigationMap } from "@/components/delivery/RiderNavigationMap";
 
 export function RiderApp({
   branchId,
@@ -45,7 +46,6 @@ export function RiderApp({
   const [status, setStatus] = useState(initialStatus);
   const [deliveries, setDeliveries] = useState(initialDeliveries);
   const [pendingOrderId, setPendingOrderId] = useState<string | null>(null);
-  const [locationError, setLocationError] = useState<string | null>(null);
   const [isTogglePending, setTogglePending] = useState(false);
   const [earnings, setEarnings] = useState<RiderEarningsSummary>({ deliveriesToday: 0, earningsToday: 0 });
   const [codeInputs, setCodeInputs] = useState<Record<string, string>>({});
@@ -83,28 +83,13 @@ export function RiderApp({
     return () => source.close();
   }, [branchId, debouncedRefetch]);
 
-  // Pings this rider's live position periodically while online — the admin
-  // board and public tracking page both read RiderProfile.currentLatitude/
-  // Longitude, updated here. Geolocation being unavailable/denied is not
-  // fatal to the rider app working, just to the live-position feature.
-  useEffect(() => {
-    if (!isOnline || typeof navigator === "undefined" || !navigator.geolocation) return;
-
-    function ping() {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setLocationError(null);
-          pingLocationAction({ latitude: position.coords.latitude, longitude: position.coords.longitude }).catch(() => {});
-        },
-        () => setLocationError("Location unavailable — enable location access to share live position."),
-        { enableHighAccuracy: true, timeout: 10_000 }
-      );
-    }
-
-    ping();
-    const interval = setInterval(ping, LOCATION_PING_INTERVAL_MS);
-    return () => clearInterval(interval);
-  }, [isOnline]);
+  // Owns the GPS watch + throttled submission (rider.actions.ts's
+  // pingLocationAction) while the rider is online — see
+  // useRiderLocationTracker for the time/movement/accuracy thresholds. The
+  // admin board, public tracking page, and this rider's own navigation map
+  // all end up reading what this submits.
+  const tracker = useRiderLocationTracker(isOnline);
+  const activeDelivery = deliveries[0] ?? null;
 
   async function handleToggle() {
     setTogglePending(true);
@@ -201,8 +186,20 @@ export function RiderApp({
 
       {/* Bottom padding reserves room for the fixed action bar so the last card is never hidden behind it. */}
       <main className="mx-auto w-full max-w-lg flex-1 space-y-3 p-4 pb-28">
-        {locationError && (
-          <p className="rounded-lg border border-amber-900/60 bg-amber-950/30 px-3 py-2 text-xs text-amber-300">{locationError}</p>
+        {isOnline && tracker.errorMessage && (
+          <p className="flex items-center gap-1.5 rounded-lg border border-amber-900/60 bg-amber-950/30 px-3 py-2 text-xs text-amber-300">
+            <AlertTriangle size={13} className="shrink-0" /> {tracker.errorMessage}
+          </p>
+        )}
+        {isOnline && !tracker.isOnline && (
+          <p className="flex items-center gap-1.5 rounded-lg border border-red-900/60 bg-red-950/30 px-3 py-2 text-xs text-red-300">
+            <WifiOff size={13} className="shrink-0" /> No internet connection — your location will resume sharing once you&apos;re back
+            online.
+          </p>
+        )}
+
+        {activeDelivery && (activeDelivery.status === "ASSIGNED_TO_RIDER" || activeDelivery.status === "PICKED_UP" || activeDelivery.status === "OUT_FOR_DELIVERY") && (
+          <RiderNavigationMap orderId={activeDelivery.id} selfLocation={tracker.lastFix} />
         )}
 
         {!isOnline && (

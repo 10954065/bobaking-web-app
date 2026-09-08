@@ -166,6 +166,7 @@ model User {
   purchaseOrders      PurchaseOrder[]
   riderProfile        RiderProfile?
   assignedDeliveries  Order[]              @relation("OrderAssignedRider")
+  deliveryLocations   DeliveryLocation[]
   loyaltyAdjustments  LoyaltyTransaction[]
   assignedTickets     SupportTicket[]      @relation("SupportTicketAssignee")
   supportMessages     SupportMessage[]
@@ -634,6 +635,11 @@ enum OrderStatus {
 model Order {
   id          String      @id @default(uuid())
   orderNumber String      @unique @map("order_number")
+  /// Opaque, unguessable credential for the public/guest tracking page and
+  /// its live-location feed — orderNumber ("FL-1015") is sequential and
+  /// intentionally guessable, so it is fine for the human-readable order
+  /// status page but must never gate live GPS access. See track/[token].
+  trackingToken String    @unique @default(uuid()) @map("tracking_token")
   branchId    String      @map("branch_id")
   customerId  String      @map("customer_id")
   type        OrderType
@@ -688,6 +694,7 @@ model Order {
   supportTickets      SupportTicket[]
   review              Review?
   notifications       Notification[]
+  deliveryLocation    DeliveryLocation?
 
   @@index([branchId])
   @@index([customerId])
@@ -1110,6 +1117,42 @@ model RiderProfile {
   @@index([branchId])
   @@index([status])
   @@map("rider_profiles")
+}
+
+/// The rider's *current* position for one specific active delivery — one row
+/// per order (orderId is unique), upserted on every accepted GPS ping, never
+/// a growing history table. Deliberately separate from
+/// RiderProfile.currentLatitude/Longitude (that field is the rider's global
+/// "where are they right now" used by the branch delivery board regardless
+/// of which order they're on; this table is delivery-scoped so the fields
+/// specific to live navigation — heading, speed, accuracy, the GPS device's
+/// own timestamp — have a home without overloading the profile). Row is
+/// deleted once the delivery reaches a terminal state (see
+/// delivery-location.service.ts) so a completed order can never keep
+/// leaking a live position.
+model DeliveryLocation {
+  id        String  @id @default(uuid())
+  orderId   String  @unique @map("order_id")
+  riderId   String  @map("rider_id")
+  latitude  Decimal @db.Decimal(10, 7)
+  longitude Decimal @db.Decimal(10, 7)
+  /// Compass heading in degrees (0-360), when the device reports one.
+  heading Decimal? @db.Decimal(5, 1)
+  /// Meters/second, when the device reports one.
+  speed Decimal? @db.Decimal(6, 2)
+  /// GPS accuracy radius in meters, as reported by the device — used to reject/flag low-quality fixes.
+  accuracy Decimal @db.Decimal(7, 1)
+  /// The GPS fix's own timestamp (from the device), distinct from updatedAt (server receipt time) — staleness is judged from this.
+  recordedAt DateTime @map("recorded_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  rider User  @relation(fields: [riderId], references: [id], onDelete: Cascade)
+
+  @@index([riderId])
+  @@map("delivery_locations")
 }
 
 // ---------------------------------------------------------------------------

@@ -9,6 +9,15 @@ const envSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   DEFAULT_CURRENCY: z.string().default("GHS"),
   DEFAULT_TIMEZONE: z.string().default("Africa/Accra"),
+
+  // Delivery maps & routing — see src/modules/delivery/providers/README.md.
+  // Defaults point at OpenFreeMap (a free, no-API-key OSM vector tile
+  // service — also self-hostable via their open-source tileserver) and the
+  // public OSRM demo server, which explicitly asks not to be used for
+  // production/commercial traffic (rate-limited, no SLA) — production must
+  // override ROUTING_API_URL with a self-hosted or paid routing provider.
+  NEXT_PUBLIC_MAP_STYLE_URL: z.string().url().default("https://tiles.openfreemap.org/styles/liberty"),
+  ROUTING_API_URL: z.string().url().default("https://router.project-osrm.org"),
 });
 
 type Env = z.infer<typeof envSchema>;

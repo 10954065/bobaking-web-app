@@ -44,6 +44,8 @@ export async function getStorefrontMenuAction(branchId: string): Promise<Storefr
 export interface StorefrontOrderSummary {
   id: string;
   orderNumber: string;
+  /** The secure link identifier for /track/[token] — never the guessable orderNumber. */
+  trackingToken: string;
   total: number;
   subtotal: number;
   taxTotal: number;
@@ -59,6 +61,7 @@ export async function placeStorefrontOrderAction(input: PlaceStorefrontOrderInpu
   return {
     id: order.id,
     orderNumber: order.orderNumber,
+    trackingToken: order.trackingToken,
     total: Number(order.total),
     subtotal: Number(order.subtotal),
     taxTotal: Number(order.taxTotal),

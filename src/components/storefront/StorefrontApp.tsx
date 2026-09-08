@@ -124,7 +124,7 @@ export function StorefrontApp({ branches }: { branches: StorefrontBranch[] }) {
   if (step === "payment" && order) {
     return (
       <div className="min-h-screen bg-stone-950 text-stone-100">
-        <PaymentStep order={order} onDone={() => router.push(`/track/${order.orderNumber}`)} />
+        <PaymentStep order={order} onDone={() => router.push(`/track/${order.trackingToken}`)} />
       </div>
     );
   }

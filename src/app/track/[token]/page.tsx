@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { getPublicOrderTracking } from "@/modules/orders/services/order-tracking.service";
 import { getTicketForOrder } from "@/modules/support/services/support-ticket.service";
 import { getReviewForOrder } from "@/modules/reviews/services/review.service";
+import { CustomerLiveMap } from "@/components/tracking/CustomerLiveMap";
 import { createSupportTicketFormAction, addTicketMessageFormAction, submitReviewFormAction } from "./actions";
 
 const REVIEWABLE_STATUSES = new Set(["DELIVERED", "COMPLETED"]);
@@ -36,17 +37,18 @@ export default async function TrackOrderPage({
   params,
   searchParams,
 }: {
-  params: Promise<{ orderNumber: string }>;
+  params: Promise<{ token: string }>;
   searchParams: Promise<{ error?: string }>;
 }) {
-  const { orderNumber } = await params;
-  const [tracking, ticket, reviewState, { error }] = await Promise.all([
-    getPublicOrderTracking(orderNumber),
-    getTicketForOrder(orderNumber),
-    getReviewForOrder(orderNumber),
-    searchParams,
-  ]);
+  const { token } = await params;
+  const { error } = await searchParams;
+  const tracking = await getPublicOrderTracking(token);
   if (!tracking) notFound();
+
+  const [ticket, reviewState] = await Promise.all([
+    getTicketForOrder(tracking.orderNumber),
+    getReviewForOrder(tracking.orderNumber),
+  ]);
 
   const canReview = reviewState ? REVIEWABLE_STATUSES.has(reviewState.orderStatus) : false;
 
@@ -89,12 +91,16 @@ export default async function TrackOrderPage({
             <span>GHS {tracking.total.toFixed(2)}</span>
           </div>
 
-          {tracking.rider && (
-            <p className="mt-4 rounded-lg bg-blue-50 px-3 py-2 text-sm text-blue-800 dark:bg-blue-950 dark:text-blue-300">
-              {tracking.rider.firstName} is on the way
-              {tracking.rider.lastLocationAt &&
-                ` · last update ${new Date(tracking.rider.lastLocationAt).toLocaleTimeString()}`}
-            </p>
+          {tracking.isLiveTrackable && (
+            <div className="mt-4">
+              <CustomerLiveMap
+                orderId={tracking.orderId}
+                trackingToken={token}
+                branchCoordinates={tracking.branchCoordinates}
+                customerCoordinates={tracking.customerCoordinates}
+                riderFirstName={tracking.rider?.firstName ?? null}
+              />
+            </div>
           )}
 
           {tracking.deliveryCode && (
@@ -140,7 +146,7 @@ export default async function TrackOrderPage({
                 )}
               </div>
             ) : (
-              <form action={submitReviewFormAction.bind(null, orderNumber)} className="mt-3 space-y-3">
+              <form action={submitReviewFormAction.bind(null, token, tracking.orderNumber)} className="mt-3 space-y-3">
                 <div className="flex gap-2">
                   {[1, 2, 3, 4, 5].map((value) => (
                     <label key={value} className="cursor-pointer text-2xl text-stone-300 has-[:checked]:text-amber-500 dark:text-stone-700">
@@ -191,7 +197,7 @@ export default async function TrackOrderPage({
                   </li>
                 ))}
               </ul>
-              <form action={addTicketMessageFormAction.bind(null, orderNumber, ticket.id)} className="mt-3 flex flex-col gap-2">
+              <form action={addTicketMessageFormAction.bind(null, token, ticket.id)} className="mt-3 flex flex-col gap-2">
                 <textarea name="body" rows={2} required placeholder="Add a message..." className={inputClass} />
                 <button
                   type="submit"
@@ -202,7 +208,7 @@ export default async function TrackOrderPage({
               </form>
             </div>
           ) : (
-            <form action={createSupportTicketFormAction.bind(null, orderNumber)} className="mt-3 space-y-3">
+            <form action={createSupportTicketFormAction.bind(null, token, tracking.orderNumber)} className="mt-3 space-y-3">
               <input type="text" name="subject" required placeholder="What's this about?" className={inputClass} />
               <textarea name="message" rows={3} required placeholder="Describe the issue..." className={inputClass} />
               <button
