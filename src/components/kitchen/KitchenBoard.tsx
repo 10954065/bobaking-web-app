@@ -8,6 +8,7 @@ import { MenuImage } from "@/components/menu/MenuImage";
 import { Logo } from "@/components/brand/Logo";
 import { startItemAction, markItemReadyAction, getKitchenQueueAction } from "@/modules/kitchen/actions/kitchen.actions";
 import { signOutAction } from "@/modules/auth/actions/sign-out.action";
+import { playNewOrderChime } from "@/lib/notification-chime";
 import type { KdsOrderWithItems } from "@/modules/kitchen/services/kitchen-order.service";
 
 interface KitchenBoardProps {
@@ -22,24 +23,6 @@ const COLUMNS = [
   { status: "PREPARING", label: "PREPARING" },
   { status: "READY", label: "READY" },
 ] as const;
-
-function playChime() {
-  try {
-    const ctx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
-    const oscillator = ctx.createOscillator();
-    const gain = ctx.createGain();
-    oscillator.type = "sine";
-    oscillator.frequency.setValueAtTime(880, ctx.currentTime);
-    gain.gain.setValueAtTime(0.15, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.6);
-    oscillator.connect(gain);
-    gain.connect(ctx.destination);
-    oscillator.start();
-    oscillator.stop(ctx.currentTime + 0.6);
-  } catch {
-    // Audio isn't critical to the KDS working — ignore if unsupported/blocked.
-  }
-}
 
 function elapsedLabel(createdAt: string, now: number): string {
   const seconds = Math.max(0, Math.floor((now - new Date(createdAt).getTime()) / 1000));
@@ -78,7 +61,7 @@ export function KitchenBoard({ branchId, branchName, branches, initialOrders }: 
     source.onmessage = (event) => {
       try {
         const parsed = JSON.parse(event.data) as { type: string };
-        if (parsed.type === "order.new") playChime();
+        if (parsed.type === "order.new") playNewOrderChime();
         debouncedRefetch();
       } catch {
         // Ignore malformed events.

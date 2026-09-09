@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState, useTransition } from "react";
+import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Inbox, Receipt, Send, Banknote, Smartphone, Clock, CircleDollarSign, PlusCircle, XCircle, AlertTriangle } from "lucide-react";
 import {
@@ -10,6 +10,7 @@ import {
   type TodaysOrdersSummary,
 } from "@/modules/orders/actions/order-desk.actions";
 import { sendToKitchenAction, confirmCashPaymentAction, rejectOrderAction } from "@/modules/pos/actions/pos.actions";
+import { playNewOrderChime } from "@/lib/notification-chime";
 
 const REFRESH_MS = 6000;
 
@@ -32,14 +33,27 @@ export function OrderDesk({ onNewOrder }: { onNewOrder: () => void }) {
   const [actionError, setActionError] = useState<string | null>(null);
   const [, startTransition] = useTransition();
 
+  // null (not an empty Set) means "haven't fetched yet" — distinguishes a
+  // genuinely empty first load from a later poll, so mounting onto an
+  // already-full incoming queue doesn't chime for every pre-existing order.
+  const seenOrderIds = useRef<Set<string> | null>(null);
+
+  const handleIncomingOrders = useCallback((orders: IncomingOrder[]) => {
+    setIncoming(orders);
+    if (seenOrderIds.current && orders.some((o) => !seenOrderIds.current!.has(o.id))) {
+      playNewOrderChime();
+    }
+    seenOrderIds.current = new Set(orders.map((o) => o.id));
+  }, []);
+
   const refetch = useCallback(() => {
     listIncomingOrdersAction()
-      .then(setIncoming)
+      .then(handleIncomingOrders)
       .catch(() => {});
     listTodaysOrdersAction()
       .then(setToday)
       .catch(() => {});
-  }, []);
+  }, [handleIncomingOrders]);
 
   useEffect(() => {
     refetch();
