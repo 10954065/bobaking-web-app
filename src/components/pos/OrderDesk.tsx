@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { Inbox, Receipt, Send, Banknote, Smartphone, Clock, CircleDollarSign, PlusCircle, XCircle, AlertTriangle } from "lucide-react";
+import { Inbox, Receipt, Send, Banknote, Smartphone, Clock, CircleDollarSign, PlusCircle, XCircle, AlertTriangle, CheckCircle2 } from "lucide-react";
 import {
   listIncomingOrdersAction,
   listTodaysOrdersAction,
@@ -33,17 +33,25 @@ export function OrderDesk({ onNewOrder }: { onNewOrder: () => void }) {
   const [actionError, setActionError] = useState<string | null>(null);
   const [, startTransition] = useTransition();
 
-  // null (not an empty Set) means "haven't fetched yet" — distinguishes a
+  // null (not an empty Map) means "haven't fetched yet" — distinguishes a
   // genuinely empty first load from a later poll, so mounting onto an
   // already-full incoming queue doesn't chime for every pre-existing order.
-  const seenOrderIds = useRef<Set<string> | null>(null);
+  // Tracks status per id (not just id membership) so the same chime also
+  // fires when an already-seen order flips to READY — the kitchen finishing
+  // it doesn't change its id, only its status.
+  const seenOrderStatuses = useRef<Map<string, string> | null>(null);
 
   const handleIncomingOrders = useCallback((orders: IncomingOrder[]) => {
     setIncoming(orders);
-    if (seenOrderIds.current && orders.some((o) => !seenOrderIds.current!.has(o.id))) {
-      playNewOrderChime();
+    const previous = seenOrderStatuses.current;
+    if (previous) {
+      const hasNotableChange = orders.some((o) => {
+        const previousStatus = previous.get(o.id);
+        return previousStatus === undefined || (o.status === "READY" && previousStatus !== "READY");
+      });
+      if (hasNotableChange) playNewOrderChime();
     }
-    seenOrderIds.current = new Set(orders.map((o) => o.id));
+    seenOrderStatuses.current = new Map(orders.map((o) => [o.id, o.status]));
   }, []);
 
   const refetch = useCallback(() => {
@@ -158,7 +166,7 @@ export function OrderDesk({ onNewOrder }: { onNewOrder: () => void }) {
           {incoming.length === 0 && (
             <div className="flex flex-col items-center gap-3 rounded-2xl border border-stone-800 bg-stone-900 px-4 py-14 text-center">
               <Inbox size={28} className="text-stone-600" />
-              <p className="text-sm text-stone-400">No orders waiting on payment or kitchen relay right now.</p>
+              <p className="text-sm text-stone-400">No orders waiting on payment, kitchen relay, or pickup right now.</p>
             </div>
           )}
           <AnimatePresence initial={false}>
@@ -252,6 +260,11 @@ export function OrderDesk({ onNewOrder }: { onNewOrder: () => void }) {
                 {order.status === "PENDING_PAYMENT" && order.paymentMethod !== "CASH" && (
                   <span className="shrink-0 rounded-lg border border-amber-900/60 bg-amber-950/30 px-3 py-2 text-xs font-medium text-amber-300">
                     Awaiting customer payment
+                  </span>
+                )}
+                {order.status === "READY" && (
+                  <span className="flex shrink-0 items-center gap-1.5 rounded-lg border border-emerald-900/60 bg-emerald-950/30 px-3 py-2 text-xs font-semibold text-emerald-300">
+                    <CheckCircle2 size={14} /> Ready for {order.type === "PICKUP" ? "pickup" : "handoff"}
                   </span>
                 )}
               </motion.div>

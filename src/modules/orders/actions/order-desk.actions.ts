@@ -30,15 +30,17 @@ export interface IncomingOrder {
 /**
  * What Front Desk actually watches now that orders arrive from the public
  * storefront instead of being keyed in at a counter: payments still settling
- * (PENDING_PAYMENT) and payments that have landed but haven't been relayed
- * to the kitchen yet (CONFIRMED) — see sendToKitchenAction/confirmCashPaymentAction.
+ * (PENDING_PAYMENT), payments that have landed but haven't been relayed to
+ * the kitchen yet (CONFIRMED) — see sendToKitchenAction/confirmCashPaymentAction
+ * — and orders the kitchen has just finished (READY), which is Front Desk's
+ * cue to call the customer over or hand off to a rider.
  */
 export const listIncomingOrdersAction = withSafeErrors(async (): Promise<IncomingOrder[]> => {
   const branchIds = await requireOrdersReadBranches();
   const orders = await prisma.order.findMany({
     where: {
       branchId: branchIds === "ALL" ? undefined : { in: branchIds },
-      status: { in: ["PENDING_PAYMENT", "CONFIRMED"] },
+      status: { in: ["PENDING_PAYMENT", "CONFIRMED", "READY"] },
     },
     include: { customer: true, items: true, payments: { orderBy: { createdAt: "desc" }, take: 1 } },
     orderBy: { createdAt: "asc" },
