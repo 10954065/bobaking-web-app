@@ -80,7 +80,7 @@ export interface StorefrontPaymentSummary {
 
 export async function initiateStorefrontPaymentAction(input: {
   orderId: string;
-  method: "CASH" | "MOBILE_MONEY";
+  method: "CASH" | "MOBILE_MONEY" | "CARD";
 }): Promise<StorefrontPaymentSummary> {
   const ip = await getRequestIp();
   await enforceRateLimit(`storefront-payment:${ip}`, { limit: 15, windowSeconds: 900 });

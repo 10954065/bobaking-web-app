@@ -1,5 +1,5 @@
 import { prisma } from "@/db/client";
-import { getOrCreateActiveCart, addItemToCart } from "@/modules/cart/services/cart.service";
+import { getOrCreateActiveCart, addItemToCart, clearCartItems } from "@/modules/cart/services/cart.service";
 import { checkout } from "@/modules/orders/services/checkout.service";
 import type { OrderWithDetails } from "@/modules/orders/services/order.service";
 import { placeStorefrontOrderSchema, type PlaceStorefrontOrderInput } from "@/modules/storefront/schemas/storefront.schema";
@@ -56,6 +56,13 @@ export async function placeStorefrontOrder(input: PlaceStorefrontOrderInput): Pr
   }
 
   const cart = await getOrCreateActiveCart({ branchId: data.branchId, customerId: customer.id, type: data.type });
+  if (cart.items.length > 0) {
+    // A retry after a dropped response (this same cart, still ACTIVE because
+    // checkout() never got far enough to convert it), or a stale abandoned
+    // cart resurrected for a repeat guest — either way this submission is
+    // the complete order, not an incremental addition. See clearCartItems.
+    await clearCartItems(cart.id);
+  }
   for (const item of data.items) {
     await addItemToCart(cart.id, {
       productId: item.productId,

@@ -19,12 +19,15 @@ function toPesewas(amount: Prisma.Decimal | number): number {
 }
 
 /**
- * Real Ghana Mobile Money via Paystack's hosted checkout (Initialize
- * Transaction), which auto-offers MTN MoMo / Vodafone Cash / AirtelTigo
- * Money as payment channels for a GHS transaction — this is deliberately
- * the hosted-redirect API, not Paystack's raw Charge API (which would mean
- * handling OTP/provider-specific phone formats ourselves). The customer's
- * browser is sent to `redirectUrl`; Paystack calls our webhook
+ * Real Ghana Mobile Money (and card) via Paystack's hosted checkout
+ * (Initialize Transaction), which auto-offers MTN MoMo / Vodafone Cash /
+ * AirtelTigo Money and card as payment channels for a GHS transaction —
+ * this is deliberately the hosted-redirect API, not Paystack's raw Charge
+ * API (which would mean handling OTP/provider-specific phone formats
+ * ourselves). Reused as-is for the CARD payment method too — see
+ * getProvider() in payment.service.ts — since it's the same hosted page
+ * either way, just a different channel the customer picks on it. The
+ * customer's browser is sent to `redirectUrl`; Paystack calls our webhook
  * (api/webhooks/paystack) when they finish, which reconciles through the
  * same processWebhookEvent() path used by every other provider.
  *

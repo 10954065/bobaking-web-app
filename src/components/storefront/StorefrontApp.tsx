@@ -56,7 +56,15 @@ type PersistedCartState = {
   cart: LocalCartItem[];
 };
 
-export function StorefrontApp({ branches, initialDishId = null }: { branches: StorefrontBranch[]; initialDishId?: string | null }) {
+export function StorefrontApp({
+  branches,
+  initialDishId = null,
+  cardPaymentsEnabled = false,
+}: {
+  branches: StorefrontBranch[];
+  initialDishId?: string | null;
+  cardPaymentsEnabled?: boolean;
+}) {
   const router = useRouter();
   const [step, setStep] = useState<Step>("branch");
   const [type, setType] = useState<"DELIVERY" | "PICKUP">("DELIVERY");
@@ -247,7 +255,7 @@ export function StorefrontApp({ branches, initialDishId = null }: { branches: St
   if (step === "payment" && order) {
     return (
       <div className="min-h-screen bg-stone-950 text-stone-100">
-        <PaymentStep order={order} onDone={() => router.push(`/track/${order.trackingToken}`)} />
+        <PaymentStep order={order} cardPaymentsEnabled={cardPaymentsEnabled} onDone={() => router.push(`/track/${order.trackingToken}`)} />
       </div>
     );
   }

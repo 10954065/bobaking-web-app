@@ -1,5 +1,6 @@
 import { listBranches } from "@/modules/branches/services/branch.service";
 import { StorefrontApp } from "@/components/storefront/StorefrontApp";
+import { env } from "@/lib/env";
 
 // Must render per-request, not be statically prerendered — the CSP nonce
 // (see proxy.ts) is generated fresh per request, and Next.js can only thread
@@ -21,6 +22,11 @@ export default async function OrderPage({ searchParams }: { searchParams: Promis
         longitude: b.longitude != null ? Number(b.longitude) : null,
       }))}
       initialDishId={dish ?? null}
+      // A boolean, not the secret itself — safe to pass through to the
+      // client so PaymentStep knows whether to offer a Card button at all,
+      // rather than letting a customer pick Card and hit a dead-end error
+      // every time until a real gateway is configured.
+      cardPaymentsEnabled={Boolean(env.PAYSTACK_SECRET_KEY)}
     />
   );
 }

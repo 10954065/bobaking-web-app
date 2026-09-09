@@ -60,6 +60,16 @@ export async function addItemToCart(cartId: string, input: AddCartItemInput) {
   return getCartById(cartId);
 }
 
+/** Wipes every line from a cart without deleting the cart itself — see
+ * placeStorefrontOrder's use of this: the storefront submits a cart's
+ * complete, authoritative contents in one call (unlike the POS, which
+ * builds a cart up incrementally across separate requests), so a retry
+ * after a dropped response, or a stale abandoned cart resurrected for a
+ * repeat guest, must replace rather than append to whatever's already there. */
+export async function clearCartItems(cartId: string) {
+  await prisma.cartItem.deleteMany({ where: { cartId } });
+}
+
 export async function updateCartItemQuantity(cartItemId: string, input: UpdateCartItemInput) {
   const data = updateCartItemSchema.parse(input);
   return prisma.cartItem.update({ where: { id: cartItemId }, data: { quantity: data.quantity } });

@@ -1,20 +1,28 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Banknote, Smartphone, CheckCircle2 } from "lucide-react";
+import { Banknote, Smartphone, CreditCard, CheckCircle2 } from "lucide-react";
 import {
   initiateStorefrontPaymentAction,
   simulateStorefrontPaymentAction,
   type StorefrontOrderSummary,
 } from "@/modules/storefront/actions/storefront.actions";
 
-export function PaymentStep({ order, onDone }: { order: StorefrontOrderSummary; onDone: () => void }) {
+export function PaymentStep({
+  order,
+  cardPaymentsEnabled = false,
+  onDone,
+}: {
+  order: StorefrontOrderSummary;
+  cardPaymentsEnabled?: boolean;
+  onDone: () => void;
+}) {
   const [stage, setStage] = useState<"method" | "momo-pending" | "redirecting" | "done">("method");
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const [paymentId, setPaymentId] = useState<string | null>(null);
 
-  function handlePay(method: "CASH" | "MOBILE_MONEY") {
+  function handlePay(method: "CASH" | "MOBILE_MONEY" | "CARD") {
     setError(null);
     startTransition(async () => {
       try {
@@ -26,6 +34,7 @@ export function PaymentStep({ order, onDone }: { order: StorefrontOrderSummary; 
         // A real gateway (Paystack) hands back its own hosted checkout page —
         // no dev-simulate step, the customer actually pays on that page and
         // Paystack's webhook (api/webhooks/paystack) confirms it from here.
+        // Card always takes this branch — there's no dev stand-in for it.
         if (payment.redirectUrl) {
           setStage("redirecting");
           window.location.href = payment.redirectUrl;
@@ -67,6 +76,19 @@ export function PaymentStep({ order, onDone }: { order: StorefrontOrderSummary; 
                 <p className="text-xs text-stone-500">Pay now on your phone</p>
               </div>
             </button>
+            {cardPaymentsEnabled && (
+              <button
+                onClick={() => handlePay("CARD")}
+                disabled={isPending}
+                className="flex w-full items-center gap-3 rounded-xl border border-stone-700 px-4 py-3.5 text-left transition-colors hover:border-brand-red disabled:opacity-50"
+              >
+                <CreditCard size={18} className="text-brand-red-light" />
+                <div>
+                  <p className="text-sm font-semibold text-stone-100">Card</p>
+                  <p className="text-xs text-stone-500">Pay by debit or credit card</p>
+                </div>
+              </button>
+            )}
             <button
               onClick={() => handlePay("CASH")}
               disabled={isPending}
@@ -103,7 +125,7 @@ export function PaymentStep({ order, onDone }: { order: StorefrontOrderSummary; 
 
       {stage === "redirecting" && (
         <>
-          <h1 className="font-display text-2xl uppercase tracking-tight text-stone-50">Taking you to Mobile Money…</h1>
+          <h1 className="font-display text-2xl uppercase tracking-tight text-stone-50">Taking you to checkout…</h1>
           <p className="mt-2 text-sm text-stone-400">Complete the GHS {order.total.toFixed(2)} payment there, then you&apos;ll be brought back here.</p>
         </>
       )}

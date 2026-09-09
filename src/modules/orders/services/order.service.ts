@@ -40,7 +40,7 @@ export async function listOrdersForBranch(
       branchId: branchIds === "ALL" ? undefined : { in: branchIds },
       status: params.status,
     },
-    include: { customer: true, branch: true, items: true },
+    include: { customer: true, branch: true, items: true, payments: { include: { refunds: true } } },
     orderBy: { createdAt: "desc" },
     take: params.limit ?? 50,
   });

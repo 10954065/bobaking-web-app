@@ -31,7 +31,14 @@ function getProvider(method: PaymentMethod): PaymentProvider {
       // see PaystackMobileMoneyProvider's doc comment.
       return env.PAYSTACK_SECRET_KEY ? paystackProvider : mobileMoneyDevProvider;
     case "CARD":
-      throw new Error("Card payments are not yet supported — no provider is wired up.");
+      // Same Paystack hosted checkout as MOBILE_MONEY — it already requests
+      // the "card" channel alongside mobile money, see
+      // PaystackMobileMoneyProvider's doc comment. No dev stand-in for card;
+      // it simply isn't offered until a real gateway is configured.
+      if (!env.PAYSTACK_SECRET_KEY) {
+        throw new Error("Card payments are not yet supported — no provider is wired up.");
+      }
+      return paystackProvider;
   }
 }
 

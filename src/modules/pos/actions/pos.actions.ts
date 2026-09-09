@@ -271,7 +271,11 @@ export async function refundOrderAction(paymentId: string, amount: number, reaso
   const payment = await prisma.payment.findUniqueOrThrow({ where: { id: paymentId }, include: { order: true } });
   await requirePermission(userId, "payments", "refund", payment.order.branchId);
 
-  return refundPayment({ paymentId, amount, reason: reason?.trim() || undefined, initiatedByUserId: userId });
+  const refund = await refundPayment({ paymentId, amount, reason: reason?.trim() || undefined, initiatedByUserId: userId });
+  // Server actions can only return plain-serializable data across the
+  // client boundary — Prisma's Decimal (refund.amount) is a class instance,
+  // not a plain object, and fails that check silently in the console.
+  return { id: refund.id, status: refund.status, amount: Number(refund.amount) };
 }
 
 /**
