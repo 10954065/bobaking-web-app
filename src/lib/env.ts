@@ -18,6 +18,28 @@ const envSchema = z.object({
   // override ROUTING_API_URL with a self-hosted or paid routing provider.
   NEXT_PUBLIC_MAP_STYLE_URL: z.string().url().default("https://tiles.openfreemap.org/styles/liberty"),
   ROUTING_API_URL: z.string().url().default("https://router.project-osrm.org"),
+
+  // Absolute origin used to build redirect/callback URLs (payment gateway
+  // return trip, etc.) — falls back to Vercel's own runtime var so this
+  // needs no manual config on Vercel, only for other hosts/local dev.
+  APP_URL: z.string().url().optional(),
+
+  // Real Ghana Mobile Money gateway (MTN MoMo, Vodafone Cash, AirtelTigo,
+  // routed through Paystack's hosted checkout). Optional: every payment
+  // provider lookup falls back to MobileMoneyDevProvider until this is set,
+  // so the app works unchanged today and "lights up" the moment a real key
+  // is added — see providers/paystack.provider.ts.
+  PAYSTACK_SECRET_KEY: z.string().optional(),
+
+  // Real SMS delivery (Twilio REST API, called directly — no SDK
+  // dependency). All three must be set together or none are used.
+  TWILIO_ACCOUNT_SID: z.string().optional(),
+  TWILIO_AUTH_TOKEN: z.string().optional(),
+  TWILIO_FROM_NUMBER: z.string().optional(),
+
+  // Real email delivery (Resend REST API).
+  RESEND_API_KEY: z.string().optional(),
+  EMAIL_FROM_ADDRESS: z.string().email().optional(),
 });
 
 type Env = z.infer<typeof envSchema>;

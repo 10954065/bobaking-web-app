@@ -73,6 +73,9 @@ export interface StorefrontPaymentSummary {
   id: string;
   provider: string;
   status: string;
+  /** Set only when the provider needs the customer's browser sent to its
+   * own hosted checkout (real Paystack Mobile Money) — see PaymentStep.tsx. */
+  redirectUrl: string | null;
 }
 
 export async function initiateStorefrontPaymentAction(input: {
@@ -87,7 +90,8 @@ export async function initiateStorefrontPaymentAction(input: {
     method: input.method,
     idempotencyKey: `storefront-${input.orderId}-${input.method}`,
   });
-  return { id: payment.id, provider: payment.provider, status: payment.status };
+  const metadata = payment.metadata as { redirectUrl?: string } | null;
+  return { id: payment.id, provider: payment.provider, status: payment.status, redirectUrl: metadata?.redirectUrl ?? null };
 }
 
 /**

@@ -4,6 +4,7 @@ import { getPublicOrderTracking } from "@/modules/orders/services/order-tracking
 import { getTicketForOrder } from "@/modules/support/services/support-ticket.service";
 import { getReviewForOrder } from "@/modules/reviews/services/review.service";
 import { CustomerLiveMap } from "@/components/tracking/CustomerLiveMap";
+import { LiveStatusWatcher } from "@/components/tracking/LiveStatusWatcher";
 import { LogoLockup } from "@/components/brand/Logo";
 import { createSupportTicketFormAction, addTicketMessageFormAction, submitReviewFormAction } from "./actions";
 
@@ -68,6 +69,8 @@ export default async function TrackOrderPage({
 
   return (
     <div className="min-h-screen bg-stone-100 dark:bg-stone-950">
+      <LiveStatusWatcher orderId={tracking.orderId} token={token} status={tracking.status} />
+
       <header className="border-b border-stone-200 bg-brand-ink px-6 py-4 dark:border-stone-800">
         <LogoLockup size={36} />
         <h1 className="mt-3 font-display text-lg uppercase tracking-wide text-brand-cream">Track your order</h1>
@@ -96,7 +99,7 @@ export default async function TrackOrderPage({
               <Clock size={16} className="mt-0.5 shrink-0 text-amber-600 dark:text-amber-400" />
               <p className="text-sm text-amber-800 dark:text-amber-300">
                 <span className="font-semibold">Payment received — not yet accepted.</span> {tracking.branchName}{" "}
-                still needs to confirm this order. Refresh this page to check for updates.
+                still needs to confirm this order. This page updates the moment they do.
               </p>
             </div>
           )}

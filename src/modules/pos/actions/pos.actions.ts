@@ -23,7 +23,14 @@ import { listPosProducts, toPosCart, type PosCart } from "@/modules/pos/services
 import { checkout, type CheckoutInput } from "@/modules/orders/services/checkout.service";
 import { getOrderById, transitionOrder } from "@/modules/orders/services/order.service";
 import { canTransition } from "@/modules/orders/services/order-state-machine";
-import { initiatePayment, confirmCashPayment, processWebhookEvent } from "@/modules/payments/services/payment.service";
+import {
+  initiatePayment,
+  confirmCashPayment,
+  processWebhookEvent,
+  refundPayment,
+  refundRemainingBalance,
+} from "@/modules/payments/services/payment.service";
+import { recordAuditLog } from "@/modules/audit/services/audit.service";
 
 async function requireUserId(): Promise<string> {
   const userId = await getCurrentUserId();
@@ -227,7 +234,44 @@ export async function rejectOrderAction(orderId: string, reason?: string) {
   const order = await prisma.order.findUniqueOrThrow({ where: { id: orderId } });
   await requirePermission(userId, "orders", "update", order.branchId);
 
-  await transitionOrder({ orderId, toStatus: "REJECTED", actorUserId: userId, reason: reason?.trim() || undefined });
+  const trimmedReason = reason?.trim() || undefined;
+  await transitionOrder({ orderId, toStatus: "REJECTED", actorUserId: userId, reason: trimmedReason });
+
+  // Declining a paid order must never leave the customer's money sitting
+  // uncollected on our side — this is a mandatory consequence of the
+  // decision to decline, not a separate discretionary refund, so it doesn't
+  // require the actor to separately hold payments:refund (see
+  // refundRemainingBalance's doc comment). Never blocks the decline itself.
+  const payment = await prisma.payment.findFirst({
+    where: { orderId, status: { in: ["SUCCEEDED", "PARTIALLY_REFUNDED"] } },
+    orderBy: { createdAt: "desc" },
+  });
+  if (payment) {
+    await refundRemainingBalance(payment.id, {
+      reason: trimmedReason ?? "Order declined by branch",
+      initiatedByUserId: userId,
+    }).catch(async (error) => {
+      await recordAuditLog({
+        actorUserId: userId,
+        action: "payment.auto_refund_failed",
+        resourceType: "Payment",
+        resourceId: payment.id,
+        metadata: { orderId, error: error instanceof Error ? error.message : String(error) },
+      }).catch(() => {});
+    });
+  }
+}
+
+/**
+ * A discretionary refund initiated by finance/admin (partial or full) — gated
+ * on payments:refund, unlike the automatic one inside rejectOrderAction.
+ */
+export async function refundOrderAction(paymentId: string, amount: number, reason?: string) {
+  const userId = await requireUserId();
+  const payment = await prisma.payment.findUniqueOrThrow({ where: { id: paymentId }, include: { order: true } });
+  await requirePermission(userId, "payments", "refund", payment.order.branchId);
+
+  return refundPayment({ paymentId, amount, reason: reason?.trim() || undefined, initiatedByUserId: userId });
 }
 
 /**

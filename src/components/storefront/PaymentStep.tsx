@@ -9,7 +9,7 @@ import {
 } from "@/modules/storefront/actions/storefront.actions";
 
 export function PaymentStep({ order, onDone }: { order: StorefrontOrderSummary; onDone: () => void }) {
-  const [stage, setStage] = useState<"method" | "momo-pending" | "done">("method");
+  const [stage, setStage] = useState<"method" | "momo-pending" | "redirecting" | "done">("method");
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const [paymentId, setPaymentId] = useState<string | null>(null);
@@ -21,6 +21,14 @@ export function PaymentStep({ order, onDone }: { order: StorefrontOrderSummary; 
         const payment = await initiateStorefrontPaymentAction({ orderId: order.id, method });
         if (method === "CASH") {
           setStage("done");
+          return;
+        }
+        // A real gateway (Paystack) hands back its own hosted checkout page —
+        // no dev-simulate step, the customer actually pays on that page and
+        // Paystack's webhook (api/webhooks/paystack) confirms it from here.
+        if (payment.redirectUrl) {
+          setStage("redirecting");
+          window.location.href = payment.redirectUrl;
           return;
         }
         setPaymentId(payment.id);
@@ -90,6 +98,13 @@ export function PaymentStep({ order, onDone }: { order: StorefrontOrderSummary; 
           >
             {isPending ? "Confirming…" : "DEV: Simulate payment success"}
           </button>
+        </>
+      )}
+
+      {stage === "redirecting" && (
+        <>
+          <h1 className="font-display text-2xl uppercase tracking-tight text-stone-50">Taking you to Mobile Money…</h1>
+          <p className="mt-2 text-sm text-stone-400">Complete the GHS {order.total.toFixed(2)} payment there, then you&apos;ll be brought back here.</p>
         </>
       )}
 

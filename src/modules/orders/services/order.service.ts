@@ -6,6 +6,7 @@ import { publishKitchenEvent } from "@/modules/kitchen/services/kitchen-events";
 import { notifyOrderStatus } from "@/modules/notifications/services/notification.service";
 import { clearDeliveryLocation } from "@/modules/delivery/services/delivery-location.service";
 import { publishDeliveryLocationEvent } from "@/modules/delivery/services/delivery-location-events";
+import { publishOrderStatusEvent } from "@/modules/orders/services/order-status-events";
 
 /** Once an order reaches one of these, live GPS tracking must stop — see the DeliveryLocation model doc comment and Phase 5 of the tracking module. */
 const TRACKING_STOPS_AT = new Set(["DELIVERED", "CANCELLED", "REJECTED"]);
@@ -110,6 +111,10 @@ export async function transitionOrder(params: {
   // Same "never load-bearing" posture — notifyOrderStatus already never
   // throws, but the .catch() is cheap insurance against that invariant ever slipping.
   await notifyOrderStatus(updated).catch(() => {});
+
+  // Every transition, whole-lifecycle — what the customer tracking page's
+  // live watcher subscribes to (see order-status-events.ts's doc comment).
+  await publishOrderStatusEvent(updated.id, { type: "order.status_changed", status: updated.status }).catch(() => {});
 
   // Live location tracking is status-gated: every consumer (customer,
   // staff, admin) must stop receiving GPS the moment a delivery is no

@@ -1,7 +1,9 @@
 import { prisma } from "@/db/client";
 import { Prisma, type PaymentMethod } from "@prisma/client";
+import { env } from "@/lib/env";
 import { CashPaymentProvider } from "@/modules/payments/providers/cash.provider";
 import { MobileMoneyDevProvider } from "@/modules/payments/providers/mobile-money-dev.provider";
+import { PaystackMobileMoneyProvider } from "@/modules/payments/providers/paystack.provider";
 import type { PaymentProvider } from "@/modules/payments/providers/payment-provider.interface";
 import {
   initiatePaymentSchema,
@@ -17,14 +19,17 @@ import { recordAuditLog } from "@/modules/audit/services/audit.service";
 import { awardPointsForOrderSafely } from "@/modules/loyalty/services/loyalty.service";
 
 const cashProvider = new CashPaymentProvider();
-const mobileMoneyProvider = new MobileMoneyDevProvider();
+const mobileMoneyDevProvider = new MobileMoneyDevProvider();
+const paystackProvider = new PaystackMobileMoneyProvider();
 
 function getProvider(method: PaymentMethod): PaymentProvider {
   switch (method) {
     case "CASH":
       return cashProvider;
     case "MOBILE_MONEY":
-      return mobileMoneyProvider;
+      // Falls back to the dev stand-in until PAYSTACK_SECRET_KEY is set —
+      // see PaystackMobileMoneyProvider's doc comment.
+      return env.PAYSTACK_SECRET_KEY ? paystackProvider : mobileMoneyDevProvider;
     case "CARD":
       throw new Error("Card payments are not yet supported — no provider is wired up.");
   }
@@ -37,9 +42,18 @@ export async function initiatePayment(input: InitiatePaymentInput) {
   const existing = await prisma.payment.findUnique({ where: { idempotencyKey: data.idempotencyKey } });
   if (existing) return existing;
 
-  const order = await prisma.order.findUniqueOrThrow({ where: { id: data.orderId } });
+  const order = await prisma.order.findUniqueOrThrow({ where: { id: data.orderId }, include: { customer: true } });
   const provider = getProvider(data.method);
-  const intent = await provider.createIntent({ orderId: order.id, amount: order.total, currency: order.currency });
+  const intent = await provider.createIntent({
+    orderId: order.id,
+    amount: order.total,
+    currency: order.currency,
+    // Only meaningful to providers that redirect to a hosted checkout
+    // (Paystack) — email is required there even though it's optional on our
+    // own guest checkout form, and trackingToken builds the return-trip URL.
+    // Both are no-ops for providers that ignore metadata (cash, the dev stub).
+    metadata: { email: order.customer.email ?? undefined, trackingToken: order.trackingToken },
+  });
 
   const payment = await prisma.payment.create({
     data: {
@@ -52,6 +66,7 @@ export async function initiatePayment(input: InitiatePaymentInput) {
       status: "PENDING",
       idempotencyKey: data.idempotencyKey,
       initiatedByUserId: data.initiatedByUserId,
+      metadata: intent.redirectUrl ? { redirectUrl: intent.redirectUrl } : undefined,
     },
   });
 
@@ -205,4 +220,26 @@ export async function refundPayment(input: RefundPaymentInput) {
   });
 
   return refund;
+}
+
+/**
+ * Refunds whatever remains uncollected-back on a payment, without the caller
+ * having to compute the remaining balance themselves (the common case is
+ * "refund it all"). Returns null for a payment with nothing left to refund
+ * (already fully refunded, or never succeeded) instead of throwing — used by
+ * rejectOrderAction (pos.actions.ts) as an automatic consequence of the
+ * branch declining a paid order, not a discretionary refund decision, so it
+ * intentionally does not require its own payments:refund permission check.
+ */
+export async function refundRemainingBalance(paymentId: string, input: { reason?: string; initiatedByUserId?: string }) {
+  const payment = await prisma.payment.findUniqueOrThrow({ where: { id: paymentId }, include: { refunds: true } });
+  if (payment.status !== "SUCCEEDED" && payment.status !== "PARTIALLY_REFUNDED") return null;
+
+  const alreadyRefunded = payment.refunds
+    .filter((r) => r.status === "SUCCEEDED")
+    .reduce((sum, r) => sum.plus(r.amount), new Prisma.Decimal(0));
+  const remaining = payment.amount.minus(alreadyRefunded);
+  if (remaining.lessThanOrEqualTo(0)) return null;
+
+  return refundPayment({ paymentId, amount: Number(remaining), reason: input.reason, initiatedByUserId: input.initiatedByUserId });
 }

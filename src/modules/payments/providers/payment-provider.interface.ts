@@ -12,6 +12,11 @@ export interface CreatePaymentIntentParams {
 export interface PaymentIntentResult {
   providerReference: string;
   status: PaymentProviderStatus;
+  /** Set by providers whose payment step happens on their own hosted page
+   * (Paystack's checkout) rather than in-app — the caller must send the
+   * customer's browser here to actually pay. Absent for providers (cash,
+   * the dev stand-in) that need no redirect. */
+  redirectUrl?: string;
 }
 
 export interface RefundResult {
