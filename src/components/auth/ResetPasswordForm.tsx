@@ -18,10 +18,10 @@ export function ResetPasswordForm({ token }: { token: string }) {
         </span>
         <p className="text-sm text-stone-300">Your password has been reset. You can sign in with it now.</p>
         <Link
-          href="/login"
+          href="/"
           className="mt-2 rounded-lg bg-brand-red-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-red-500"
         >
-          Go to sign in
+          Back to home
         </Link>
       </div>
     );

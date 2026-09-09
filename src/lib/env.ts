@@ -5,6 +5,14 @@ const envSchema = z.object({
   REDIS_URL: z.string().min(1, "REDIS_URL is required"),
   AUTH_SECRET: z.string().min(32, "AUTH_SECRET must be at least 32 characters"),
   AUTH_TRUST_HOST: z.string().optional(),
+
+  // The one secret entry URL staff use to reach the sign-in page — see
+  // proxy.ts. Everything under /admin, /pos, /kitchen, /rider, /account,
+  // /login 404s for an unauthenticated visitor who doesn't come through
+  // this path first, so the backend isn't discoverable by guessing common
+  // paths. Shared across all staff logins (it only gates reaching the sign-in
+  // form — the real per-user authorization is still full RBAC after that).
+  STAFF_ACCESS_KEY: z.string().min(16, "STAFF_ACCESS_KEY must be at least 16 characters"),
   NEXTAUTH_URL: z.string().url().optional(),
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   DEFAULT_CURRENCY: z.string().default("GHS"),

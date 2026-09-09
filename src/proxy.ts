@@ -1,10 +1,16 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
+import { env } from "@/lib/env";
 
-const PROTECTED_PREFIXES = ["/admin", "/pos", "/kitchen", "/rider", "/super-admin", "/account"];
+// Everything a public visitor must never be able to discover by guessing a
+// URL — no redirect, no hint any of it exists. The only way in is the one
+// shared STAFF_ACCESS_KEY gate below; once a real session exists, every one
+// of these behaves exactly as it always did (the session — and RBAC on top
+// of it — is what actually authorizes access, never the URL shape).
+const HIDDEN_PREFIXES = ["/admin", "/pos", "/kitchen", "/rider", "/super-admin", "/account", "/login"];
 
-function isProtectedPath(pathname: string): boolean {
-  return PROTECTED_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
+function matchesPrefix(pathname: string, prefixes: string[]): boolean {
+  return prefixes.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
 }
 
 // MapLibre GL fetches vector tiles/style/glyphs via fetch()/XHR from the
@@ -51,21 +57,39 @@ function buildCsp(nonce: string): string {
 }
 
 export default auth((request) => {
-  const { pathname, search } = request.nextUrl;
+  const { pathname } = request.nextUrl;
 
   const nonce = Buffer.from(crypto.randomUUID()).toString("base64");
   const csp = buildCsp(nonce);
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-nonce", nonce);
 
-  if (isProtectedPath(pathname)) {
+  // The one shared entry point staff use to reach the sign-in page —
+  // /<STAFF_ACCESS_KEY> transparently rewrites to the real /login route
+  // while keeping the address bar on the secret URL, so the literal /login
+  // path is never revealed to anyone who doesn't already have this link.
+  const gatePath = `/${env.STAFF_ACCESS_KEY}`;
+  if (pathname === gatePath || pathname === `${gatePath}/`) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/login";
+    const response = NextResponse.rewrite(url, { request: { headers: requestHeaders } });
+    response.headers.set("Content-Security-Policy", csp);
+    return response;
+  }
+
+  if (matchesPrefix(pathname, HIDDEN_PREFIXES)) {
     const session = request.auth;
     const isAuthenticated = !!session?.user && session.error !== "SessionRevoked";
 
     if (!isAuthenticated) {
-      const loginUrl = new URL("/login", request.nextUrl.origin);
-      loginUrl.searchParams.set("callbackUrl", `${pathname}${search}`);
-      const response = NextResponse.redirect(loginUrl);
+      // Rewritten (not redirected) to a guaranteed-unmatched path so Next
+      // renders the real not-found.tsx with a genuine 404 — indistinguishable
+      // from any other missing URL. A redirect here — even to the secret
+      // gate — would hand a random visitor who blindly guessed "/admin"
+      // proof that a backend exists behind it.
+      const url = request.nextUrl.clone();
+      url.pathname = `/__not-found__${pathname}`;
+      const response = NextResponse.rewrite(url, { request: { headers: requestHeaders } });
       response.headers.set("Content-Security-Policy", csp);
       return response;
     }

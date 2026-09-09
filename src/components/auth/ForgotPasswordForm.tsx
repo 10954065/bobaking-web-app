@@ -26,8 +26,8 @@ export function ForgotPasswordForm() {
             </Link>
           </div>
         )}
-        <Link href="/login" className="mt-2 text-sm font-medium text-brand-red-500 hover:text-brand-red-400">
-          Back to sign in
+        <Link href="/" className="mt-2 text-sm font-medium text-brand-red-500 hover:text-brand-red-400">
+          Back to home
         </Link>
       </div>
     );
@@ -63,8 +63,8 @@ export function ForgotPasswordForm() {
         {isPending ? "Sending…" : "Send reset link"}
       </button>
 
-      <Link href="/login" className="text-center text-sm font-medium text-stone-400 hover:text-stone-200">
-        Back to sign in
+      <Link href="/" className="text-center text-sm font-medium text-stone-400 hover:text-stone-200">
+        Back to home
       </Link>
     </form>
   );
