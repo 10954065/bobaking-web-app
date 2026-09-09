@@ -39,6 +39,15 @@ const envSchema = z.object({
   // is added — see providers/paystack.provider.ts.
   PAYSTACK_SECRET_KEY: z.string().optional(),
 
+  // Lets the dev "simulate payment success" stand-ins (storefront checkout
+  // and POS) run in production while no real gateway is configured yet —
+  // otherwise assertDevPaymentSimulationAllowed() refuses them there. Off by
+  // default: with this on, anyone who completes storefront checkout can mark
+  // their own order paid for free (no money ever collected), since that
+  // action is public and only needs the paymentId already handed back to
+  // them. Turn this back off once real customers can reach the site.
+  ALLOW_DEV_PAYMENT_SIMULATION: z.coerce.boolean().default(false),
+
   // Real SMS delivery (Twilio REST API, called directly — no SDK
   // dependency). All three must be set together or none are used.
   TWILIO_ACCOUNT_SID: z.string().optional(),

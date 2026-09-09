@@ -45,13 +45,18 @@ function getProvider(method: PaymentMethod): PaymentProvider {
 
 /**
  * Guards every dev-only "simulate payment success" action (storefront and
- * POS) — both exist only to stand in for a real gateway calling our webhook,
- * so both must refuse to run once a real gateway is actually configured or
- * in production, where either path would let anyone mark a real order
- * "paid" for free with no money ever collected.
+ * POS) — both exist only to stand in for a real gateway calling our webhook.
+ * Always refused once a real gateway is configured (that path would let
+ * anyone mark a real order "paid" for free with no money ever collected,
+ * and a real gateway makes the dev stand-in meaningless anyway). Refused in
+ * production too unless ALLOW_DEV_PAYMENT_SIMULATION is explicitly set —
+ * see its doc comment in env.ts for the tradeoff that flag accepts.
  */
 export function assertDevPaymentSimulationAllowed(): void {
-  if (process.env.NODE_ENV === "production" || env.PAYSTACK_SECRET_KEY) {
+  if (env.PAYSTACK_SECRET_KEY) {
+    throw new UserFacingError("This action is not available.");
+  }
+  if (process.env.NODE_ENV === "production" && !env.ALLOW_DEV_PAYMENT_SIMULATION) {
     throw new UserFacingError("This action is not available.");
   }
 }
