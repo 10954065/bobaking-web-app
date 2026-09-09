@@ -3,9 +3,15 @@ import type { NotificationChannel, Order, OrderStatus } from "@prisma/client";
 import { recordAuditLog } from "@/modules/audit/services/audit.service";
 
 const TEMPLATES: Partial<Record<OrderStatus, (order: Order) => { subject: string; body: string }>> = {
+  // CONFIRMED means payment landed — nothing more. It must never read as
+  // acceptance; that's ACCEPTED below, a separate branch decision.
   CONFIRMED: (order) => ({
-    subject: "Order confirmed",
-    body: `Your order ${order.orderNumber} has been confirmed and is being prepared.`,
+    subject: "Payment received",
+    body: `We've received payment for order ${order.orderNumber}. The branch hasn't accepted it yet — we'll let you know as soon as they do.`,
+  }),
+  ACCEPTED: (order) => ({
+    subject: "Order accepted",
+    body: `Good news — order ${order.orderNumber} has been accepted and is being prepared.`,
   }),
   READY: (order) => ({
     subject: "Order ready",

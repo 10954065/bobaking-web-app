@@ -1,3 +1,4 @@
+import { Clock, XCircle } from "lucide-react";
 import { notFound } from "next/navigation";
 import { getPublicOrderTracking } from "@/modules/orders/services/order-tracking.service";
 import { getTicketForOrder } from "@/modules/support/services/support-ticket.service";
@@ -8,11 +9,14 @@ import { createSupportTicketFormAction, addTicketMessageFormAction, submitReview
 
 const REVIEWABLE_STATUSES = new Set(["DELIVERED", "COMPLETED"]);
 
+// CONFIRMED means payment landed — nothing more. Labeled distinctly from
+// ACCEPTED (the branch's own decision) so a customer never reads "payment
+// went through" as "the branch is making my food".
 const STATUS_LABELS: Record<string, string> = {
   DRAFT: "Order started",
   PENDING_PAYMENT: "Awaiting payment",
   PAYMENT_FAILED: "Payment failed",
-  CONFIRMED: "Order approved",
+  CONFIRMED: "Payment received",
   ACCEPTED: "Order accepted",
   SENT_TO_KITCHEN: "Sent to kitchen",
   PREPARING: "Being prepared",
@@ -24,11 +28,20 @@ const STATUS_LABELS: Record<string, string> = {
   COMPLETED: "Completed",
   CANCELLED: "Cancelled",
   REFUNDED: "Refunded",
-  REJECTED: "Rejected",
+  REJECTED: "Not accepted",
 };
 
 function statusLabel(status: string): string {
   return STATUS_LABELS[status] ?? status.replaceAll("_", " ");
+}
+
+function statusPillClass(status: string): string {
+  if (status === "CONFIRMED") return "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300";
+  if (status === "REJECTED" || status === "CANCELLED" || status === "PAYMENT_FAILED")
+    return "bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300";
+  if (status === "DELIVERED" || status === "COMPLETED")
+    return "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300";
+  return "bg-brand-red/10 text-brand-red dark:bg-brand-red/15 dark:text-brand-red-light";
 }
 
 const inputClass =
@@ -70,13 +83,33 @@ export default async function TrackOrderPage({
         <section className="rounded-xl border border-stone-200 bg-white p-6 dark:border-stone-800 dark:bg-stone-900">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-bold text-stone-900 dark:text-stone-50">{tracking.orderNumber}</h2>
-            <span className="rounded-full bg-brand-red/10 px-3 py-1 text-xs font-semibold text-brand-red dark:bg-brand-red/15 dark:text-brand-red-light">
+            <span className={`rounded-full px-3 py-1 text-xs font-semibold ${statusPillClass(tracking.status)}`}>
               {statusLabel(tracking.status)}
             </span>
           </div>
           <p className="mt-1 text-sm text-stone-500 dark:text-stone-400">
             {tracking.branchName} · {tracking.type.replaceAll("_", " ")}
           </p>
+
+          {tracking.status === "CONFIRMED" && (
+            <div className="mt-4 flex items-start gap-2.5 rounded-lg border border-amber-300 bg-amber-50 px-3.5 py-3 dark:border-amber-900/60 dark:bg-amber-950/30">
+              <Clock size={16} className="mt-0.5 shrink-0 text-amber-600 dark:text-amber-400" />
+              <p className="text-sm text-amber-800 dark:text-amber-300">
+                <span className="font-semibold">Payment received — not yet accepted.</span> {tracking.branchName}{" "}
+                still needs to confirm this order. Refresh this page to check for updates.
+              </p>
+            </div>
+          )}
+
+          {tracking.status === "REJECTED" && (
+            <div className="mt-4 flex items-start gap-2.5 rounded-lg border border-red-300 bg-red-50 px-3.5 py-3 dark:border-red-900/60 dark:bg-red-950/30">
+              <XCircle size={16} className="mt-0.5 shrink-0 text-red-600 dark:text-red-400" />
+              <p className="text-sm text-red-800 dark:text-red-300">
+                <span className="font-semibold">{tracking.branchName} wasn&apos;t able to accept this order.</span>{" "}
+                Any payment will be refunded. Contact support below if you need help.
+              </p>
+            </div>
+          )}
 
           <ul className="mt-4 divide-y divide-stone-100 dark:divide-stone-800">
             {tracking.items.map((item, index) => (

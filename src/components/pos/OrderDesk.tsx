@@ -2,14 +2,14 @@
 
 import { useCallback, useEffect, useState, useTransition } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { Inbox, Receipt, Send, Banknote, Smartphone, Clock, CircleDollarSign, PlusCircle } from "lucide-react";
+import { Inbox, Receipt, Send, Banknote, Smartphone, Clock, CircleDollarSign, PlusCircle, XCircle } from "lucide-react";
 import {
   listIncomingOrdersAction,
   listTodaysOrdersAction,
   type IncomingOrder,
   type TodaysOrdersSummary,
 } from "@/modules/orders/actions/order-desk.actions";
-import { sendToKitchenAction, confirmCashPaymentAction } from "@/modules/pos/actions/pos.actions";
+import { sendToKitchenAction, confirmCashPaymentAction, rejectOrderAction } from "@/modules/pos/actions/pos.actions";
 
 const REFRESH_MS = 6000;
 
@@ -27,6 +27,8 @@ export function OrderDesk({ onNewOrder }: { onNewOrder: () => void }) {
   const [incoming, setIncoming] = useState<IncomingOrder[]>([]);
   const [today, setToday] = useState<TodaysOrdersSummary | null>(null);
   const [pendingId, setPendingId] = useState<string | null>(null);
+  const [decliningId, setDecliningId] = useState<string | null>(null);
+  const [declineReason, setDeclineReason] = useState("");
   const [, startTransition] = useTransition();
 
   const refetch = useCallback(() => {
@@ -59,6 +61,17 @@ export function OrderDesk({ onNewOrder }: { onNewOrder: () => void }) {
       await confirmCashPaymentAction(paymentId);
       refetch();
       setPendingId(null);
+    });
+  }
+
+  function handleDecline(orderId: string) {
+    setPendingId(orderId);
+    startTransition(async () => {
+      await rejectOrderAction(orderId, declineReason);
+      refetch();
+      setPendingId(null);
+      setDecliningId(null);
+      setDeclineReason("");
     });
   }
 
@@ -131,14 +144,52 @@ export function OrderDesk({ onNewOrder }: { onNewOrder: () => void }) {
                   </p>
                 </div>
 
-                {order.status === "CONFIRMED" && (
-                  <button
-                    onClick={() => handleSendToKitchen(order.id)}
-                    disabled={pendingId === order.id}
-                    className="flex shrink-0 items-center justify-center gap-2 rounded-lg bg-purple-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-purple-500 disabled:opacity-50"
-                  >
-                    <Send size={14} /> {pendingId === order.id ? "Sending…" : "Send to kitchen"}
-                  </button>
+                {order.status === "CONFIRMED" && decliningId === order.id && (
+                  <div className="flex shrink-0 flex-col gap-2 sm:w-64">
+                    <input
+                      autoFocus
+                      value={declineReason}
+                      onChange={(e) => setDeclineReason(e.target.value)}
+                      placeholder="Reason (e.g. out of stock)"
+                      className="w-full rounded-lg border border-stone-700 bg-stone-950 px-3 py-2 text-sm text-stone-100 outline-none focus:border-red-500"
+                    />
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => {
+                          setDecliningId(null);
+                          setDeclineReason("");
+                        }}
+                        className="flex-1 rounded-lg border border-stone-700 px-3 py-2 text-xs font-medium text-stone-300 hover:bg-stone-800"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={() => handleDecline(order.id)}
+                        disabled={pendingId === order.id}
+                        className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-red-600 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-red-500 disabled:opacity-50"
+                      >
+                        {pendingId === order.id ? "Declining…" : "Confirm decline"}
+                      </button>
+                    </div>
+                  </div>
+                )}
+                {order.status === "CONFIRMED" && decliningId !== order.id && (
+                  <div className="flex shrink-0 items-center gap-2">
+                    <button
+                      onClick={() => setDecliningId(order.id)}
+                      disabled={pendingId === order.id}
+                      className="flex items-center justify-center gap-1.5 rounded-lg border border-red-900/60 px-3 py-2.5 text-sm font-semibold text-red-400 transition-colors hover:bg-red-950/40 disabled:opacity-50"
+                    >
+                      <XCircle size={14} /> Decline
+                    </button>
+                    <button
+                      onClick={() => handleSendToKitchen(order.id)}
+                      disabled={pendingId === order.id}
+                      className="flex items-center justify-center gap-2 rounded-lg bg-purple-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-purple-500 disabled:opacity-50"
+                    >
+                      <Send size={14} /> {pendingId === order.id ? "Sending…" : "Accept · Send to kitchen"}
+                    </button>
+                  </div>
                 )}
                 {order.status === "PENDING_PAYMENT" && order.paymentMethod === "CASH" && order.paymentId && (
                   <button

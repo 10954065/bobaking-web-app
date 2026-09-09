@@ -2,6 +2,10 @@ import { prisma } from "@/db/client";
 
 const LIVE_TRACKABLE_STATUSES = new Set(["ASSIGNED_TO_RIDER", "PICKED_UP", "OUT_FOR_DELIVERY"]);
 
+/** No rider is ever coming for these — showing a handoff code here would
+ * contradict the "not accepted"/"cancelled" messaging right above it. */
+const NO_HANDOFF_STATUSES = new Set(["REJECTED", "CANCELLED", "REFUNDED"]);
+
 export interface PublicOrderTracking {
   /** Internal id — only useful paired with the trackingToken that gated this lookup; see the live-location SSE route. */
   orderId: string;
@@ -66,6 +70,7 @@ export async function getPublicOrderTracking(trackingToken: string): Promise<Pub
     rider: isLiveTrackable && order.assignedRider ? { firstName: order.assignedRider.firstName } : null,
     isLiveTrackable,
     // Once the rider has already punched it in there's nothing left to prove — showing a stale code after DELIVERED would just be confusing.
-    deliveryCode: order.deliveryCode && !order.deliveryCodeVerifiedAt ? order.deliveryCode : null,
+    deliveryCode:
+      order.deliveryCode && !order.deliveryCodeVerifiedAt && !NO_HANDOFF_STATUSES.has(order.status) ? order.deliveryCode : null,
   };
 }

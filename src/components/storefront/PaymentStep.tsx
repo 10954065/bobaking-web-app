@@ -96,9 +96,12 @@ export function PaymentStep({ order, onDone }: { order: StorefrontOrderSummary; 
       {stage === "done" && (
         <>
           <CheckCircle2 size={40} className="mx-auto text-emerald-500" />
-          <h1 className="mt-3 font-display text-2xl uppercase tracking-tight text-stone-50">You&apos;re all set!</h1>
+          <h1 className="mt-3 font-display text-2xl uppercase tracking-tight text-stone-50">Order placed!</h1>
           <p className="mt-1 text-sm text-stone-400">
-            Order {order.orderNumber} is on its way through the kitchen. Track it live below.
+            We&apos;ve sent order {order.orderNumber} to the branch.
+          </p>
+          <p className="mt-3 rounded-lg border border-amber-900/40 bg-amber-950/20 px-3 py-2 text-xs text-amber-300">
+            The branch hasn&apos;t accepted it yet — payment alone doesn&apos;t confirm your order. Track its status below.
           </p>
           <button
             onClick={onDone}

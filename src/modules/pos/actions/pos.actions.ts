@@ -215,6 +215,22 @@ export async function sendToKitchenAction(orderId: string) {
 }
 
 /**
+ * The branch's explicit "no" — a storefront order reaching CONFIRMED only
+ * means payment landed, never that the branch can actually fulfil it (out of
+ * stock, closing, too busy). Declining here is what the customer-facing copy
+ * on PaymentStep/track page is contrasted against: payment succeeding must
+ * never read as the order being accepted, and this is the other half of that
+ * — a real path to "not accepted" alongside sendToKitchenAction's "accepted".
+ */
+export async function rejectOrderAction(orderId: string, reason?: string) {
+  const userId = await requireUserId();
+  const order = await prisma.order.findUniqueOrThrow({ where: { id: orderId } });
+  await requirePermission(userId, "orders", "update", order.branchId);
+
+  await transitionOrder({ orderId, toStatus: "REJECTED", actorUserId: userId, reason: reason?.trim() || undefined });
+}
+
+/**
  * DEV ONLY: stands in for the real Mobile Money gateway calling our webhook
  * endpoint once the customer completes payment on their phone. There is no
  * real gateway wired up yet (see MobileMoneyDevProvider) — this lets staff
