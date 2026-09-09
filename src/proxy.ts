@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { env } from "@/lib/env";
+import { HIDDEN_PREFIXES } from "@/lib/hidden-prefixes";
 
 // Everything a public visitor must never be able to discover by guessing a
 // URL — no redirect, no hint any of it exists. The only way in is the one
 // shared STAFF_ACCESS_KEY gate below; once a real session exists, every one
 // of these behaves exactly as it always did (the session — and RBAC on top
 // of it — is what actually authorizes access, never the URL shape).
-const HIDDEN_PREFIXES = ["/admin", "/pos", "/kitchen", "/rider", "/super-admin", "/account", "/login"];
 
 function matchesPrefix(pathname: string, prefixes: string[]): boolean {
   return prefixes.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));

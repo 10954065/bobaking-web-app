@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Anton, Baloo_2 } from "next/font/google";
+import { getSiteUrl } from "@/lib/site-url";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -28,9 +29,30 @@ const baloo = Baloo_2({
   subsets: ["latin"],
 });
 
+const SITE_TITLE = "Flicks & Licks — The Suya Boss";
+const SITE_DESCRIPTION = "Order delivery or pickup from four branches across Accra. Loaded fries, suya, shawarma and pizza, tracked live from our kitchen to your door.";
+
 export const metadata: Metadata = {
-  title: "Flicks & Licks",
-  description: "Flicks & Licks, the Suya Boss. Order delivery or pickup from four branches across Accra.",
+  // Lets Next.js resolve the opengraph-image/twitter-image file conventions
+  // (and any other relative metadata URL) into an absolute one — without
+  // this it falls back to guessing from the request, which is wrong for a
+  // link shared from a Vercel preview deployment's own ephemeral URL.
+  metadataBase: new URL(getSiteUrl()),
+  title: SITE_TITLE,
+  description: SITE_DESCRIPTION,
+  openGraph: {
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+    url: "/",
+    siteName: "Flicks & Licks",
+    locale: "en_GH",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
