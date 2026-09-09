@@ -1,6 +1,7 @@
 import crypto from "crypto";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/db/client";
+import { env } from "@/lib/env";
 import { UserFacingError } from "@/lib/errors";
 import { normalizeGhanaPhone } from "@/lib/phone";
 import { sendOtpSms } from "@/modules/notifications/services/notification.service";
@@ -112,7 +113,13 @@ export async function verifyOtp(rawPhone: string, code: string): Promise<{ custo
   if (!otp || otp.expiresAt.getTime() < Date.now()) throw invalidCode();
   if (otp.attempts >= OTP_MAX_ATTEMPTS) throw tooManyAttempts();
 
-  if (!hashesMatch(hashOtpCode(phone, code), otp.codeHash)) {
+  // Testing-only master code — see its doc comment in env.ts. Still requires
+  // a live (unexpired, not-yet-exhausted) OTP for the phone, i.e. someone
+  // actually went through "Send code" first; it only replaces having to
+  // read back the real code, not the rest of the flow.
+  const isBypass = env.OTP_TEST_BYPASS_CODE != null && code === env.OTP_TEST_BYPASS_CODE;
+
+  if (!isBypass && !hashesMatch(hashOtpCode(phone, code), otp.codeHash)) {
     // Conditioned on attempts < MAX so a burst of concurrent wrong guesses
     // can't all read the same pre-increment count and slip past the cap —
     // each UPDATE re-checks the current row, and only OTP_MAX_ATTEMPTS of

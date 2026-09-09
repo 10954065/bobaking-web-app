@@ -48,6 +48,16 @@ const envSchema = z.object({
   // them. Turn this back off once real customers can reach the site.
   ALLOW_DEV_PAYMENT_SIMULATION: z.coerce.boolean().default(false),
 
+  // A fixed 6-digit code that verifyOtp() accepts for ANY phone number, on
+  // top of the real per-phone code — lets testing proceed through the OTP
+  // gate without waiting on real SMS delivery (Twilio isn't wired up yet)
+  // and without needing to read the dev-code banner every time. WARNING:
+  // whoever knows this code can complete phone verification for any number
+  // at all while it's set. Unset (or rotate) it once real customers can
+  // reach the site — same "close the loop before launch" tradeoff as
+  // ALLOW_DEV_PAYMENT_SIMULATION above.
+  OTP_TEST_BYPASS_CODE: z.string().regex(/^\d{6}$/, "OTP_TEST_BYPASS_CODE must be exactly 6 digits").optional(),
+
   // Real SMS delivery (Twilio REST API, called directly — no SDK
   // dependency). All three must be set together or none are used.
   TWILIO_ACCOUNT_SID: z.string().optional(),
