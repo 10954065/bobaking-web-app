@@ -4,9 +4,46 @@ declare global {
   var __prisma: PrismaClient | undefined;
 }
 
+/**
+ * Caps how many connections THIS Prisma Client instance can hold open
+ * against Neon's pooled connection. Left unset, Prisma's own default
+ * (num_cpus * 2 + 1) is sized for one long-lived server process — wrong for
+ * serverless, where many function instances can each open that many
+ * connections at once and exhaust Neon's pooler budget. Observed live: a
+ * "Timed out fetching a new connection from the connection pool" error that
+ * broke an active staff login session, distinct from (and not fixed by) the
+ * DEFAULT_TRANSACTION_OPTIONS widening below, which only paces individual
+ * transactions, not how many connections a single instance can hold.
+ * connection_limit/pool_timeout only affect Prisma's own client-side pool
+ * and are safe to set unconditionally — they don't require any change on
+ * the Neon/DATABASE_URL side.
+ */
+function withPoolParams(url: string): string {
+  const parsed = new URL(url);
+  if (!parsed.searchParams.has("connection_limit")) {
+    parsed.searchParams.set("connection_limit", "5");
+  }
+  if (!parsed.searchParams.has("pool_timeout")) {
+    parsed.searchParams.set("pool_timeout", "10");
+  }
+  return parsed.toString();
+}
+
+/** Falls back to undefined (Prisma's own env("DATABASE_URL") lookup) when DATABASE_URL isn't set yet — e.g. `next build`'s page-data collection step, which runs before deploy-time secrets exist. */
+function resolveDatasourceUrl(): string | undefined {
+  const raw = process.env.DATABASE_URL;
+  if (!raw) return undefined;
+  try {
+    return withPoolParams(raw);
+  } catch {
+    return raw;
+  }
+}
+
 export const prisma =
   global.__prisma ??
   new PrismaClient({
+    datasources: { db: { url: resolveDatasourceUrl() } },
     log: process.env.NODE_ENV === "development" ? ["warn", "error"] : ["error"],
   });
 
