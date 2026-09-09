@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
 import { ArrowLeft, ChevronUp, Minus, Plus, ShoppingBag, Trash2, X } from "lucide-react";
 import { ProductGrid } from "@/components/pos/ProductGrid";
@@ -66,6 +66,8 @@ export function StorefrontApp({
   cardPaymentsEnabled?: boolean;
 }) {
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [step, setStep] = useState<Step>("branch");
   const [type, setType] = useState<"DELIVERY" | "PICKUP">("DELIVERY");
   const [branchId, setBranchId] = useState<string | null>(null);
@@ -86,15 +88,43 @@ export function StorefrontApp({
     return () => transitionTimers.current.forEach(clearTimeout);
   }, []);
 
+  // Steps live in component state, not the URL, so without this the browser
+  // has no history entries for them — back/swipe-back would skip the whole
+  // flow and land wherever the visitor was before /order. goToStep pushes a
+  // real Next.js history entry per forward step (via the router, not raw
+  // history.pushState — Next's own router listens for popstate and expects
+  // entries it created; anything else gets treated as a stale cache miss and
+  // forces a full reload, which was tried and wiped all component state).
+  // This effect is what makes back/swipe actually change the visible step:
+  // it fires whenever the router resolves a popstate-driven navigation.
+  // Payment is intentionally never reflected here — see handlePlaceOrder.
+  useEffect(() => {
+    const urlStep = searchParams.get("step");
+    if (urlStep === "menu" || urlStep === "checkout") {
+      setStep(urlStep);
+    } else if (!urlStep) {
+      setStep((current) => (current === "payment" ? current : "branch"));
+    }
+  }, [searchParams]);
+
+  function goToStep(next: "menu" | "checkout") {
+    router.push(`${pathname}?step=${next}`, { scroll: false });
+    setStep(next);
+  }
+
+  function goBack() {
+    router.back();
+  }
+
   function handleCheckoutClick() {
     if (reducedMotion) {
-      setStep("checkout");
+      goToStep("checkout");
       return;
     }
     setCheckoutTransition(true);
     transitionTimers.current.push(
       setTimeout(() => setCheckoutTransition(false), QUICK_TRANSITION_HOLD_MS),
-      setTimeout(() => setStep("checkout"), QUICK_TRANSITION_HOLD_MS + EXIT_BLOOM_COVER_MS)
+      setTimeout(() => goToStep("checkout"), QUICK_TRANSITION_HOLD_MS + EXIT_BLOOM_COVER_MS)
     );
   }
 
@@ -119,7 +149,7 @@ export function StorefrontApp({
 
     const revealMenu = () => {
       setMenu(loaded);
-      setStep("menu");
+      goToStep("menu");
       // Came from tapping a dish on the homepage — jump straight into
       // ordering that item instead of making them find it again in the grid.
       // Skipped when resuming a restored cart — that intent takes priority.
@@ -238,6 +268,9 @@ export function StorefrontApp({
       setOrder(placed);
       setCart([]);
       setCartOpen(false);
+      // Not pushed to history: the order already exists, so back-navigating
+      // into a resubmittable checkout form here would risk a duplicate
+      // order. Back from payment lands on menu (checkout's own entry) instead.
       setStep("payment");
     } catch (e) {
       setCheckoutError(e instanceof Error ? e.message : "Couldn't place your order, please try again.");
@@ -272,7 +305,7 @@ export function StorefrontApp({
           cartTotal={cartTotal}
           isPending={isPlacing}
           error={checkoutError}
-          onBack={() => setStep("menu")}
+          onBack={goBack}
           onSubmit={handlePlaceOrder}
         />
       </div>
@@ -285,7 +318,7 @@ export function StorefrontApp({
 
       <header className="sticky top-0 z-20 flex items-center gap-3 border-b border-stone-800 bg-stone-950/95 px-4 py-3 backdrop-blur">
         <button
-          onClick={() => setStep("branch")}
+          onClick={goBack}
           className="flex size-9 shrink-0 items-center justify-center rounded-lg text-stone-400 transition-colors hover:bg-stone-800 hover:text-stone-100"
         >
           <ArrowLeft size={17} />
