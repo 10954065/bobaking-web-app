@@ -2,24 +2,19 @@
 
 import { useState } from "react";
 import type { LucideIcon } from "lucide-react";
-import { ArrowLeft, Flag, Home, Mail, MapPin, Phone, ReceiptText, User } from "lucide-react";
+import { ArrowLeft, Flag, Home, Mail, MapPin, ReceiptText, ShieldCheck, User } from "lucide-react";
 import { MenuImage } from "@/components/menu/MenuImage";
+import { storefrontInputClass } from "@/components/storefront/input-styles";
 import type { LocalCartItem } from "@/modules/storefront/lib/storefront-cart";
 
 export interface GuestCheckoutValues {
   firstName: string;
   lastName: string;
-  phone: string;
   email: string;
   addressLine1: string;
   area: string;
   landmark: string;
 }
-
-// Sunken 3D edge + brand-glow focus ring, matching the admin dashboard's
-// form-field treatment — dark-theme variant for the customer-facing flow.
-const inputClass =
-  "w-full rounded-xl border border-stone-700/80 bg-stone-900/70 py-3 pl-10 pr-3.5 text-sm text-stone-100 placeholder:text-stone-500 outline-none shadow-[inset_0_1px_3px_rgba(0,0,0,0.55),inset_0_-1px_0_rgba(255,255,255,0.04)] transition-shadow duration-150 focus:border-brand-red/50 focus:shadow-[inset_0_1px_2px_rgba(0,0,0,0.4),0_0_0_3px_rgba(228,35,19,0.18)]";
 
 function IconField({
   icon: Icon,
@@ -28,33 +23,43 @@ function IconField({
   return (
     <div className="relative flex-1">
       <Icon size={15} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-500" />
-      <input {...props} className={inputClass} />
+      <input {...props} className={storefrontInputClass} />
     </div>
   );
 }
 
 export function CheckoutStep({
   type,
+  verifiedPhone,
+  initialFirstName = "",
+  initialLastName = "",
+  initialEmail = "",
   cart,
   cartTotal,
   isPending,
   error,
   onBack,
+  onChangeNumber,
   onSubmit,
 }: {
   type: "DELIVERY" | "PICKUP";
+  /** The OTP-verified phone this order will be placed under — display-only, see PhoneAuthStep. */
+  verifiedPhone: string;
+  initialFirstName?: string;
+  initialLastName?: string;
+  initialEmail?: string;
   cart: LocalCartItem[];
   cartTotal: number;
   isPending: boolean;
   error: string | null;
   onBack: () => void;
+  onChangeNumber: () => void;
   onSubmit: (values: GuestCheckoutValues, coords: { latitude: number; longitude: number } | null) => void;
 }) {
   const [values, setValues] = useState<GuestCheckoutValues>({
-    firstName: "",
-    lastName: "",
-    phone: "",
-    email: "",
+    firstName: initialFirstName,
+    lastName: initialLastName,
+    email: initialEmail,
     addressLine1: "",
     area: "",
     landmark: "",
@@ -77,10 +82,7 @@ export function CheckoutStep({
   }
 
   const canSubmit =
-    values.firstName.trim() &&
-    values.lastName.trim() &&
-    values.phone.trim().length >= 7 &&
-    (type === "PICKUP" || values.addressLine1.trim());
+    values.firstName.trim() && values.lastName.trim() && (type === "PICKUP" || values.addressLine1.trim());
 
   return (
     <div className="mx-auto w-full max-w-4xl px-4 py-6 sm:py-10 lg:px-6">
@@ -121,15 +123,14 @@ export function CheckoutStep({
               autoComplete="family-name"
             />
           </div>
-          <IconField
-            icon={Phone}
-            value={values.phone}
-            onChange={(e) => set("phone", e.target.value)}
-            placeholder="Phone number"
-            type="tel"
-            inputMode="tel"
-            autoComplete="tel"
-          />
+          <div className="flex items-center justify-between rounded-xl border border-emerald-900/50 bg-emerald-950/20 py-3 pl-3.5 pr-3 text-sm">
+            <span className="flex items-center gap-2 text-emerald-300">
+              <ShieldCheck size={15} /> {verifiedPhone}
+            </span>
+            <button type="button" onClick={onChangeNumber} className="text-xs font-medium text-stone-400 underline hover:text-stone-200">
+              Change number
+            </button>
+          </div>
           <IconField
             icon={Mail}
             value={values.email}

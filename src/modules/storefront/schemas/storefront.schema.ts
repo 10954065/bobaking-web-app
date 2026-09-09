@@ -1,9 +1,11 @@
 import { z } from "zod";
 
+// Phone is deliberately not part of this schema: identity now comes from
+// the verified customer session (see current-customer.service.ts), not
+// client-supplied form data — see placeStorefrontOrderAction.
 export const guestDetailsSchema = z.object({
   firstName: z.string().min(1),
   lastName: z.string().min(1),
-  phone: z.string().min(7).max(20),
   email: z.string().email().optional(),
 });
 export type GuestDetailsInput = z.infer<typeof guestDetailsSchema>;

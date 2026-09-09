@@ -1,5 +1,6 @@
 import { listBranches } from "@/modules/branches/services/branch.service";
 import { StorefrontApp } from "@/components/storefront/StorefrontApp";
+import { getCurrentCustomer } from "@/modules/customer-auth/services/current-customer.service";
 import { env } from "@/lib/env";
 
 // Must render per-request, not be statically prerendered — the CSP nonce
@@ -10,7 +11,11 @@ import { env } from "@/lib/env";
 export const dynamic = "force-dynamic";
 
 export default async function OrderPage({ searchParams }: { searchParams: Promise<{ dish?: string }> }) {
-  const [branches, { dish }] = await Promise.all([listBranches({ status: "ACTIVE" }), searchParams]);
+  const [branches, { dish }, customer] = await Promise.all([
+    listBranches({ status: "ACTIVE" }),
+    searchParams,
+    getCurrentCustomer(),
+  ]);
 
   return (
     <StorefrontApp
@@ -27,6 +32,7 @@ export default async function OrderPage({ searchParams }: { searchParams: Promis
       // rather than letting a customer pick Card and hit a dead-end error
       // every time until a real gateway is configured.
       cardPaymentsEnabled={Boolean(env.PAYSTACK_SECRET_KEY)}
+      initialCustomer={customer}
     />
   );
 }

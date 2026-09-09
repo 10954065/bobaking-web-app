@@ -3,7 +3,7 @@ import { placeStorefrontOrderSchema } from "./storefront.schema";
 
 const BASE_INPUT = {
   branchId: "11111111-1111-4111-8111-111111111111",
-  guest: { firstName: "Ama", lastName: "Boateng", phone: "0244000000" },
+  guest: { firstName: "Ama", lastName: "Boateng" },
   items: [{ productId: "22222222-2222-4222-8222-222222222222", quantity: 1, modifierOptionIds: [] }],
 };
 

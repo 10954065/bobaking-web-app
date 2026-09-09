@@ -5,39 +5,32 @@ import type { OrderWithDetails } from "@/modules/orders/services/order.service";
 import { placeStorefrontOrderSchema, type PlaceStorefrontOrderInput } from "@/modules/storefront/schemas/storefront.schema";
 
 /**
- * A self-service customer has no staff session and no prior account — they
- * are identified by phone number alone. Reusing the same Customer row for a
- * repeat guest (instead of creating a new one every order) keeps their order
- * history, loyalty balance, and saved address together, same as a walk-in
- * customer front desk looks up by phone in the POS.
+ * Fills in the profile on the already-identified (OTP-verified) customer —
+ * identity itself is never taken from this form, only name/email, which
+ * aren't security-sensitive and are fine to keep refreshing on every order.
  */
-async function findOrCreateGuestCustomer(guest: { firstName: string; lastName: string; phone: string; email?: string }) {
-  const existing = await prisma.customer.findFirst({ where: { phone: guest.phone, deletedAt: null } });
-  if (existing) return existing;
-
-  return prisma.customer.create({
-    data: {
-      firstName: guest.firstName,
-      lastName: guest.lastName,
-      phone: guest.phone,
-      email: guest.email,
-      status: "GUEST",
-    },
+async function updateCustomerProfile(customerId: string, guest: { firstName: string; lastName: string; email?: string }) {
+  return prisma.customer.update({
+    where: { id: customerId },
+    data: { firstName: guest.firstName, lastName: guest.lastName, email: guest.email, status: "ACTIVE" },
   });
 }
 
 /**
  * Converts a storefront cart (submitted whole, since the customer builds it
  * client-side without a staff session in between each add) into a real
- * order: find-or-create the guest customer, save the delivery address if
- * any, materialize a Cart + CartItems, then hand off to the same
- * checkout() the internal order desk uses — no separate pricing/discount
- * logic to keep in sync.
+ * order: attach the guest's name/email to their already-verified customer
+ * record, save the delivery address if any, materialize a Cart + CartItems,
+ * then hand off to the same checkout() the internal order desk uses — no
+ * separate pricing/discount logic to keep in sync. `customerId` comes from
+ * the caller's verified session (see placeStorefrontOrderAction), never from
+ * this input, so a client can't place an order as a phone number it hasn't
+ * proven ownership of.
  */
-export async function placeStorefrontOrder(input: PlaceStorefrontOrderInput): Promise<OrderWithDetails> {
+export async function placeStorefrontOrder(customerId: string, input: PlaceStorefrontOrderInput): Promise<OrderWithDetails> {
   const data = placeStorefrontOrderSchema.parse(input);
 
-  const customer = await findOrCreateGuestCustomer(data.guest);
+  const customer = await updateCustomerProfile(customerId, data.guest);
 
   let deliveryAddressId: string | undefined;
   if (data.type === "DELIVERY" && data.deliveryAddress) {

@@ -108,6 +108,21 @@ export async function notifyOrderStatus(order: Order): Promise<void> {
   }
 }
 
+/**
+ * Sends a one-time login code directly (no Customer/Order/Notification row
+ * involved — a phone can request a code before any Customer exists yet).
+ * Reports whether the dev stand-in handled it so the caller can decide
+ * whether it's safe to hand the code back to the client for testing — see
+ * requestOtp() in customer-otp.service.ts, same reasoning as the payment
+ * module's dev-simulate stand-ins.
+ */
+export async function sendOtpSms(phone: string, code: string): Promise<{ sent: boolean; isDevProvider: boolean; error?: string }> {
+  const provider = getSmsProvider();
+  const body = `Your Flicks & Licks verification code is ${code}. It expires in 10 minutes.`;
+  const result = await provider.send(phone, body);
+  return { sent: result.status === "SENT", isDevProvider: provider === devSmsProvider, error: result.error };
+}
+
 export async function listNotifications(params: { limit?: number } = {}) {
   return prisma.notification.findMany({
     include: { customer: true, order: { include: { branch: true } } },

@@ -2,7 +2,7 @@
 
 import { prisma } from "@/db/client";
 import { getRequestIp, enforceRateLimit } from "@/lib/rate-limit";
-import { withSafeErrors } from "@/lib/errors";
+import { withSafeErrors, UserFacingError } from "@/lib/errors";
 import { listBranches } from "@/modules/branches/services/branch.service";
 import { listCategories } from "@/modules/categories/services/category.service";
 import { listPosProducts, type PosProduct } from "@/modules/pos/services/pos-catalog.service";
@@ -11,6 +11,7 @@ import type { PlaceStorefrontOrderInput } from "@/modules/storefront/schemas/sto
 import { initiatePayment } from "@/modules/payments/services/payment.service";
 import { processWebhookEvent, assertDevPaymentSimulationAllowed } from "@/modules/payments/services/payment.service";
 import { getOrderById } from "@/modules/orders/services/order.service";
+import { getCurrentCustomer } from "@/modules/customer-auth/services/current-customer.service";
 
 export interface StorefrontBranch {
   id: string;
@@ -53,12 +54,22 @@ export interface StorefrontOrderSummary {
   deliveryFee: number;
 }
 
-/** Rate-limited per IP — this is the one action a bot could hammer to spam-create orders/customers with no auth in front of it. */
+/**
+ * Requires a verified customer session — identity comes from there, never
+ * from the request body, so nobody can place an order as a phone number
+ * they haven't proven via OTP (see current-customer.service.ts). Also
+ * rate-limited per IP on top of that.
+ */
 export const placeStorefrontOrderAction = withSafeErrors(async (input: PlaceStorefrontOrderInput): Promise<StorefrontOrderSummary> => {
+  const customer = await getCurrentCustomer();
+  if (!customer) {
+    throw new UserFacingError("Please verify your phone number before placing an order.");
+  }
+
   const ip = await getRequestIp();
   await enforceRateLimit(`storefront-order:${ip}`, { limit: 8, windowSeconds: 900 });
 
-  const order = await placeStorefrontOrder(input);
+  const order = await placeStorefrontOrder(customer.id, input);
   return {
     id: order.id,
     orderNumber: order.orderNumber,

@@ -501,11 +501,48 @@ model Customer {
   supportTickets      SupportTicket[]
   reviews             Review[]
   notifications       Notification[]
+  sessions            CustomerSession[]
 
   @@index([status])
   @@index([email])
   @@index([phone])
   @@map("customers")
+}
+
+/// A one-time code sent by SMS to prove ownership of a phone number before
+/// it becomes a Customer's login identity — see customer-otp.service.ts.
+/// Only the SHA-256 hash of the code is stored, same reasoning as
+/// PasswordResetToken: a database leak must not hand out working codes.
+model CustomerOtp {
+  id         String    @id @default(uuid())
+  phone      String
+  codeHash   String    @map("code_hash")
+  expiresAt  DateTime  @map("expires_at")
+  attempts   Int       @default(0)
+  consumedAt DateTime? @map("consumed_at")
+  createdAt  DateTime  @default(now()) @map("created_at")
+
+  @@index([phone])
+  @@map("customer_otps")
+}
+
+/// Mirrors the staff Session model's tracked-session pattern, scoped to
+/// customers instead — a random token issued after OTP verification, stored
+/// server-side so it can be revoked (sign out) without waiting for expiry.
+/// Customers have no RBAC, so unlike staff this doesn't need Auth.js/JWTs —
+/// the raw token is the cookie value, looked up directly on each request.
+model CustomerSession {
+  id           String   @id @default(uuid())
+  sessionToken String   @unique @map("session_token")
+  customerId   String   @map("customer_id")
+  expires      DateTime
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([customerId])
+  @@map("customer_sessions")
 }
 
 /// area/city are free-text (not FK'd to City) because customer-entered

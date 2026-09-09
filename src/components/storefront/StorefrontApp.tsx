@@ -11,6 +11,7 @@ import { Logo } from "@/components/brand/Logo";
 import { SplashVisual, EXIT_BLOOM_COVER_MS, useReducedMotionPreference, type SplashEntranceTimings } from "@/components/brand/SplashVisual";
 import { BranchStep } from "@/components/storefront/BranchStep";
 import { CheckoutStep, type GuestCheckoutValues } from "@/components/storefront/CheckoutStep";
+import { PhoneAuthStep } from "@/components/storefront/PhoneAuthStep";
 import { PaymentStep } from "@/components/storefront/PaymentStep";
 import {
   getStorefrontMenuAction,
@@ -19,10 +20,12 @@ import {
   type StorefrontMenu,
   type StorefrontOrderSummary,
 } from "@/modules/storefront/actions/storefront.actions";
+import { signOutCustomerAction } from "@/modules/customer-auth/actions/customer-auth.actions";
+import type { CurrentCustomer } from "@/modules/customer-auth/services/current-customer.service";
 import { addSelectionToCart, type LocalCartItem } from "@/modules/storefront/lib/storefront-cart";
 import type { PosProduct } from "@/modules/pos/services/pos-catalog.service";
 
-type Step = "branch" | "menu" | "checkout" | "payment";
+type Step = "branch" | "menu" | "phone" | "checkout" | "payment";
 
 // A compressed replay of the homepage splash's entrance, used as a brand
 // beat at two hand-off points — branch -> menu (real async wait) and menu ->
@@ -60,15 +63,19 @@ export function StorefrontApp({
   branches,
   initialDishId = null,
   cardPaymentsEnabled = false,
+  initialCustomer = null,
 }: {
   branches: StorefrontBranch[];
   initialDishId?: string | null;
   cardPaymentsEnabled?: boolean;
+  /** The already-verified customer for this browser, if any — see OrderPage. Lets a returning customer skip phone/OTP entirely. */
+  initialCustomer?: CurrentCustomer | null;
 }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [step, setStep] = useState<Step>("branch");
+  const [customer, setCustomer] = useState<CurrentCustomer | null>(initialCustomer);
   const [type, setType] = useState<"DELIVERY" | "PICKUP">("DELIVERY");
   const [branchId, setBranchId] = useState<string | null>(null);
   const [menu, setMenu] = useState<StorefrontMenu | null>(null);
@@ -100,14 +107,14 @@ export function StorefrontApp({
   // Payment is intentionally never reflected here — see handlePlaceOrder.
   useEffect(() => {
     const urlStep = searchParams.get("step");
-    if (urlStep === "menu" || urlStep === "checkout") {
+    if (urlStep === "menu" || urlStep === "checkout" || urlStep === "phone") {
       setStep(urlStep);
     } else if (!urlStep) {
       setStep((current) => (current === "payment" ? current : "branch"));
     }
   }, [searchParams]);
 
-  function goToStep(next: "menu" | "checkout") {
+  function goToStep(next: "menu" | "checkout" | "phone") {
     router.push(`${pathname}?step=${next}`, { scroll: false });
     setStep(next);
   }
@@ -116,16 +123,28 @@ export function StorefrontApp({
     router.back();
   }
 
+  /** Skips straight to checkout for an already-verified customer — "log in once, just buy". */
   function handleCheckoutClick() {
     if (reducedMotion) {
-      goToStep("checkout");
+      goToStep(customer ? "checkout" : "phone");
       return;
     }
     setCheckoutTransition(true);
     transitionTimers.current.push(
       setTimeout(() => setCheckoutTransition(false), QUICK_TRANSITION_HOLD_MS),
-      setTimeout(() => goToStep("checkout"), QUICK_TRANSITION_HOLD_MS + EXIT_BLOOM_COVER_MS)
+      setTimeout(() => goToStep(customer ? "checkout" : "phone"), QUICK_TRANSITION_HOLD_MS + EXIT_BLOOM_COVER_MS)
     );
+  }
+
+  function handleVerified(verified: CurrentCustomer) {
+    setCustomer(verified);
+    goToStep("checkout");
+  }
+
+  function handleChangeNumber() {
+    setCustomer(null);
+    signOutCustomerAction().catch(() => {});
+    goToStep("phone");
   }
 
   const cartTotal = useMemo(() => cart.reduce((sum, item) => sum + item.lineTotal, 0), [cart]);
@@ -245,7 +264,6 @@ export function StorefrontApp({
         guest: {
           firstName: guest.firstName.trim(),
           lastName: guest.lastName.trim(),
-          phone: guest.phone.trim(),
           email: guest.email.trim() || undefined,
         },
         deliveryAddress:
@@ -296,16 +314,32 @@ export function StorefrontApp({
     );
   }
 
-  if (step === "checkout") {
+  // Also covers landing on "checkout" without a session (e.g. a stale/expired
+  // one from before this component mounted, or direct back/forward into the
+  // URL) — never render the checkout form without a verified customer behind it.
+  if (step === "phone" || (step === "checkout" && !customer)) {
+    return (
+      <div className="min-h-screen bg-stone-950 text-stone-100">
+        <PhoneAuthStep onVerified={handleVerified} onBack={goBack} />
+      </div>
+    );
+  }
+
+  if (step === "checkout" && customer) {
     return (
       <div className="min-h-screen bg-stone-950 text-stone-100">
         <CheckoutStep
           type={type}
+          verifiedPhone={customer.phone}
+          initialFirstName={customer.firstName}
+          initialLastName={customer.lastName}
+          initialEmail={customer.email ?? ""}
           cart={cart}
           cartTotal={cartTotal}
           isPending={isPlacing}
           error={checkoutError}
           onBack={goBack}
+          onChangeNumber={handleChangeNumber}
           onSubmit={handlePlaceOrder}
         />
       </div>
