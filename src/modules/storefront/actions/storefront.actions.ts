@@ -10,7 +10,7 @@ import { placeStorefrontOrder } from "@/modules/storefront/services/storefront.s
 import type { PlaceStorefrontOrderInput } from "@/modules/storefront/schemas/storefront.schema";
 import { initiatePayment } from "@/modules/payments/services/payment.service";
 import { processWebhookEvent, assertDevPaymentSimulationAllowed } from "@/modules/payments/services/payment.service";
-import { getOrderById } from "@/modules/orders/services/order.service";
+import { getOrderById, getReorderableOrder } from "@/modules/orders/services/order.service";
 import { getCurrentCustomer } from "@/modules/customer-auth/services/current-customer.service";
 
 export interface StorefrontBranch {
@@ -105,6 +105,67 @@ export const initiateStorefrontPaymentAction = withSafeErrors(async (input: {
   const metadata = payment.metadata as { redirectUrl?: string } | null;
   return { id: payment.id, provider: payment.provider, status: payment.status, redirectUrl: metadata?.redirectUrl ?? null };
 }, "Couldn't start payment right now. Please try again.");
+
+export interface ReorderCartItem {
+  key: string;
+  productId: string;
+  productName: string;
+  imageUrl: string | null;
+  unitPrice: number;
+  quantity: number;
+  notes: string;
+  modifierOptionIds: string[];
+  modifiersLabel: string;
+  lineTotal: number;
+}
+
+export interface ReorderCart {
+  branchId: string;
+  type: "DELIVERY" | "PICKUP";
+  items: ReorderCartItem[];
+}
+
+/**
+ * Rebuilds a past order's line items as a fresh client-side cart for the
+ * "Reorder" button on /my-account — prices are the order's own snapshotted
+ * unitPrice, same as any other client cart line (display-only; checkout()
+ * always re-derives the real, current price server-side). Ownership is
+ * enforced by getReorderableOrder, not by trusting the orderId alone.
+ */
+export const getReorderCartAction = withSafeErrors(async (orderId: string): Promise<ReorderCart> => {
+  const customer = await getCurrentCustomer();
+  if (!customer) {
+    throw new UserFacingError("Please verify your phone number before reordering.");
+  }
+
+  const order = await getReorderableOrder(customer.id, orderId);
+  if (!order) {
+    throw new UserFacingError("We couldn't find that order.");
+  }
+  if (order.type !== "DELIVERY" && order.type !== "PICKUP") {
+    throw new UserFacingError("This order can't be reordered online.");
+  }
+
+  return {
+    branchId: order.branchId,
+    type: order.type,
+    items: order.items.map((item) => {
+      const modifierOptionIds = item.modifiers.map((m) => m.modifierOptionId).filter((id): id is string => !!id);
+      return {
+        key: `${item.productId}:${[...modifierOptionIds].sort().join(",")}:${item.notes ?? ""}`,
+        productId: item.productId,
+        productName: item.productName,
+        imageUrl: item.product.imageUrl,
+        unitPrice: Number(item.unitPrice),
+        quantity: item.quantity,
+        notes: item.notes ?? "",
+        modifierOptionIds,
+        modifiersLabel: item.modifiers.map((m) => m.optionName).join(", "),
+        lineTotal: Number(item.lineSubtotal),
+      };
+    }),
+  };
+}, "Couldn't load that order for reordering. Please try again.");
 
 /**
  * DEV ONLY: stands in for the real Mobile Money gateway calling our webhook

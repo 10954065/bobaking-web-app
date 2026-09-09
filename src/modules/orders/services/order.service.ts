@@ -47,7 +47,7 @@ export async function listOrdersForBranch(
   });
 }
 
-/** A customer's full order history — the CRM 360 view (see /admin/customers/[customerId]). */
+/** A customer's full order history — the CRM 360 view (see /admin/customers/[customerId]) and the customer-facing /my-account page. */
 export async function listOrdersForCustomer(customerId: string, limit = 20) {
   return prisma.order.findMany({
     where: { customerId },
@@ -55,6 +55,25 @@ export async function listOrdersForCustomer(customerId: string, limit = 20) {
     orderBy: { createdAt: "desc" },
     take: limit,
   });
+}
+
+const reorderOrderArgs = Prisma.validator<Prisma.OrderDefaultArgs>()({
+  include: {
+    items: { include: { modifiers: true, product: { select: { imageUrl: true } } } },
+  },
+});
+type ReorderOrder = Prisma.OrderGetPayload<typeof reorderOrderArgs>;
+
+/**
+ * Ownership-checked lookup for the storefront's "reorder" button — orderId
+ * alone is never enough to trust, since it's exposed in a plain /order?reorder=
+ * URL; a customer must never be able to pull another customer's order items
+ * into their own cart by guessing or reusing someone else's link.
+ */
+export async function getReorderableOrder(customerId: string, orderId: string): Promise<ReorderOrder | null> {
+  const order = await prisma.order.findUnique({ where: { id: orderId }, ...reorderOrderArgs });
+  if (!order || order.customerId !== customerId) return null;
+  return order;
 }
 
 /**

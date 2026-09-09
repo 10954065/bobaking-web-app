@@ -10,8 +10,8 @@ import { env } from "@/lib/env";
 // matches the real request's CSP header, silently breaking hydration.
 export const dynamic = "force-dynamic";
 
-export default async function OrderPage({ searchParams }: { searchParams: Promise<{ dish?: string }> }) {
-  const [branches, { dish }, customer] = await Promise.all([
+export default async function OrderPage({ searchParams }: { searchParams: Promise<{ dish?: string; reorder?: string }> }) {
+  const [branches, { dish, reorder }, customer] = await Promise.all([
     listBranches({ status: "ACTIVE" }),
     searchParams,
     getCurrentCustomer(),
@@ -33,6 +33,7 @@ export default async function OrderPage({ searchParams }: { searchParams: Promis
       // every time until a real gateway is configured.
       cardPaymentsEnabled={Boolean(env.PAYSTACK_SECRET_KEY)}
       initialCustomer={customer}
+      initialReorderOrderId={reorder ?? null}
     />
   );
 }

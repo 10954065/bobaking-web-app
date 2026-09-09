@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
-import { ArrowLeft, ChevronUp, Minus, Plus, ShoppingBag, Trash2, X } from "lucide-react";
+import { ArrowLeft, ChevronUp, Minus, Plus, ShoppingBag, Trash2, UserRound, X } from "lucide-react";
 import { ProductGrid } from "@/components/pos/ProductGrid";
 import { ModifierModal, type ModifierSelection } from "@/components/pos/ModifierModal";
 import { MenuImage } from "@/components/menu/MenuImage";
@@ -16,6 +17,7 @@ import { PaymentStep } from "@/components/storefront/PaymentStep";
 import {
   getStorefrontMenuAction,
   placeStorefrontOrderAction,
+  getReorderCartAction,
   type StorefrontBranch,
   type StorefrontMenu,
   type StorefrontOrderSummary,
@@ -64,12 +66,15 @@ export function StorefrontApp({
   initialDishId = null,
   cardPaymentsEnabled = false,
   initialCustomer = null,
+  initialReorderOrderId = null,
 }: {
   branches: StorefrontBranch[];
   initialDishId?: string | null;
   cardPaymentsEnabled?: boolean;
   /** The already-verified customer for this browser, if any — see OrderPage. Lets a returning customer skip phone/OTP entirely. */
   initialCustomer?: CurrentCustomer | null;
+  /** Set from /order?reorder=<orderId> (the "Reorder" button on /my-account) — rebuilds that past order's cart and jumps straight to its branch's menu. */
+  initialReorderOrderId?: string | null;
 }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -88,6 +93,7 @@ export function StorefrontApp({
   const [isPlacing, setIsPlacing] = useState(false);
   const [order, setOrder] = useState<StorefrontOrderSummary | null>(null);
   const [checkoutTransition, setCheckoutTransition] = useState(false);
+  const [reorderError, setReorderError] = useState<string | null>(null);
   const reducedMotion = useReducedMotionPreference();
   const transitionTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
 
@@ -203,6 +209,7 @@ export function StorefrontApp({
   // effect from seeing this render's still-empty state and wiping the
   // sessionStorage entry before that restored state actually lands.
   useEffect(() => {
+    if (initialReorderOrderId) return; // handled by the reorder effect below instead.
     try {
       const raw = sessionStorage.getItem(CART_STORAGE_KEY);
       if (raw) {
@@ -216,6 +223,24 @@ export function StorefrontApp({
     } catch {
       // Corrupt or old-shape data — ignore and start fresh.
     }
+    // Intentionally mount-only.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // "Reorder" from /my-account — rebuilds the cart from a past order's own
+  // line items (server ownership-checked, see getReorderCartAction) and
+  // jumps straight to that order's branch, skipping the branch picker.
+  useEffect(() => {
+    if (!initialReorderOrderId) return;
+    getReorderCartAction(initialReorderOrderId)
+      .then((reorder) => {
+        setType(reorder.type);
+        setCart(reorder.items);
+        handleBranchContinue(reorder.branchId, { skipInitialDish: true });
+      })
+      .catch((e) => {
+        setReorderError(e instanceof Error ? e.message : "Couldn't reload that order. Please choose your items again.");
+      });
     // Intentionally mount-only.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -301,7 +326,7 @@ export function StorefrontApp({
     return (
       <div className="min-h-screen bg-stone-950 text-stone-100">
         <SplashVisual visible={isMenuLoading} reducedMotion={reducedMotion} timings={QUICK_TRANSITION_TIMINGS} tagline="Finding your menu" />
-        <BranchStep branches={branches} type={type} error={branchError} onSelectType={setType} onContinue={handleBranchContinue} />
+        <BranchStep branches={branches} type={type} error={branchError ?? reorderError} onSelectType={setType} onContinue={handleBranchContinue} />
       </div>
     );
   }
@@ -358,12 +383,21 @@ export function StorefrontApp({
           <ArrowLeft size={17} />
         </button>
         <Logo size={36} ring={false} />
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-brand-cyan">
             {type === "DELIVERY" ? "Delivery" : "Pickup"}
           </p>
           <h1 className="truncate text-base font-semibold leading-tight">{currentBranch?.name}</h1>
         </div>
+        {customer && (
+          <Link
+            href="/my-account"
+            className="flex size-9 shrink-0 items-center justify-center rounded-lg text-stone-400 transition-colors hover:bg-stone-800 hover:text-stone-100"
+            title="My account"
+          >
+            <UserRound size={17} />
+          </Link>
+        )}
       </header>
 
       <div className="flex-1 pb-24">{menu && <ProductGrid categories={menu.categories} products={menu.products} onSelectProduct={setSelectedProduct} />}</div>
