@@ -14,7 +14,7 @@
  */
 export class UserFacingError extends Error {}
 
-const GENERIC_FALLBACK = "Something went wrong on our end — please try again in a moment.";
+const GENERIC_FALLBACK = "Something went wrong on our end. Please try again in a moment.";
 
 export function toSafeErrorMessage(error: unknown, fallback: string = GENERIC_FALLBACK): string {
   if (error instanceof UserFacingError) return error.message;

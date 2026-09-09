@@ -27,7 +27,7 @@ export async function GET() {
   const totalValuation = rows.reduce((sum, r) => sum + r.valuation, 0);
 
   const lines: string[] = [];
-  lines.push(`Flicks & Licks inventory valuation — as of ${new Date().toISOString().slice(0, 10)}`);
+  lines.push(`Flicks & Licks inventory valuation, as of ${new Date().toISOString().slice(0, 10)}`);
   lines.push(`Total valuation (GHS),${totalValuation.toFixed(2)}`);
   lines.push("");
   lines.push("Branch,Ingredient,Unit,Quantity on hand,Unit cost (GHS),Valuation (GHS),Below reorder level");

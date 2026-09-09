@@ -26,7 +26,7 @@ export const replyToTicketAction = withSafeErrors(async (ticketId: string, body:
   await addStaffMessage(ticketId, { authorUserId: userId, body });
   revalidatePath(`/admin/support/${ticketId}`);
   revalidatePath("/admin/support");
-}, "Couldn't send that reply right now — please try again.");
+}, "Couldn't send that reply right now. Please try again.");
 
 export const updateTicketStatusAction = withSafeErrors(async (ticketId: string, status: SupportTicketStatus): Promise<void> => {
   const { userId, branchId } = await requireTicketBranch(ticketId);
@@ -34,4 +34,4 @@ export const updateTicketStatusAction = withSafeErrors(async (ticketId: string, 
   await updateTicketStatus(ticketId, status);
   revalidatePath(`/admin/support/${ticketId}`);
   revalidatePath("/admin/support");
-}, "Couldn't update that ticket right now — please try again.");
+}, "Couldn't update that ticket right now. Please try again.");

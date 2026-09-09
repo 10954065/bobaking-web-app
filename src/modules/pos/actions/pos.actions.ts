@@ -36,13 +36,13 @@ import { recordAuditLog } from "@/modules/audit/services/audit.service";
 
 async function requireUserId(): Promise<string> {
   const userId = await getCurrentUserId();
-  if (!userId) throw new UserFacingError("Your session has expired — please sign in again.");
+  if (!userId) throw new UserFacingError("Your session has expired. Please sign in again.");
   return userId;
 }
 
 async function loadCartOrThrow(cartId: string) {
   const cart = await getCartById(cartId);
-  if (!cart) throw new UserFacingError("That cart could no longer be found — please start again.");
+  if (!cart) throw new UserFacingError("That cart could no longer be found. Please start again.");
   return cart;
 }
 
@@ -50,19 +50,19 @@ export const searchCustomersAction = withSafeErrors(async (query: string) => {
   const userId = await requireUserId();
   await requireAnyPermission(userId, "customers", "read");
   return searchCustomers(query);
-}, "Couldn't search customers right now — please try again.");
+}, "Couldn't search customers right now. Please try again.");
 
 export const createCustomerAction = withSafeErrors(async (input: CreateCustomerInput) => {
   const userId = await requireUserId();
   await requireAnyPermission(userId, "customers", "create");
   return createCustomer(input);
-}, "Couldn't create that customer right now — please try again.");
+}, "Couldn't create that customer right now. Please try again.");
 
 export const createWalkInCustomerAction = withSafeErrors(async () => {
   const userId = await requireUserId();
   await requireAnyPermission(userId, "customers", "create");
   return createWalkInCustomer();
-}, "Couldn't start a walk-in order right now — please try again.");
+}, "Couldn't start a walk-in order right now. Please try again.");
 
 export interface PosCustomerAddress {
   id: string;
@@ -102,7 +102,7 @@ export const listCustomerAddressesAction = withSafeErrors(async (customerId: str
   await requireAnyPermission(userId, "customers", "read");
   const addresses = await listCustomerAddresses(customerId);
   return addresses.map(toPosCustomerAddress);
-}, "Couldn't load addresses right now — please try again.");
+}, "Couldn't load addresses right now. Please try again.");
 
 /** Gated by customers.create (not update) — this creates a new address record, it never modifies the customer row itself. */
 export const createCustomerAddressAction = withSafeErrors(async (
@@ -113,7 +113,7 @@ export const createCustomerAddressAction = withSafeErrors(async (
   await requireAnyPermission(userId, "customers", "create");
   const address = await addCustomerAddress(customerId, input);
   return toPosCustomerAddress(address);
-}, "Couldn't save that address right now — please try again.");
+}, "Couldn't save that address right now. Please try again.");
 
 export const getOrCreateCartAction = withSafeErrors(async (params: {
   branchId: string;
@@ -124,13 +124,13 @@ export const getOrCreateCartAction = withSafeErrors(async (params: {
   await requirePermission(userId, "orders", "create", params.branchId);
   const cart = await getOrCreateActiveCart(params);
   return toPosCart(cart);
-}, "Couldn't open a cart right now — please try again.");
+}, "Couldn't open a cart right now. Please try again.");
 
 export const getPosProductsAction = withSafeErrors(async (branchId: string) => {
   const userId = await requireUserId();
   await requirePermission(userId, "products", "read", branchId);
   return listPosProducts(branchId);
-}, "Couldn't load products right now — please try again.");
+}, "Couldn't load products right now. Please try again.");
 
 export const addItemToCartAction = withSafeErrors(async (cartId: string, input: AddCartItemInput): Promise<PosCart> => {
   const userId = await requireUserId();
@@ -139,7 +139,7 @@ export const addItemToCartAction = withSafeErrors(async (cartId: string, input: 
 
   await addItemToCart(cartId, input);
   return toPosCart(await loadCartOrThrow(cartId));
-}, "Couldn't add that item right now — please try again.");
+}, "Couldn't add that item right now. Please try again.");
 
 export const updateCartItemQuantityAction = withSafeErrors(async (cartId: string, cartItemId: string, quantity: number): Promise<PosCart> => {
   const userId = await requireUserId();
@@ -148,7 +148,7 @@ export const updateCartItemQuantityAction = withSafeErrors(async (cartId: string
 
   await updateCartItemQuantity(cartItemId, { quantity });
   return toPosCart(await loadCartOrThrow(cartId));
-}, "Couldn't update that item right now — please try again.");
+}, "Couldn't update that item right now. Please try again.");
 
 export const removeCartItemAction = withSafeErrors(async (cartId: string, cartItemId: string): Promise<PosCart> => {
   const userId = await requireUserId();
@@ -157,7 +157,7 @@ export const removeCartItemAction = withSafeErrors(async (cartId: string, cartIt
 
   await removeCartItem(cartItemId);
   return toPosCart(await loadCartOrThrow(cartId));
-}, "Couldn't remove that item right now — please try again.");
+}, "Couldn't remove that item right now. Please try again.");
 
 export const checkoutAction = withSafeErrors(async (input: Omit<CheckoutInput, "placedByUserId">) => {
   const userId = await requireUserId();
@@ -175,7 +175,7 @@ export const checkoutAction = withSafeErrors(async (input: Omit<CheckoutInput, "
     deliveryFee: Number(order.deliveryFee),
     discountTotal: Number(order.discountTotal),
   };
-}, "We couldn't place that order right now — please try again in a moment.");
+}, "We couldn't place that order right now. Please try again in a moment.");
 
 export const initiatePaymentAction = withSafeErrors(async (input: { orderId: string; method: "CASH" | "MOBILE_MONEY" }) => {
   const userId = await requireUserId();
@@ -190,7 +190,7 @@ export const initiatePaymentAction = withSafeErrors(async (input: { orderId: str
   });
 
   return { id: payment.id, provider: payment.provider, providerReference: payment.providerReference, status: payment.status };
-}, "Couldn't start payment right now — please try again.");
+}, "Couldn't start payment right now. Please try again.");
 
 export const confirmCashPaymentAction = withSafeErrors(async (paymentId: string) => {
   const userId = await requireUserId();
@@ -200,7 +200,7 @@ export const confirmCashPaymentAction = withSafeErrors(async (paymentId: string)
   await confirmCashPayment(paymentId, userId);
   const order = await getOrderById(payment.orderId);
   return { status: order?.status ?? null };
-}, "Couldn't confirm that payment right now — please try again.");
+}, "Couldn't confirm that payment right now. Please try again.");
 
 /**
  * A POS-taken order has already been "accepted" by virtue of being placed
@@ -221,7 +221,7 @@ export const sendToKitchenAction = withSafeErrors(async (orderId: string) => {
   if (canTransition(order.status, "SENT_TO_KITCHEN")) {
     await transitionOrder({ orderId, toStatus: "SENT_TO_KITCHEN", actorUserId: userId });
   }
-}, "Couldn't send that order to the kitchen right now — please try again.");
+}, "Couldn't send that order to the kitchen right now. Please try again.");
 
 /**
  * The branch's explicit "no" — a storefront order reaching CONFIRMED only
@@ -262,7 +262,7 @@ export const rejectOrderAction = withSafeErrors(async (orderId: string, reason?:
       }).catch(() => {});
     });
   }
-}, "Couldn't decline that order right now — please try again.");
+}, "Couldn't decline that order right now. Please try again.");
 
 /**
  * A discretionary refund initiated by finance/admin (partial or full) — gated
@@ -278,7 +278,7 @@ export const refundOrderAction = withSafeErrors(async (paymentId: string, amount
   // client boundary — Prisma's Decimal (refund.amount) is a class instance,
   // not a plain object, and fails that check silently in the console.
   return { id: refund.id, status: refund.status, amount: Number(refund.amount) };
-}, "Couldn't process that refund right now — please try again.");
+}, "Couldn't process that refund right now. Please try again.");
 
 /**
  * DEV ONLY: stands in for the real Mobile Money gateway calling our webhook
@@ -305,4 +305,4 @@ export const devSimulateMobileMoneySuccessAction = withSafeErrors(async (payment
 
   const order = await getOrderById(payment.orderId);
   return { status: order?.status ?? null };
-}, "Couldn't confirm payment right now — please try again.");
+}, "Couldn't confirm payment right now. Please try again.");

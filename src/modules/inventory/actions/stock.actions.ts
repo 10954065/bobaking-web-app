@@ -25,4 +25,4 @@ export const adjustStockAction = withSafeErrors(async (
   // stock.quantityOnHand is a Prisma Decimal — trim to a number, the only
   // form that can safely cross the server-action boundary to a client caller.
   return { quantityOnHand: Number(stock.quantityOnHand) };
-}, "Couldn't adjust stock right now — please try again.");
+}, "Couldn't adjust stock right now. Please try again.");

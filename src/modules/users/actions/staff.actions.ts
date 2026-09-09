@@ -58,7 +58,7 @@ export const createStaffAction = withSafeErrors(async (input: {
 
   revalidatePath("/admin/staff");
   return user;
-}, "Couldn't create that staff account right now — please try again.");
+}, "Couldn't create that staff account right now. Please try again.");
 
 export const assignRoleToStaffAction = withSafeErrors(async (input: { userId: string; roleId: string; branchId?: string | null }) => {
   const actingUserId = await requireUserId();
@@ -72,25 +72,25 @@ export const assignRoleToStaffAction = withSafeErrors(async (input: { userId: st
   });
   revalidatePath("/admin/staff");
   return userRole;
-}, "Couldn't assign that role right now — please try again.");
+}, "Couldn't assign that role right now. Please try again.");
 
 export const revokeStaffRoleAction = withSafeErrors(async (userRoleId: string) => {
   const actingUserId = await requireUserId();
   await requirePermission(actingUserId, "users", "update", null);
   await revokeUserRole(userRoleId);
   revalidatePath("/admin/staff");
-}, "Couldn't revoke that role right now — please try again.");
+}, "Couldn't revoke that role right now. Please try again.");
 
 export const deactivateStaffAction = withSafeErrors(async (userId: string) => {
   const actingUserId = await requireUserId();
   await requirePermission(actingUserId, "users", "delete", null);
   await setUserStatus(userId, "DEACTIVATED");
   revalidatePath("/admin/staff");
-}, "Couldn't deactivate that account right now — please try again.");
+}, "Couldn't deactivate that account right now. Please try again.");
 
 export const reactivateStaffAction = withSafeErrors(async (userId: string) => {
   const actingUserId = await requireUserId();
   await requirePermission(actingUserId, "users", "update", null);
   await setUserStatus(userId, "ACTIVE");
   revalidatePath("/admin/staff");
-}, "Couldn't reactivate that account right now — please try again.");
+}, "Couldn't reactivate that account right now. Please try again.");

@@ -36,7 +36,7 @@ export const createDeliveryZoneAction = withSafeErrors(async (input: CreateDeliv
   const zone = await createDeliveryZone(input);
   revalidatePath("/admin/delivery/zones");
   return toZoneSummary(zone);
-}, "Couldn't create that zone right now — please try again.");
+}, "Couldn't create that zone right now. Please try again.");
 
 export const updateDeliveryZoneAction = withSafeErrors(async (id: string, branchId: string, input: UpdateDeliveryZoneInput): Promise<ZoneSummary> => {
   const userId = await requireUserId();
@@ -44,7 +44,7 @@ export const updateDeliveryZoneAction = withSafeErrors(async (id: string, branch
   const zone = await updateDeliveryZone(id, input);
   revalidatePath("/admin/delivery/zones");
   return toZoneSummary(zone);
-}, "Couldn't update that zone right now — please try again.");
+}, "Couldn't update that zone right now. Please try again.");
 
 export const deactivateDeliveryZoneAction = withSafeErrors(async (id: string, branchId: string): Promise<ZoneSummary> => {
   const userId = await requireUserId();
@@ -52,4 +52,4 @@ export const deactivateDeliveryZoneAction = withSafeErrors(async (id: string, br
   const zone = await deactivateDeliveryZone(id);
   revalidatePath("/admin/delivery/zones");
   return toZoneSummary(zone);
-}, "Couldn't deactivate that zone right now — please try again.");
+}, "Couldn't deactivate that zone right now. Please try again.");

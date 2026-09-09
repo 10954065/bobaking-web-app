@@ -72,20 +72,20 @@ export const getMyDeliveriesAction = withSafeErrors(async (): Promise<RiderDeliv
       ? order.deliveryAddress.area
         ? `${order.deliveryAddress.addressLine1}, ${order.deliveryAddress.area}`
         : order.deliveryAddress.addressLine1
-      : "—",
+      : "No address",
     addressLine2: order.deliveryAddress?.addressLine2 ?? null,
     landmark: order.deliveryAddress?.landmark ?? null,
     total: Number(order.total),
     deliveryFee: Number(order.deliveryFee),
     itemCount: order.items.length,
   }));
-}, "Couldn't load your deliveries right now — please try again.");
+}, "Couldn't load your deliveries right now. Please try again.");
 
 export const getRiderEarningsSummaryAction = withSafeErrors(async (): Promise<RiderEarningsSummary> => {
   const userId = await requireUserId();
   await requireRiderProfile(userId);
   return getRiderEarningsToday(userId);
-}, "Couldn't load your earnings right now — please try again.");
+}, "Couldn't load your earnings right now. Please try again.");
 
 export interface RiderDeliveryHistory {
   totalDeliveries: number;
@@ -99,7 +99,7 @@ export const getRiderDeliveryHistoryAction = withSafeErrors(async (): Promise<Ri
   await requireRiderProfile(userId);
   const [stats, entries] = await Promise.all([getRiderDeliveryStats(userId), listCompletedDeliveriesForRider(userId)]);
   return { ...stats, entries };
-}, "Couldn't load your delivery history right now — please try again.");
+}, "Couldn't load your delivery history right now. Please try again.");
 
 export const toggleAvailabilityAction = withSafeErrors(async (goOnline: boolean): Promise<RiderStatusSummary> => {
   const userId = await requireUserId();
@@ -107,7 +107,7 @@ export const toggleAvailabilityAction = withSafeErrors(async (goOnline: boolean)
   const updated = await setRiderStatus(userId, goOnline ? "AVAILABLE" : "OFFLINE");
   await publishDeliveryEvent(profile.branchId, { type: "rider.status_changed", riderId: userId }).catch(() => {});
   return { status: updated.status };
-}, "Couldn't update your availability right now — please try again.");
+}, "Couldn't update your availability right now. Please try again.");
 
 export interface LocationPingResult {
   /** False when the fix was too inaccurate or an implausible jump and was therefore dropped — the rider's marker did not move. Never a hard error; the app should just show a quality hint. */
@@ -148,7 +148,7 @@ export const pingLocationAction = withSafeErrors(async (input: LocationPingInput
     await publishDeliveryLocationEvent(activeOrderId, { type: "location.updated", ...recorded }).catch(() => {});
   }
   return { accepted: recorded !== null };
-}, "Couldn't update your location right now — please try again.");
+}, "Couldn't update your location right now. Please try again.");
 
 export const getRiderNavigationAction = withSafeErrors(async (orderId: string): Promise<DeliveryNavigation | null> => {
   const userId = await requireUserId();
@@ -163,16 +163,16 @@ export const getRiderNavigationAction = withSafeErrors(async (orderId: string): 
     if (error instanceof NavigationUnavailableError) return null;
     throw error;
   }
-}, "Couldn't load navigation right now — please try again.");
+}, "Couldn't load navigation right now. Please try again.");
 
 export const markPickedUpAction = withSafeErrors(async (orderId: string): Promise<void> => {
   const userId = await requireUserId();
   await requireRiderProfile(userId);
   await riderMarkPickedUp(orderId, userId, userId);
-}, "Couldn't mark this order picked up right now — please try again.");
+}, "Couldn't mark this order picked up right now. Please try again.");
 
 export const markDeliveredAction = withSafeErrors(async (orderId: string, code: string): Promise<void> => {
   const userId = await requireUserId();
   await requireRiderProfile(userId);
   await riderMarkDelivered(orderId, userId, userId, code);
-}, "Couldn't mark this order delivered right now — please try again.");
+}, "Couldn't mark this order delivered right now. Please try again.");

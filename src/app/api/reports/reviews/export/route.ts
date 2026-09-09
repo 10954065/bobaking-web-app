@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
   const report = await getReviewsReport(branchIds, { from, to });
 
   const lines: string[] = [];
-  lines.push(`Flicks & Licks reviews — last ${rangeParam} days (${from.toISOString().slice(0, 10)} to ${to.toISOString().slice(0, 10)})`);
+  lines.push(`Flicks & Licks reviews, last ${rangeParam} days (${from.toISOString().slice(0, 10)} to ${to.toISOString().slice(0, 10)})`);
   lines.push(`Average rating,${report.avgRating ?? ""}`);
   lines.push("");
   lines.push("Rating distribution");

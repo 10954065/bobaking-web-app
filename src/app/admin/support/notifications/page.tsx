@@ -29,7 +29,7 @@ export default async function NotificationsLogPage() {
           <div>
             <h2 className="text-lg font-semibold text-stone-900 dark:text-stone-50">Notifications</h2>
             <p className="text-sm text-stone-500 dark:text-stone-400">
-              Order-status messages sent to customers via SMS/email — real delivery once Twilio/Resend are configured,
+              Order status messages sent to customers via SMS/email. Real delivery once Twilio/Resend are configured,
               a dev log until then. The Status column shows what actually happened, not just what was attempted.
             </p>
           </div>

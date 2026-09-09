@@ -98,7 +98,7 @@ export default async function TrackOrderPage({
             <div className="mt-4 flex items-start gap-2.5 rounded-lg border border-amber-300 bg-amber-50 px-3.5 py-3 dark:border-amber-900/60 dark:bg-amber-950/30">
               <Clock size={16} className="mt-0.5 shrink-0 text-amber-600 dark:text-amber-400" />
               <p className="text-sm text-amber-800 dark:text-amber-300">
-                <span className="font-semibold">Payment received — not yet accepted.</span> {tracking.branchName}{" "}
+                <span className="font-semibold">Payment received. Not yet accepted.</span> {tracking.branchName}{" "}
                 still needs to confirm this order. This page updates the moment they do.
               </p>
             </div>

@@ -30,7 +30,7 @@ export const getStorefrontBranchesAction = withSafeErrors(async (): Promise<Stor
     latitude: b.latitude != null ? Number(b.latitude) : null,
     longitude: b.longitude != null ? Number(b.longitude) : null,
   }));
-}, "Couldn't load branches right now — please refresh and try again.");
+}, "Couldn't load branches right now. Please refresh and try again.");
 
 export interface StorefrontMenu {
   categories: { id: string; name: string }[];
@@ -40,7 +40,7 @@ export interface StorefrontMenu {
 export const getStorefrontMenuAction = withSafeErrors(async (branchId: string): Promise<StorefrontMenu> => {
   const [categories, products] = await Promise.all([listCategories(), listPosProducts(branchId)]);
   return { categories: categories.map((c) => ({ id: c.id, name: c.name })), products };
-}, "Couldn't load the menu right now — please try again.");
+}, "Couldn't load the menu right now. Please try again.");
 
 export interface StorefrontOrderSummary {
   id: string;
@@ -68,7 +68,7 @@ export const placeStorefrontOrderAction = withSafeErrors(async (input: PlaceStor
     taxTotal: Number(order.taxTotal),
     deliveryFee: Number(order.deliveryFee),
   };
-}, "We couldn't place your order right now — please try again in a moment.");
+}, "We couldn't place your order right now. Please try again in a moment.");
 
 export interface StorefrontPaymentSummary {
   id: string;
@@ -93,7 +93,7 @@ export const initiateStorefrontPaymentAction = withSafeErrors(async (input: {
   });
   const metadata = payment.metadata as { redirectUrl?: string } | null;
   return { id: payment.id, provider: payment.provider, status: payment.status, redirectUrl: metadata?.redirectUrl ?? null };
-}, "Couldn't start payment right now — please try again.");
+}, "Couldn't start payment right now. Please try again.");
 
 /**
  * DEV ONLY: stands in for the real Mobile Money gateway calling our webhook
@@ -118,4 +118,4 @@ export const simulateStorefrontPaymentAction = withSafeErrors(async (paymentId: 
 
   const order = await getOrderById(payment.orderId);
   return { status: order?.status ?? null };
-}, "Couldn't confirm payment right now — please try again.");
+}, "Couldn't confirm payment right now. Please try again.");

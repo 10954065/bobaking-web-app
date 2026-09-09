@@ -26,7 +26,7 @@ export const updateLoyaltyConfigAction = withSafeErrors(async (input: UpdateLoya
     minPointsToRedeem: config.minPointsToRedeem,
     isActive: config.isActive,
   };
-}, "Couldn't update loyalty settings right now — please try again.");
+}, "Couldn't update loyalty settings right now. Please try again.");
 
 export const adjustLoyaltyPointsAction = withSafeErrors(async (customerId: string, input: AdjustLoyaltyPointsInput) => {
   const userId = await requireUserId();
@@ -34,7 +34,7 @@ export const adjustLoyaltyPointsAction = withSafeErrors(async (customerId: strin
   const { account } = await adjustLoyaltyPoints(customerId, input, userId);
   revalidatePath(`/admin/customers/${customerId}`);
   return { pointsBalance: account.pointsBalance };
-}, "Couldn't adjust points right now — please try again.");
+}, "Couldn't adjust points right now. Please try again.");
 
 export interface PointsPreview {
   valid: boolean;
@@ -56,4 +56,4 @@ export const previewPointsRedemptionAction = withSafeErrors(async (customerId: s
     }
     throw error;
   }
-}, "Couldn't check that redemption right now — please try again.");
+}, "Couldn't check that redemption right now. Please try again.");

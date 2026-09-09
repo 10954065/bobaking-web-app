@@ -30,7 +30,7 @@ const baloo = Baloo_2({
 
 export const metadata: Metadata = {
   title: "Flicks & Licks",
-  description: "Flicks & Licks — the Suya Boss. Order delivery or pickup from four branches across Accra.",
+  description: "Flicks & Licks, the Suya Boss. Order delivery or pickup from four branches across Accra.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

@@ -144,7 +144,7 @@ export function PaymentStep({
             We&apos;ve sent order {order.orderNumber} to the branch.
           </p>
           <p className="mt-3 rounded-lg border border-amber-900/40 bg-amber-950/20 px-3 py-2 text-xs text-amber-300">
-            The branch hasn&apos;t accepted it yet — payment alone doesn&apos;t confirm your order. Track its status below.
+            The branch hasn&apos;t accepted it yet. Payment alone doesn&apos;t confirm your order. Track its status below.
           </p>
           <button
             onClick={onDone}

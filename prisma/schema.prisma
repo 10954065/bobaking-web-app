@@ -639,7 +639,7 @@ model Order {
   /// its live-location feed — orderNumber ("FL-1015") is sequential and
   /// intentionally guessable, so it is fine for the human-readable order
   /// status page but must never gate live GPS access. See track/[token].
-  trackingToken String    @unique @default(uuid()) @map("tracking_token")
+  trackingToken String    @unique @default(dbgenerated("replace(gen_random_uuid()::text, '-', '')")) @map("tracking_token")
   branchId    String      @map("branch_id")
   customerId  String      @map("customer_id")
   type        OrderType

@@ -43,7 +43,7 @@ export const createIngredientAction = withSafeErrors(async (input: CreateIngredi
   const ingredient = await createIngredient(input);
   revalidatePath("/admin/inventory");
   return toIngredientSummary(ingredient);
-}, "Couldn't create that ingredient right now — please try again.");
+}, "Couldn't create that ingredient right now. Please try again.");
 
 export const updateIngredientAction = withSafeErrors(async (id: string, input: UpdateIngredientInput): Promise<IngredientSummary> => {
   const userId = await requireUserId();
@@ -51,7 +51,7 @@ export const updateIngredientAction = withSafeErrors(async (id: string, input: U
   const ingredient = await updateIngredient(id, input);
   revalidatePath("/admin/inventory");
   return toIngredientSummary(ingredient);
-}, "Couldn't update that ingredient right now — please try again.");
+}, "Couldn't update that ingredient right now. Please try again.");
 
 export const deactivateIngredientAction = withSafeErrors(async (id: string): Promise<IngredientSummary> => {
   const userId = await requireUserId();
@@ -59,4 +59,4 @@ export const deactivateIngredientAction = withSafeErrors(async (id: string): Pro
   const ingredient = await deactivateIngredient(id);
   revalidatePath("/admin/inventory");
   return toIngredientSummary(ingredient);
-}, "Couldn't deactivate that ingredient right now — please try again.");
+}, "Couldn't deactivate that ingredient right now. Please try again.");

@@ -36,7 +36,7 @@ export default async function StaffPage() {
         <div className="mb-6">
           <h1 className="font-display text-2xl uppercase tracking-tight text-stone-900 dark:text-stone-50">Staff</h1>
           <p className="text-sm text-stone-500 dark:text-stone-400">
-            Accounts for people working at your branches — what they log into (POS, kitchen display, rider app, or the back office) is
+            Accounts for people working at your branches. What they log into (POS, kitchen display, rider app, or the back office) is
             determined by the role and branch you assign here.
           </p>
         </div>

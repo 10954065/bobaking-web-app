@@ -14,7 +14,7 @@ export class NotAssignedToRiderError extends Error {
 
 export class InvalidDeliveryCodeError extends Error {
   constructor() {
-    super("That code doesn't match — ask the customer to read it out again.");
+    super("That code doesn't match. Ask the customer to read it out again.");
     this.name = "InvalidDeliveryCodeError";
   }
 }

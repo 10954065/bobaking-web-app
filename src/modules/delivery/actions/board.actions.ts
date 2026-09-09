@@ -43,7 +43,7 @@ export interface DeliveryBoardData {
 }
 
 function addressLabel(address: { addressLine1: string; area: string | null } | null): string {
-  if (!address) return "—";
+  if (!address) return "No address";
   return address.area ? `${address.addressLine1}, ${address.area}` : address.addressLine1;
 }
 
@@ -87,7 +87,7 @@ export const getDeliveryBoardAction = withSafeErrors(async (branchId: string): P
       lastLocationAt: rider.lastLocationAt?.toISOString() ?? null,
     })),
   };
-}, "Couldn't load the delivery board right now — please try again.");
+}, "Couldn't load the delivery board right now. Please try again.");
 
 export const assignRiderToOrderAction = withSafeErrors(async (orderId: string, riderUserId: string): Promise<void> => {
   const userId = await requireUserId();
@@ -103,4 +103,4 @@ export const assignRiderToOrderAction = withSafeErrors(async (orderId: string, r
   }
 
   await assignRiderToOrder(orderId, riderUserId, userId);
-}, "Couldn't assign that rider right now — please try again.");
+}, "Couldn't assign that rider right now. Please try again.");

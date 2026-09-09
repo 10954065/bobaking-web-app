@@ -57,7 +57,7 @@ export const listIncomingOrdersAction = withSafeErrors(async (): Promise<Incomin
     paymentMethod: order.payments[0]?.method ?? null,
     paymentStatus: order.payments[0]?.status ?? null,
   }));
-}, "Couldn't load incoming orders right now — please try again.");
+}, "Couldn't load incoming orders right now. Please try again.");
 
 export interface TodaysOrderRow {
   id: string;
@@ -122,4 +122,4 @@ export const listTodaysOrdersAction = withSafeErrors(async (): Promise<TodaysOrd
     totalCollected,
     byMethod,
   };
-}, "Couldn't load today's orders right now — please try again.");
+}, "Couldn't load today's orders right now. Please try again.");

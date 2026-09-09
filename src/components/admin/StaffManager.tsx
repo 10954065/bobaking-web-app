@@ -201,7 +201,7 @@ function CreateStaffModal({
               </button>
             </div>
             <p className="mt-1 text-[11px] text-stone-500 dark:text-stone-400">
-              Share this with them directly — they can change it from My Account after signing in.
+              Share this with them directly. They can change it from My Account after signing in.
             </p>
           </div>
         </div>

@@ -166,10 +166,10 @@ export function useRiderLocationTracker(enabled: boolean): RiderLocationTrackerS
       (error) => {
         if (error.code === error.PERMISSION_DENIED) {
           setStatus("denied");
-          setErrorMessage("Location access was denied — enable it in your browser/device settings to go online.");
+          setErrorMessage("Location access was denied. Enable it in your browser/device settings to go online.");
         } else if (error.code === error.TIMEOUT) {
           setStatus("error");
-          setErrorMessage("Location signal timed out — still trying.");
+          setErrorMessage("Location signal timed out. Still trying.");
         } else {
           setStatus("error");
           setErrorMessage("Location temporarily unavailable.");

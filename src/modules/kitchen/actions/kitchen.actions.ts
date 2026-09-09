@@ -27,7 +27,7 @@ export const startItemAction = withSafeErrors(async (orderItemId: string): Promi
 
   await requireBranchOfOrderItem(orderItemId, userId, "update");
   await startOrderItem(orderItemId, userId);
-}, "Couldn't start that item right now — please try again.");
+}, "Couldn't start that item right now. Please try again.");
 
 export const markItemReadyAction = withSafeErrors(async (orderItemId: string): Promise<void> => {
   const userId = await getCurrentUserId();
@@ -35,7 +35,7 @@ export const markItemReadyAction = withSafeErrors(async (orderItemId: string): P
 
   await requireBranchOfOrderItem(orderItemId, userId, "update");
   await markOrderItemReady(orderItemId, userId);
-}, "Couldn't mark that item ready right now — please try again.");
+}, "Couldn't mark that item ready right now. Please try again.");
 
 export const getKitchenQueueAction = withSafeErrors(async (branchId: string): Promise<KdsOrderWithItems[]> => {
   const userId = await getCurrentUserId();
@@ -44,4 +44,4 @@ export const getKitchenQueueAction = withSafeErrors(async (branchId: string): Pr
   await requirePermission(userId, "kitchen", "read", branchId);
   const orders = await listKitchenQueueForBranch(branchId);
   return orders.map(toKdsOrder);
-}, "Couldn't load the kitchen queue right now — please try again.");
+}, "Couldn't load the kitchen queue right now. Please try again.");

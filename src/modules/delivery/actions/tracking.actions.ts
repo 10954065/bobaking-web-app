@@ -26,7 +26,7 @@ export const getPublicNavigationAction = withSafeErrors(async (trackingToken: st
   const order = await prisma.order.findUnique({ where: { trackingToken }, select: { id: true, status: true } });
   if (!order || !LIVE_TRACKABLE_STATUSES.has(order.status)) return null;
   return safeGetNavigation(order.id);
-}, "Couldn't load the delivery route right now — please try again.");
+}, "Couldn't load the delivery route right now. Please try again.");
 
 async function requireDeliveryReadAccess(orderId: string): Promise<{ branchId: string }> {
   const userId = await getCurrentUserId();
@@ -44,7 +44,7 @@ async function requireDeliveryReadAccess(orderId: string): Promise<{ branchId: s
 export const getAdminDeliveryNavigationAction = withSafeErrors(async (orderId: string): Promise<DeliveryNavigation | null> => {
   await requireDeliveryReadAccess(orderId);
   return safeGetNavigation(orderId);
-}, "Couldn't load the delivery route right now — please try again.");
+}, "Couldn't load the delivery route right now. Please try again.");
 
 export interface DeliveryMapPoints {
   branchCoordinates: { latitude: number; longitude: number } | null;
@@ -70,4 +70,4 @@ export const getAdminDeliveryPointsAction = withSafeErrors(async (orderId: strin
         ? { latitude: Number(order.deliveryAddress.latitude), longitude: Number(order.deliveryAddress.longitude) }
         : null,
   };
-}, "Couldn't load the delivery map right now — please try again.");
+}, "Couldn't load the delivery map right now. Please try again.");

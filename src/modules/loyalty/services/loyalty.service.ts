@@ -111,7 +111,7 @@ export async function evaluatePointsRedemption(
   const account = await client.loyaltyAccount.findUnique({ where: { customerId: params.customerId } });
   const balance = account?.pointsBalance ?? 0;
   if (balance < params.points) {
-    throw new PointsRedemptionError(`Not enough points — this customer has ${balance}.`);
+    throw new PointsRedemptionError(`Not enough points. This customer has ${balance}.`);
   }
 
   const discountAmount = Math.round(params.points * Number(config.redemptionValue) * 100) / 100;

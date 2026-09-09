@@ -113,7 +113,7 @@ export function StorefrontApp({
       loaded = await getStorefrontMenuAction(id);
     } catch (e) {
       setMenuLoading(false);
-      setBranchError(e instanceof Error ? e.message : "Couldn't load the menu right now — please try again.");
+      setBranchError(e instanceof Error ? e.message : "Couldn't load the menu right now. Please try again.");
       return;
     }
 

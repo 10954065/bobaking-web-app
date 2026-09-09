@@ -92,7 +92,7 @@ export async function getSupportTicketsReport(
       id: t.id,
       subject: t.subject,
       status: t.status,
-      branchName: t.branch?.name ?? "—",
+      branchName: t.branch?.name ?? "N/A",
       customerName: `${t.customer.firstName} ${t.customer.lastName}`,
       createdAt: t.createdAt,
     })),

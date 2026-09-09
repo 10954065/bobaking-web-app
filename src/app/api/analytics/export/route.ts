@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
   ]);
 
   const lines: string[] = [];
-  lines.push(`Flicks & Licks analytics export — last ${rangeParam} days (${from.toISOString().slice(0, 10)} to ${to.toISOString().slice(0, 10)})`);
+  lines.push(`Flicks & Licks analytics export, last ${rangeParam} days (${from.toISOString().slice(0, 10)} to ${to.toISOString().slice(0, 10)})`);
   lines.push("");
   lines.push("Summary");
   lines.push("Metric,Value");

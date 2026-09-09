@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Logo } from "@/components/brand/Logo";
 
 export const metadata = {
-  title: "Page not found — Flicks & Licks",
+  title: "Page not found | Flicks & Licks",
 };
 
 export default function NotFound() {

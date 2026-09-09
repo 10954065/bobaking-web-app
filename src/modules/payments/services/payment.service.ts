@@ -37,7 +37,7 @@ function getProvider(method: PaymentMethod): PaymentProvider {
       // PaystackMobileMoneyProvider's doc comment. No dev stand-in for card;
       // it simply isn't offered until a real gateway is configured.
       if (!env.PAYSTACK_SECRET_KEY) {
-        throw new UserFacingError("Card payments aren't available yet — please choose another payment method.");
+        throw new UserFacingError("Card payments aren't available yet. Please choose another payment method.");
       }
       return paystackProvider;
   }

@@ -20,4 +20,4 @@ export const moderateReviewAction = withSafeErrors(async (reviewId: string, stat
   await requirePermission(userId, "reviews", "moderate", review.branchId);
   await moderateReview(reviewId, status, userId);
   revalidatePath("/admin/reviews");
-}, "Couldn't moderate that review right now — please try again.");
+}, "Couldn't moderate that review right now. Please try again.");

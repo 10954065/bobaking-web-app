@@ -20,4 +20,4 @@ export const createRiderAction = withSafeErrors(async (input: CreateRiderInput):
   const rider = await createRider(input);
   revalidatePath("/admin/delivery/riders");
   return { id: rider.id, firstName: rider.firstName, lastName: rider.lastName };
-}, "Couldn't create that rider right now — please try again.");
+}, "Couldn't create that rider right now. Please try again.");

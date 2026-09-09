@@ -9,7 +9,7 @@ export interface LoginState {
 }
 
 const ERROR_MESSAGES: Record<string, string> = {
-  AccountLocked: "Too many failed attempts. This account is temporarily locked — try again in 15 minutes.",
+  AccountLocked: "Too many failed attempts. This account is temporarily locked. Try again in 15 minutes.",
   AccountInactive: "This account is not active. Contact an administrator.",
   CredentialsSignin: "Incorrect email/phone or password.",
 };

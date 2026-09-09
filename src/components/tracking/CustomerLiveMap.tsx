@@ -115,7 +115,7 @@ export function CustomerLiveMap({
           )}
           {location && (
             <p className="mt-0.5 text-xs text-stone-400 dark:text-stone-500">
-              {isStale ? `Location may be out of date — last updated ${new Date(location.recordedAt).toLocaleTimeString()}` : "Live"}
+              {isStale ? `Location may be out of date. Last updated ${new Date(location.recordedAt).toLocaleTimeString()}` : "Live"}
             </p>
           )}
         </div>

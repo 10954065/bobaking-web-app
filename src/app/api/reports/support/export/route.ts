@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
   const report = await getSupportTicketsReport(branchIds, { from, to });
 
   const lines: string[] = [];
-  lines.push(`Flicks & Licks support tickets — last ${rangeParam} days (${from.toISOString().slice(0, 10)} to ${to.toISOString().slice(0, 10)})`);
+  lines.push(`Flicks & Licks support tickets, last ${rangeParam} days (${from.toISOString().slice(0, 10)} to ${to.toISOString().slice(0, 10)})`);
   lines.push("");
   lines.push("By status");
   lines.push("Status,Count");
