@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const createSupportTicketSchema = z.object({
-  orderNumber: z.string().min(1),
+  trackingToken: z.string().min(1),
   subject: z.string().min(3).max(200),
   message: z.string().min(1).max(4000),
 });

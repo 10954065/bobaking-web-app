@@ -3,6 +3,7 @@ import { transitionOrder } from "@/modules/orders/services/order.service";
 import { canTransition } from "@/modules/orders/services/order-state-machine";
 import { publishDeliveryEvent } from "@/modules/delivery/services/delivery-events";
 import { setRiderStatus } from "@/modules/delivery/services/rider.service";
+import { enforceRateLimit } from "@/lib/rate-limit";
 
 export class NotAssignedToRiderError extends Error {
   constructor() {
@@ -184,8 +185,14 @@ export async function riderMarkPickedUp(orderId: string, riderUserId: string, ac
 export async function riderMarkDelivered(orderId: string, riderUserId: string, actorUserId: string, code?: string) {
   const order = await requireOrderAssignedToRider(orderId, riderUserId);
 
-  if (order.deliveryCode && order.deliveryCode !== code) {
-    throw new InvalidDeliveryCodeError();
+  if (order.deliveryCode) {
+    // Caps brute-forcing the 4-digit handoff PIN (10,000 combinations) — the
+    // rider is already legitimately assigned, but the code exists precisely
+    // to require the customer's confirmation, not just proximity to the order.
+    await enforceRateLimit(`delivery-code:${orderId}`, { limit: 5, windowSeconds: 600 });
+    if (order.deliveryCode !== code) {
+      throw new InvalidDeliveryCodeError();
+    }
   }
 
   if (canTransition(order.status, "DELIVERED")) {

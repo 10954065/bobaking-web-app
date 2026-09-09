@@ -6,6 +6,7 @@ import { getCurrentUserId } from "@/modules/auth/services/current-session.servic
 import { requirePermission } from "@/modules/auth/services/authorization.service";
 import { moderateReview } from "@/modules/reviews/services/review.service";
 import type { ReviewStatus } from "@prisma/client";
+import { withSafeErrors } from "@/lib/errors";
 
 async function requireUserId(): Promise<string> {
   const userId = await getCurrentUserId();
@@ -13,10 +14,10 @@ async function requireUserId(): Promise<string> {
   return userId;
 }
 
-export async function moderateReviewAction(reviewId: string, status: ReviewStatus): Promise<void> {
+export const moderateReviewAction = withSafeErrors(async (reviewId: string, status: ReviewStatus): Promise<void> => {
   const userId = await requireUserId();
   const review = await prisma.review.findUniqueOrThrow({ where: { id: reviewId } });
   await requirePermission(userId, "reviews", "moderate", review.branchId);
   await moderateReview(reviewId, status, userId);
   revalidatePath("/admin/reviews");
-}
+}, "Couldn't moderate that review right now — please try again.");

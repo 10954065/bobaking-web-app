@@ -1,4 +1,5 @@
 import type { CSSProperties } from "react";
+import Image from "next/image";
 
 type LogoProps = {
   /** Edge length in pixels. */
@@ -45,14 +46,16 @@ export function LogoWordmark({ size, className = "", animateReveal = false, styl
 }
 
 /**
- * The Flicks & Licks mark — a rounded-square red badge with the hand-lettered
- * cream wordmark, matched against the brand's real logo (provided directly
- * by the business) as a scalable component rather than a rasterized copy.
+ * The Flicks & Licks mark — the real brand logo artwork (provided directly
+ * by the business, see public/brand/logo.png), rendered as a rounded-square
+ * badge. Used everywhere the site needs the "actual" logo rather than the
+ * CSS-animated wordmark reconstruction (LogoWordmark), which exists solely
+ * for the splash screen's letter-by-letter reveal animation.
  */
 export function Logo({ size = 56, ring = false, className = "" }: LogoProps) {
   return (
     <span
-      className={`relative inline-flex shrink-0 items-center justify-center bg-brand-red shadow-lg shadow-brand-red/25 ${className}`}
+      className={`relative inline-flex shrink-0 overflow-hidden bg-brand-red shadow-lg shadow-brand-red/25 ${className}`}
       style={{
         width: size,
         height: size,
@@ -60,9 +63,7 @@ export function Logo({ size = 56, ring = false, className = "" }: LogoProps) {
         boxShadow: ring ? `0 0 0 ${Math.max(2, size * 0.035)}px var(--color-brand-cyan), 0 10px 24px -8px rgba(228,35,19,0.55)` : undefined,
       }}
     >
-      <span style={{ paddingLeft: size * 0.16 }}>
-        <LogoWordmark size={size} />
-      </span>
+      <Image src="/brand/logo.png" alt="Flicks & Licks" width={size} height={size} className="h-full w-full object-cover" />
     </span>
   );
 }

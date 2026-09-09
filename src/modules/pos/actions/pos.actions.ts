@@ -30,6 +30,7 @@ import {
   processWebhookEvent,
   refundPayment,
   refundRemainingBalance,
+  assertDevPaymentSimulationAllowed,
 } from "@/modules/payments/services/payment.service";
 import { recordAuditLog } from "@/modules/audit/services/audit.service";
 
@@ -288,6 +289,8 @@ export const refundOrderAction = withSafeErrors(async (paymentId: string, amount
  * verification of a real payment).
  */
 export const devSimulateMobileMoneySuccessAction = withSafeErrors(async (paymentId: string) => {
+  assertDevPaymentSimulationAllowed();
+
   const userId = await requireUserId();
   const payment = await prisma.payment.findUniqueOrThrow({ where: { id: paymentId }, include: { order: true } });
   await requirePermission(userId, "payments", "create", payment.order.branchId);

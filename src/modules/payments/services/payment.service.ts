@@ -43,6 +43,19 @@ function getProvider(method: PaymentMethod): PaymentProvider {
   }
 }
 
+/**
+ * Guards every dev-only "simulate payment success" action (storefront and
+ * POS) — both exist only to stand in for a real gateway calling our webhook,
+ * so both must refuse to run once a real gateway is actually configured or
+ * in production, where either path would let anyone mark a real order
+ * "paid" for free with no money ever collected.
+ */
+export function assertDevPaymentSimulationAllowed(): void {
+  if (process.env.NODE_ENV === "production" || env.PAYSTACK_SECRET_KEY) {
+    throw new UserFacingError("This action is not available.");
+  }
+}
+
 /** Creates a payment intent and moves the order into PENDING_PAYMENT. Idempotent on idempotencyKey. */
 export async function initiatePayment(input: InitiatePaymentInput) {
   const data = initiatePaymentSchema.parse(input);

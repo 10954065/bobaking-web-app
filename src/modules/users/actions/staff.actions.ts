@@ -11,6 +11,7 @@ import {
   revokeUserRole,
   userHasRole,
 } from "@/modules/users/services/user.service";
+import { withSafeErrors } from "@/lib/errors";
 
 async function requireUserId(): Promise<string> {
   const userId = await getCurrentUserId();
@@ -33,7 +34,7 @@ async function assertCanGrantRole(actingUserId: string, roleId: string): Promise
   }
 }
 
-export async function createStaffAction(input: {
+export const createStaffAction = withSafeErrors(async (input: {
   firstName: string;
   lastName: string;
   email?: string;
@@ -41,7 +42,7 @@ export async function createStaffAction(input: {
   password: string;
   roleId: string;
   branchId?: string | null;
-}) {
+}) => {
   const actingUserId = await requireUserId();
   await requirePermission(actingUserId, "users", "create", null);
   await assertCanGrantRole(actingUserId, input.roleId);
@@ -57,9 +58,9 @@ export async function createStaffAction(input: {
 
   revalidatePath("/admin/staff");
   return user;
-}
+}, "Couldn't create that staff account right now — please try again.");
 
-export async function assignRoleToStaffAction(input: { userId: string; roleId: string; branchId?: string | null }) {
+export const assignRoleToStaffAction = withSafeErrors(async (input: { userId: string; roleId: string; branchId?: string | null }) => {
   const actingUserId = await requireUserId();
   await requirePermission(actingUserId, "users", "update", null);
   await assertCanGrantRole(actingUserId, input.roleId);
@@ -71,25 +72,25 @@ export async function assignRoleToStaffAction(input: { userId: string; roleId: s
   });
   revalidatePath("/admin/staff");
   return userRole;
-}
+}, "Couldn't assign that role right now — please try again.");
 
-export async function revokeStaffRoleAction(userRoleId: string) {
+export const revokeStaffRoleAction = withSafeErrors(async (userRoleId: string) => {
   const actingUserId = await requireUserId();
   await requirePermission(actingUserId, "users", "update", null);
   await revokeUserRole(userRoleId);
   revalidatePath("/admin/staff");
-}
+}, "Couldn't revoke that role right now — please try again.");
 
-export async function deactivateStaffAction(userId: string) {
+export const deactivateStaffAction = withSafeErrors(async (userId: string) => {
   const actingUserId = await requireUserId();
   await requirePermission(actingUserId, "users", "delete", null);
   await setUserStatus(userId, "DEACTIVATED");
   revalidatePath("/admin/staff");
-}
+}, "Couldn't deactivate that account right now — please try again.");
 
-export async function reactivateStaffAction(userId: string) {
+export const reactivateStaffAction = withSafeErrors(async (userId: string) => {
   const actingUserId = await requireUserId();
   await requirePermission(actingUserId, "users", "update", null);
   await setUserStatus(userId, "ACTIVE");
   revalidatePath("/admin/staff");
-}
+}, "Couldn't reactivate that account right now — please try again.");

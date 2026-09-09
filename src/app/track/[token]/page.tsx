@@ -61,8 +61,8 @@ export default async function TrackOrderPage({
   if (!tracking) notFound();
 
   const [ticket, reviewState] = await Promise.all([
-    getTicketForOrder(tracking.orderNumber),
-    getReviewForOrder(tracking.orderNumber),
+    getTicketForOrder(token),
+    getReviewForOrder(token),
   ]);
 
   const canReview = reviewState ? REVIEWABLE_STATUSES.has(reviewState.orderStatus) : false;
@@ -183,7 +183,7 @@ export default async function TrackOrderPage({
                 )}
               </div>
             ) : (
-              <form action={submitReviewFormAction.bind(null, token, tracking.orderNumber)} className="mt-3 space-y-3">
+              <form action={submitReviewFormAction.bind(null, token)} className="mt-3 space-y-3">
                 <div className="flex gap-2">
                   {[1, 2, 3, 4, 5].map((value) => (
                     <label key={value} className="cursor-pointer text-2xl text-stone-300 has-[:checked]:text-amber-500 dark:text-stone-700">
@@ -245,7 +245,7 @@ export default async function TrackOrderPage({
               </form>
             </div>
           ) : (
-            <form action={createSupportTicketFormAction.bind(null, token, tracking.orderNumber)} className="mt-3 space-y-3">
+            <form action={createSupportTicketFormAction.bind(null, token)} className="mt-3 space-y-3">
               <input type="text" name="subject" required placeholder="What's this about?" className={inputClass} />
               <textarea name="message" rows={3} required placeholder="Describe the issue..." className={inputClass} />
               <button

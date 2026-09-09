@@ -8,9 +8,9 @@ import { enforceRateLimit, getRequestIp, RateLimitError } from "@/lib/rate-limit
 
 // The URL is keyed by the secure trackingToken (not orderNumber — see
 // Order.trackingToken's doc comment), so every redirect/revalidate target
-// here must use the token the page was actually loaded with; orderNumber is
-// only ever used internally to look the order back up for these existing
-// support-ticket/review services.
+// here must use the token the page was actually loaded with. The
+// support-ticket/review services below look the order up by that same
+// token, never by orderNumber, which is sequential and guessable.
 function errorRedirect(token: string, message: string): never {
   redirect(`/track/${token}?error=${encodeURIComponent(message)}`);
 }
@@ -29,7 +29,7 @@ async function enforcePublicWriteLimit(action: string, token: string) {
   }
 }
 
-export async function createSupportTicketFormAction(token: string, orderNumber: string, formData: FormData) {
+export async function createSupportTicketFormAction(token: string, formData: FormData) {
   await enforcePublicWriteLimit("support-ticket", token);
 
   const subject = String(formData.get("subject") ?? "").trim();
@@ -39,7 +39,7 @@ export async function createSupportTicketFormAction(token: string, orderNumber: 
   }
 
   try {
-    await createSupportTicketForOrder({ orderNumber, subject, message });
+    await createSupportTicketForOrder({ trackingToken: token, subject, message });
   } catch (error) {
     if (error instanceof SupportTicketError) errorRedirect(token, error.message);
     throw error;
@@ -62,14 +62,14 @@ export async function addTicketMessageFormAction(token: string, ticketId: string
   revalidatePath(`/track/${token}`);
 }
 
-export async function submitReviewFormAction(token: string, orderNumber: string, formData: FormData) {
+export async function submitReviewFormAction(token: string, formData: FormData) {
   await enforcePublicWriteLimit("review", token);
 
   const rating = Number(formData.get("rating"));
   const comment = String(formData.get("comment") ?? "").trim();
 
   try {
-    await createReview({ orderNumber, rating, comment: comment || undefined });
+    await createReview({ trackingToken: token, rating, comment: comment || undefined });
   } catch (error) {
     if (error instanceof ReviewError) errorRedirect(token, error.message);
     throw error;

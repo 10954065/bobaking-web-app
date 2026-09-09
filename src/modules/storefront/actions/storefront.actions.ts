@@ -9,7 +9,7 @@ import { listPosProducts, type PosProduct } from "@/modules/pos/services/pos-cat
 import { placeStorefrontOrder } from "@/modules/storefront/services/storefront.service";
 import type { PlaceStorefrontOrderInput } from "@/modules/storefront/schemas/storefront.schema";
 import { initiatePayment } from "@/modules/payments/services/payment.service";
-import { processWebhookEvent } from "@/modules/payments/services/payment.service";
+import { processWebhookEvent, assertDevPaymentSimulationAllowed } from "@/modules/payments/services/payment.service";
 import { getOrderById } from "@/modules/orders/services/order.service";
 
 export interface StorefrontBranch {
@@ -102,6 +102,8 @@ export const initiateStorefrontPaymentAction = withSafeErrors(async (input: {
  * order desk's CheckoutFlow. No real gateway is wired up yet.
  */
 export const simulateStorefrontPaymentAction = withSafeErrors(async (paymentId: string): Promise<{ status: string | null }> => {
+  assertDevPaymentSimulationAllowed();
+
   const ip = await getRequestIp();
   await enforceRateLimit(`storefront-payment-sim:${ip}`, { limit: 15, windowSeconds: 900 });
 

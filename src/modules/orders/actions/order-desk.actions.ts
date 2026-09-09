@@ -3,6 +3,7 @@
 import { prisma } from "@/db/client";
 import { getCurrentUserId } from "@/modules/auth/services/current-session.service";
 import { getUserAccessProfile, hasAnyPermission, getAccessibleBranchIds } from "@/modules/auth/services/authorization.service";
+import { withSafeErrors } from "@/lib/errors";
 
 async function requireOrdersReadBranches() {
   const userId = await getCurrentUserId();
@@ -32,7 +33,7 @@ export interface IncomingOrder {
  * (PENDING_PAYMENT) and payments that have landed but haven't been relayed
  * to the kitchen yet (CONFIRMED) — see sendToKitchenAction/confirmCashPaymentAction.
  */
-export async function listIncomingOrdersAction(): Promise<IncomingOrder[]> {
+export const listIncomingOrdersAction = withSafeErrors(async (): Promise<IncomingOrder[]> => {
   const branchIds = await requireOrdersReadBranches();
   const orders = await prisma.order.findMany({
     where: {
@@ -56,7 +57,7 @@ export async function listIncomingOrdersAction(): Promise<IncomingOrder[]> {
     paymentMethod: order.payments[0]?.method ?? null,
     paymentStatus: order.payments[0]?.status ?? null,
   }));
-}
+}, "Couldn't load incoming orders right now — please try again.");
 
 export interface TodaysOrderRow {
   id: string;
@@ -77,7 +78,7 @@ export interface TodaysOrdersSummary {
 }
 
 /** The end-of-day reconciliation view — every order this branch took today, and what actually got collected (cash vs mobile money), so closing out the till doesn't require cross-checking a spreadsheet. */
-export async function listTodaysOrdersAction(): Promise<TodaysOrdersSummary> {
+export const listTodaysOrdersAction = withSafeErrors(async (): Promise<TodaysOrdersSummary> => {
   const branchIds = await requireOrdersReadBranches();
   const startOfToday = new Date();
   startOfToday.setHours(0, 0, 0, 0);
@@ -121,4 +122,4 @@ export async function listTodaysOrdersAction(): Promise<TodaysOrdersSummary> {
     totalCollected,
     byMethod,
   };
-}
+}, "Couldn't load today's orders right now — please try again.");

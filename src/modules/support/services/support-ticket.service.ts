@@ -12,7 +12,7 @@ export class SupportTicketError extends UserFacingError {}
 
 export class OrderNotFoundError extends SupportTicketError {
   constructor() {
-    super("We couldn't find an order with that number.");
+    super("We couldn't find that order.");
     this.name = "OrderNotFoundError";
   }
 }
@@ -20,14 +20,15 @@ export class OrderNotFoundError extends SupportTicketError {
 const OPEN_STATUSES: SupportTicketStatus[] = ["RESOLVED", "CLOSED"];
 
 /**
- * Public entry point from the order-tracking page (see order-tracking.service.ts's
- * own PII rule — there's no customer login, so the order number IS the
- * capability). customerId/branchId are always derived from the order itself,
- * never trusted from client input.
+ * Public entry point from the order-tracking page. Looked up by the
+ * unguessable trackingToken (never orderNumber, which is sequential and
+ * guessable — see Order.trackingToken's doc comment) since there's no
+ * customer login and the token IS the capability. customerId/branchId are
+ * always derived from the order itself, never trusted from client input.
  */
 export async function createSupportTicketForOrder(input: CreateSupportTicketInput) {
   const data = createSupportTicketSchema.parse(input);
-  const order = await prisma.order.findUnique({ where: { orderNumber: data.orderNumber } });
+  const order = await prisma.order.findUnique({ where: { trackingToken: data.trackingToken } });
   if (!order) throw new OrderNotFoundError();
 
   return prisma.$transaction(async (tx) => {
@@ -42,8 +43,8 @@ export async function createSupportTicketForOrder(input: CreateSupportTicketInpu
 }
 
 /** The tracking page's own view of a ticket — no staff names, just the thread. */
-export async function getTicketForOrder(orderNumber: string) {
-  const order = await prisma.order.findUnique({ where: { orderNumber }, select: { id: true } });
+export async function getTicketForOrder(trackingToken: string) {
+  const order = await prisma.order.findUnique({ where: { trackingToken }, select: { id: true } });
   if (!order) return null;
   return prisma.supportTicket.findFirst({
     where: { orderId: order.id },

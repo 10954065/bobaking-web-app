@@ -5,6 +5,7 @@ import { getCurrentUserId } from "@/modules/auth/services/current-session.servic
 import { requirePermission } from "@/modules/auth/services/authorization.service";
 import { getTicketById, addStaffMessage, updateTicketStatus } from "@/modules/support/services/support-ticket.service";
 import type { SupportTicketStatus } from "@prisma/client";
+import { withSafeErrors } from "@/lib/errors";
 
 async function requireUserId(): Promise<string> {
   const userId = await getCurrentUserId();
@@ -19,18 +20,18 @@ async function requireTicketBranch(ticketId: string): Promise<{ userId: string; 
   return { userId, branchId: ticket.branchId };
 }
 
-export async function replyToTicketAction(ticketId: string, body: string): Promise<void> {
+export const replyToTicketAction = withSafeErrors(async (ticketId: string, body: string): Promise<void> => {
   const { userId, branchId } = await requireTicketBranch(ticketId);
   await requirePermission(userId, "support", "update", branchId);
   await addStaffMessage(ticketId, { authorUserId: userId, body });
   revalidatePath(`/admin/support/${ticketId}`);
   revalidatePath("/admin/support");
-}
+}, "Couldn't send that reply right now — please try again.");
 
-export async function updateTicketStatusAction(ticketId: string, status: SupportTicketStatus): Promise<void> {
+export const updateTicketStatusAction = withSafeErrors(async (ticketId: string, status: SupportTicketStatus): Promise<void> => {
   const { userId, branchId } = await requireTicketBranch(ticketId);
   await requirePermission(userId, "support", "update", branchId);
   await updateTicketStatus(ticketId, status);
   revalidatePath(`/admin/support/${ticketId}`);
   revalidatePath("/admin/support");
-}
+}, "Couldn't update that ticket right now — please try again.");

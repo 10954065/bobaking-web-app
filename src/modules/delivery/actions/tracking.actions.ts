@@ -4,6 +4,7 @@ import { prisma } from "@/db/client";
 import { getCurrentUserId } from "@/modules/auth/services/current-session.service";
 import { getUserAccessProfile, hasPermission } from "@/modules/auth/services/authorization.service";
 import { getDeliveryNavigation, NavigationUnavailableError, type DeliveryNavigation } from "@/modules/delivery/services/delivery-navigation.service";
+import { withSafeErrors } from "@/lib/errors";
 
 const LIVE_TRACKABLE_STATUSES = new Set(["ASSIGNED_TO_RIDER", "PICKED_UP", "OUT_FOR_DELIVERY"]);
 
@@ -21,11 +22,11 @@ async function safeGetNavigation(orderId: string): Promise<DeliveryNavigation | 
  * shouldRecalculateRoute) — gated by the same trackingToken as the SSE
  * location feed and the /track/[token] page itself, never by orderId alone.
  */
-export async function getPublicNavigationAction(trackingToken: string): Promise<DeliveryNavigation | null> {
+export const getPublicNavigationAction = withSafeErrors(async (trackingToken: string): Promise<DeliveryNavigation | null> => {
   const order = await prisma.order.findUnique({ where: { trackingToken }, select: { id: true, status: true } });
   if (!order || !LIVE_TRACKABLE_STATUSES.has(order.status)) return null;
   return safeGetNavigation(order.id);
-}
+}, "Couldn't load the delivery route right now — please try again.");
 
 async function requireDeliveryReadAccess(orderId: string): Promise<{ branchId: string }> {
   const userId = await getCurrentUserId();
@@ -40,10 +41,10 @@ async function requireDeliveryReadAccess(orderId: string): Promise<{ branchId: s
 }
 
 /** Admin/staff route refresh for the delivery-monitoring board — gated by the same `delivery.read` permission as the board and its SSE feed. */
-export async function getAdminDeliveryNavigationAction(orderId: string): Promise<DeliveryNavigation | null> {
+export const getAdminDeliveryNavigationAction = withSafeErrors(async (orderId: string): Promise<DeliveryNavigation | null> => {
   await requireDeliveryReadAccess(orderId);
   return safeGetNavigation(orderId);
-}
+}, "Couldn't load the delivery route right now — please try again.");
 
 export interface DeliveryMapPoints {
   branchCoordinates: { latitude: number; longitude: number } | null;
@@ -51,7 +52,7 @@ export interface DeliveryMapPoints {
 }
 
 /** Both fixed endpoints (not just the current leg's destination) so the admin map can show restaurant + customer + rider together, same as the customer's own tracking view. */
-export async function getAdminDeliveryPointsAction(orderId: string): Promise<DeliveryMapPoints> {
+export const getAdminDeliveryPointsAction = withSafeErrors(async (orderId: string): Promise<DeliveryMapPoints> => {
   await requireDeliveryReadAccess(orderId);
 
   const order = await prisma.order.findUniqueOrThrow({
@@ -69,4 +70,4 @@ export async function getAdminDeliveryPointsAction(orderId: string): Promise<Del
         ? { latitude: Number(order.deliveryAddress.latitude), longitude: Number(order.deliveryAddress.longitude) }
         : null,
   };
-}
+}, "Couldn't load the delivery map right now — please try again.");

@@ -3,12 +3,13 @@
 import { getCurrentUserId } from "@/modules/auth/services/current-session.service";
 import { requirePermission } from "@/modules/auth/services/authorization.service";
 import { prisma } from "@/db/client";
+import { UserFacingError, withSafeErrors } from "@/lib/errors";
 import {
   listReadyForDeliveryOrders,
   listActiveDeliveriesForBranch,
   assignRiderToOrder,
 } from "@/modules/delivery/services/delivery-order.service";
-import { listRidersForBranch } from "@/modules/delivery/services/rider.service";
+import { listRidersForBranch, getRiderProfileByUserId } from "@/modules/delivery/services/rider.service";
 
 async function requireUserId(): Promise<string> {
   const userId = await getCurrentUserId();
@@ -46,7 +47,7 @@ function addressLabel(address: { addressLine1: string; area: string | null } | n
   return address.area ? `${address.addressLine1}, ${address.area}` : address.addressLine1;
 }
 
-export async function getDeliveryBoardAction(branchId: string): Promise<DeliveryBoardData> {
+export const getDeliveryBoardAction = withSafeErrors(async (branchId: string): Promise<DeliveryBoardData> => {
   const userId = await requireUserId();
   await requirePermission(userId, "delivery", "read", branchId);
 
@@ -86,11 +87,20 @@ export async function getDeliveryBoardAction(branchId: string): Promise<Delivery
       lastLocationAt: rider.lastLocationAt?.toISOString() ?? null,
     })),
   };
-}
+}, "Couldn't load the delivery board right now — please try again.");
 
-export async function assignRiderToOrderAction(orderId: string, riderUserId: string): Promise<void> {
+export const assignRiderToOrderAction = withSafeErrors(async (orderId: string, riderUserId: string): Promise<void> => {
   const userId = await requireUserId();
   const order = await prisma.order.findUniqueOrThrow({ where: { id: orderId }, select: { branchId: true } });
   await requirePermission(userId, "delivery", "assign", order.branchId);
+
+  // A rider can only be assigned to orders at their own branch — otherwise a
+  // BRANCH_MANAGER/FRONT_DESK could point a customer's delivery at a rider
+  // who isn't actually based there.
+  const riderProfile = await getRiderProfileByUserId(riderUserId);
+  if (!riderProfile || riderProfile.branchId !== order.branchId) {
+    throw new UserFacingError("That rider isn't available at this branch.");
+  }
+
   await assignRiderToOrder(orderId, riderUserId, userId);
-}
+}, "Couldn't assign that rider right now — please try again.");

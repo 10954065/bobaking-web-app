@@ -7,6 +7,7 @@ import { requireAnyPermission } from "@/modules/auth/services/authorization.serv
 import { updateLoyaltyConfig, adjustLoyaltyPoints, evaluatePointsRedemption } from "@/modules/loyalty/services/loyalty.service";
 import { LoyaltyError } from "@/modules/loyalty/services/loyalty.service";
 import type { UpdateLoyaltyConfigInput, AdjustLoyaltyPointsInput } from "@/modules/loyalty/schemas/loyalty.schema";
+import { withSafeErrors } from "@/lib/errors";
 
 async function requireUserId(): Promise<string> {
   const userId = await getCurrentUserId();
@@ -14,7 +15,7 @@ async function requireUserId(): Promise<string> {
   return userId;
 }
 
-export async function updateLoyaltyConfigAction(input: UpdateLoyaltyConfigInput) {
+export const updateLoyaltyConfigAction = withSafeErrors(async (input: UpdateLoyaltyConfigInput) => {
   const userId = await requireUserId();
   await requireAnyPermission(userId, "loyalty", "update");
   const config = await updateLoyaltyConfig(input);
@@ -25,15 +26,15 @@ export async function updateLoyaltyConfigAction(input: UpdateLoyaltyConfigInput)
     minPointsToRedeem: config.minPointsToRedeem,
     isActive: config.isActive,
   };
-}
+}, "Couldn't update loyalty settings right now — please try again.");
 
-export async function adjustLoyaltyPointsAction(customerId: string, input: AdjustLoyaltyPointsInput) {
+export const adjustLoyaltyPointsAction = withSafeErrors(async (customerId: string, input: AdjustLoyaltyPointsInput) => {
   const userId = await requireUserId();
   await requireAnyPermission(userId, "loyalty", "update");
   const { account } = await adjustLoyaltyPoints(customerId, input, userId);
   revalidatePath(`/admin/customers/${customerId}`);
   return { pointsBalance: account.pointsBalance };
-}
+}, "Couldn't adjust points right now — please try again.");
 
 export interface PointsPreview {
   valid: boolean;
@@ -42,7 +43,7 @@ export interface PointsPreview {
 }
 
 /** POS-facing "check this redemption before finalizing" — re-validated for real again inside checkoutAction/checkout.service.ts. */
-export async function previewPointsRedemptionAction(customerId: string, points: number): Promise<PointsPreview> {
+export const previewPointsRedemptionAction = withSafeErrors(async (customerId: string, points: number): Promise<PointsPreview> => {
   const userId = await requireUserId();
   await requireAnyPermission(userId, "customers", "read");
 
@@ -55,4 +56,4 @@ export async function previewPointsRedemptionAction(customerId: string, points: 
     }
     throw error;
   }
-}
+}, "Couldn't check that redemption right now — please try again.");

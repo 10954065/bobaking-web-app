@@ -5,6 +5,7 @@ import { getCurrentUserId } from "@/modules/auth/services/current-session.servic
 import { requireAnyPermission } from "@/modules/auth/services/authorization.service";
 import { createIngredient, updateIngredient, deactivateIngredient } from "@/modules/inventory/services/ingredient.service";
 import type { CreateIngredientInput, UpdateIngredientInput } from "@/modules/inventory/schemas/ingredient.schema";
+import { withSafeErrors } from "@/lib/errors";
 
 async function requireUserId(): Promise<string> {
   const userId = await getCurrentUserId();
@@ -36,26 +37,26 @@ function toIngredientSummary(ingredient: { id: string; name: string; sku: string
 }
 
 /** Ingredient is a global catalog (no branchId of its own) — same coarse-grant shape as the product catalog, gated by inventory.adjust. */
-export async function createIngredientAction(input: CreateIngredientInput): Promise<IngredientSummary> {
+export const createIngredientAction = withSafeErrors(async (input: CreateIngredientInput): Promise<IngredientSummary> => {
   const userId = await requireUserId();
   await requireAnyPermission(userId, "inventory", "adjust");
   const ingredient = await createIngredient(input);
   revalidatePath("/admin/inventory");
   return toIngredientSummary(ingredient);
-}
+}, "Couldn't create that ingredient right now — please try again.");
 
-export async function updateIngredientAction(id: string, input: UpdateIngredientInput): Promise<IngredientSummary> {
+export const updateIngredientAction = withSafeErrors(async (id: string, input: UpdateIngredientInput): Promise<IngredientSummary> => {
   const userId = await requireUserId();
   await requireAnyPermission(userId, "inventory", "adjust");
   const ingredient = await updateIngredient(id, input);
   revalidatePath("/admin/inventory");
   return toIngredientSummary(ingredient);
-}
+}, "Couldn't update that ingredient right now — please try again.");
 
-export async function deactivateIngredientAction(id: string): Promise<IngredientSummary> {
+export const deactivateIngredientAction = withSafeErrors(async (id: string): Promise<IngredientSummary> => {
   const userId = await requireUserId();
   await requireAnyPermission(userId, "inventory", "adjust");
   const ingredient = await deactivateIngredient(id);
   revalidatePath("/admin/inventory");
   return toIngredientSummary(ingredient);
-}
+}, "Couldn't deactivate that ingredient right now — please try again.");

@@ -6,7 +6,7 @@ export class ReviewError extends Error {}
 
 export class OrderNotFoundError extends ReviewError {
   constructor() {
-    super("We couldn't find an order with that number.");
+    super("We couldn't find that order.");
     this.name = "OrderNotFoundError";
   }
 }
@@ -27,12 +27,12 @@ export class ReviewAlreadyExistsError extends ReviewError {
 
 const REVIEWABLE_STATUSES: OrderStatus[] = ["DELIVERED", "COMPLETED"];
 
-/** Public entry point from the order-tracking page — same order-number-as-capability
+/** Public entry point from the order-tracking page — same trackingToken-as-capability
  * posture as support tickets (see support-ticket.service.ts). One review per order,
  * enforced at the DB via Review.orderId's unique constraint. */
 export async function createReview(input: CreateReviewInput) {
   const data = createReviewSchema.parse(input);
-  const order = await prisma.order.findUnique({ where: { orderNumber: data.orderNumber } });
+  const order = await prisma.order.findUnique({ where: { trackingToken: data.trackingToken } });
   if (!order) throw new OrderNotFoundError();
   if (!REVIEWABLE_STATUSES.includes(order.status)) throw new OrderNotEligibleForReviewError();
 
@@ -54,8 +54,8 @@ export async function createReview(input: CreateReviewInput) {
   }
 }
 
-export async function getReviewForOrder(orderNumber: string) {
-  const order = await prisma.order.findUnique({ where: { orderNumber }, select: { id: true, status: true } });
+export async function getReviewForOrder(trackingToken: string) {
+  const order = await prisma.order.findUnique({ where: { trackingToken }, select: { id: true, status: true } });
   if (!order) return null;
   const review = await prisma.review.findUnique({ where: { orderId: order.id } });
   return { orderStatus: order.status, review };
