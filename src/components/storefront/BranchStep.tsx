@@ -10,11 +10,13 @@ import type { StorefrontBranch } from "@/modules/storefront/actions/storefront.a
 export function BranchStep({
   branches,
   type,
+  error,
   onSelectType,
   onContinue,
 }: {
   branches: StorefrontBranch[];
   type: "DELIVERY" | "PICKUP";
+  error?: string | null;
   onSelectType: (type: "DELIVERY" | "PICKUP") => void;
   onContinue: (branchId: string) => void;
 }) {
@@ -109,6 +111,8 @@ export function BranchStep({
           </motion.button>
         ))}
       </div>
+
+      {error && <p className="mt-4 rounded-lg bg-red-950/40 px-3 py-2 text-sm text-red-300">{error}</p>}
 
       <button
         onClick={() => selectedBranchId && onContinue(selectedBranchId)}

@@ -1,5 +1,6 @@
-import { prisma } from "@/db/client";
+import { prisma, DEFAULT_TRANSACTION_OPTIONS } from "@/db/client";
 import type { SupportTicketStatus } from "@prisma/client";
+import { UserFacingError } from "@/lib/errors";
 import {
   createSupportTicketSchema,
   ticketMessageSchema,
@@ -7,7 +8,7 @@ import {
   type TicketMessageInput,
 } from "@/modules/support/schemas/support.schema";
 
-export class SupportTicketError extends Error {}
+export class SupportTicketError extends UserFacingError {}
 
 export class OrderNotFoundError extends SupportTicketError {
   constructor() {
@@ -37,7 +38,7 @@ export async function createSupportTicketForOrder(input: CreateSupportTicketInpu
       data: { ticketId: ticket.id, authorType: "CUSTOMER", body: data.message },
     });
     return ticket;
-  });
+  }, DEFAULT_TRANSACTION_OPTIONS);
 }
 
 /** The tracking page's own view of a ticket — no staff names, just the thread. */
@@ -60,7 +61,7 @@ export async function addCustomerMessage(ticketId: string, input: TicketMessageI
     if (OPEN_STATUSES.includes(ticket.status)) {
       await tx.supportTicket.update({ where: { id: ticketId }, data: { status: "OPEN" } });
     }
-  });
+  }, DEFAULT_TRANSACTION_OPTIONS);
 }
 
 export async function listTicketsForBranches(branchIds: "ALL" | string[], params: { status?: SupportTicketStatus } = {}) {
@@ -98,7 +99,7 @@ export async function addStaffMessage(ticketId: string, params: { authorUserId: 
     if (ticket.status === "OPEN") {
       await tx.supportTicket.update({ where: { id: ticketId }, data: { status: "IN_PROGRESS" } });
     }
-  });
+  }, DEFAULT_TRANSACTION_OPTIONS);
 }
 
 export async function updateTicketStatus(ticketId: string, status: SupportTicketStatus) {

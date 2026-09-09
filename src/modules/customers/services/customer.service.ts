@@ -1,4 +1,4 @@
-import { prisma } from "@/db/client";
+import { prisma, DEFAULT_TRANSACTION_OPTIONS } from "@/db/client";
 import {
   createCustomerSchema,
   updateCustomerSchema,
@@ -79,7 +79,7 @@ export async function addCustomerAddress(customerId: string, input: CreateCustom
       await tx.customerAddress.updateMany({ where: { customerId }, data: { isDefault: false } });
     }
     return tx.customerAddress.create({ data: { ...data, customerId } });
-  });
+  }, DEFAULT_TRANSACTION_OPTIONS);
 }
 
 export async function listCustomerAddresses(customerId: string) {

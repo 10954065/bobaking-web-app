@@ -1,4 +1,6 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
+import type { OrderStatus } from "@prisma/client";
 import { getCurrentSession } from "@/modules/auth/services/current-session.service";
 import { getUserAccessProfile, hasAnyPermission, hasPermission, getAccessibleBranchIds } from "@/modules/auth/services/authorization.service";
 import { listOrdersForBranch } from "@/modules/orders/services/order.service";
@@ -22,7 +24,27 @@ const STATUS_COLORS: Record<string, string> = {
   REJECTED: "bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300",
 };
 
-export default async function AdminOrdersPage() {
+const STATUS_FILTERS: OrderStatus[] = [
+  "PENDING_PAYMENT",
+  "CONFIRMED",
+  "ACCEPTED",
+  "SENT_TO_KITCHEN",
+  "PREPARING",
+  "READY",
+  "OUT_FOR_DELIVERY",
+  "DELIVERED",
+  "COMPLETED",
+  "CANCELLED",
+  "REJECTED",
+];
+
+const PAGE_SIZE = 25;
+
+export default async function AdminOrdersPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ status?: string; page?: string }>;
+}) {
   const session = await getCurrentSession();
   if (!session) redirect("/login");
 
@@ -37,15 +59,61 @@ export default async function AdminOrdersPage() {
     );
   }
 
+  const { status: statusParam, page: pageParam } = await searchParams;
+  const statusFilter = statusParam && STATUS_FILTERS.includes(statusParam as OrderStatus) ? (statusParam as OrderStatus) : undefined;
+  const page = Math.max(1, Number(pageParam) || 1);
+
+  function pageHref(targetPage: number, targetStatus = statusParam) {
+    const params = new URLSearchParams();
+    if (targetStatus) params.set("status", targetStatus);
+    if (targetPage > 1) params.set("page", String(targetPage));
+    const query = params.toString();
+    return query ? `/admin/orders?${query}` : "/admin/orders";
+  }
+
   const branchAccess = getAccessibleBranchIds(profile, "orders", "read");
-  const orders = await listOrdersForBranch(branchAccess);
+  // Fetch one extra row to know whether a next page exists without a
+  // separate count query — sliced back off before rendering.
+  const fetched = await listOrdersForBranch(branchAccess, {
+    status: statusFilter,
+    limit: PAGE_SIZE + 1,
+    offset: (page - 1) * PAGE_SIZE,
+  });
+  const hasNextPage = fetched.length > PAGE_SIZE;
+  const orders = fetched.slice(0, PAGE_SIZE);
 
   return (
     <div className="min-h-screen">
       <main className="mx-auto max-w-5xl px-6 py-8">
+        <div className="mb-4 flex flex-wrap gap-1.5">
+          <Link
+            href={pageHref(1, undefined)}
+            className={`rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${
+              !statusFilter
+                ? "bg-brand-red-600 text-white"
+                : "border border-stone-300 text-stone-600 hover:bg-stone-100 dark:border-stone-700 dark:text-stone-400 dark:hover:bg-stone-800"
+            }`}
+          >
+            All
+          </Link>
+          {STATUS_FILTERS.map((s) => (
+            <Link
+              key={s}
+              href={pageHref(1, s)}
+              className={`rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${
+                statusFilter === s
+                  ? "bg-brand-red-600 text-white"
+                  : "border border-stone-300 text-stone-600 hover:bg-stone-100 dark:border-stone-700 dark:text-stone-400 dark:hover:bg-stone-800"
+              }`}
+            >
+              {s.replaceAll("_", " ")}
+            </Link>
+          ))}
+        </div>
+
         <section className="rounded-xl border border-stone-200/70 bg-white shadow-sm shadow-stone-900/5 transition-shadow duration-200 hover:shadow-md dark:border-stone-800 dark:bg-stone-900">
           <h2 className="px-6 pt-6 text-sm font-semibold text-stone-500 dark:text-stone-400">
-            Orders ({orders.length})
+            Orders ({orders.length}{hasNextPage ? "+" : ""})
           </h2>
           <div className="mt-4 overflow-x-auto">
             <table className="w-full text-left text-sm">
@@ -98,13 +166,39 @@ export default async function AdminOrdersPage() {
                 {orders.length === 0 && (
                   <tr>
                     <td colSpan={8} className="px-6 py-6 text-center text-sm text-stone-500 dark:text-stone-400">
-                      No orders yet.
+                      No orders {statusFilter ? `with status ${statusFilter.replaceAll("_", " ").toLowerCase()}` : "yet"}.
                     </td>
                   </tr>
                 )}
               </tbody>
             </table>
           </div>
+
+          {(page > 1 || hasNextPage) && (
+            <div className="flex items-center justify-between border-t border-stone-100 px-6 py-3 dark:border-stone-800">
+              {page > 1 ? (
+                <Link
+                  href={pageHref(page - 1)}
+                  className="rounded-lg border border-stone-300 px-3 py-1.5 text-xs font-medium text-stone-600 hover:bg-stone-100 dark:border-stone-700 dark:text-stone-300 dark:hover:bg-stone-800"
+                >
+                  ← Previous
+                </Link>
+              ) : (
+                <span />
+              )}
+              <span className="text-xs text-stone-400 dark:text-stone-500">Page {page}</span>
+              {hasNextPage ? (
+                <Link
+                  href={pageHref(page + 1)}
+                  className="rounded-lg border border-stone-300 px-3 py-1.5 text-xs font-medium text-stone-600 hover:bg-stone-100 dark:border-stone-700 dark:text-stone-300 dark:hover:bg-stone-800"
+                >
+                  Next →
+                </Link>
+              ) : (
+                <span />
+              )}
+            </div>
+          )}
         </section>
       </main>
     </div>

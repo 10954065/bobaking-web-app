@@ -75,6 +75,7 @@ export function StorefrontApp({
   const [cart, setCart] = useState<LocalCartItem[]>([]);
   const [cartOpen, setCartOpen] = useState(false);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
+  const [branchError, setBranchError] = useState<string | null>(null);
   const [isPlacing, setIsPlacing] = useState(false);
   const [order, setOrder] = useState<StorefrontOrderSummary | null>(null);
   const [checkoutTransition, setCheckoutTransition] = useState(false);
@@ -102,6 +103,7 @@ export function StorefrontApp({
   const currentBranch = branches.find((b) => b.id === branchId);
 
   async function handleBranchContinue(id: string, options: { skipInitialDish?: boolean } = {}) {
+    setBranchError(null);
     setBranchId(id);
     setMenuLoading(true);
     const startedAt = performance.now();
@@ -111,7 +113,8 @@ export function StorefrontApp({
       loaded = await getStorefrontMenuAction(id);
     } catch (e) {
       setMenuLoading(false);
-      throw e;
+      setBranchError(e instanceof Error ? e.message : "Couldn't load the menu right now — please try again.");
+      return;
     }
 
     const revealMenu = () => {
@@ -247,7 +250,7 @@ export function StorefrontApp({
     return (
       <div className="min-h-screen bg-stone-950 text-stone-100">
         <SplashVisual visible={isMenuLoading} reducedMotion={reducedMotion} timings={QUICK_TRANSITION_TIMINGS} tagline="Finding your menu" />
-        <BranchStep branches={branches} type={type} onSelectType={setType} onContinue={handleBranchContinue} />
+        <BranchStep branches={branches} type={type} error={branchError} onSelectType={setType} onContinue={handleBranchContinue} />
       </div>
     );
   }

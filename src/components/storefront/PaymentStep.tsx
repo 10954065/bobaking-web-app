@@ -50,9 +50,14 @@ export function PaymentStep({
 
   function handleSimulate() {
     if (!paymentId) return;
+    setError(null);
     startTransition(async () => {
-      await simulateStorefrontPaymentAction(paymentId);
-      setStage("done");
+      try {
+        await simulateStorefrontPaymentAction(paymentId);
+        setStage("done");
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "Couldn't confirm payment.");
+      }
     });
   }
 
@@ -113,6 +118,7 @@ export function PaymentStep({
           <p className="mt-5 rounded-lg border border-amber-900/60 bg-amber-950/30 px-3 py-2 text-xs text-amber-300">
             DEV: no real Mobile Money gateway is connected yet. Use this button to simulate approving the prompt.
           </p>
+          {error && <p className="mt-3 rounded-lg bg-red-950/40 px-3 py-2 text-sm text-red-300">{error}</p>}
           <button
             onClick={handleSimulate}
             disabled={isPending}

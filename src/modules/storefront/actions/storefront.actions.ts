@@ -2,6 +2,7 @@
 
 import { prisma } from "@/db/client";
 import { getRequestIp, enforceRateLimit } from "@/lib/rate-limit";
+import { withSafeErrors } from "@/lib/errors";
 import { listBranches } from "@/modules/branches/services/branch.service";
 import { listCategories } from "@/modules/categories/services/category.service";
 import { listPosProducts, type PosProduct } from "@/modules/pos/services/pos-catalog.service";
@@ -20,7 +21,7 @@ export interface StorefrontBranch {
 }
 
 /** No auth — this is the public "choose a branch" step of the customer storefront. */
-export async function getStorefrontBranchesAction(): Promise<StorefrontBranch[]> {
+export const getStorefrontBranchesAction = withSafeErrors(async (): Promise<StorefrontBranch[]> => {
   const branches = await listBranches({ status: "ACTIVE" });
   return branches.map((b) => ({
     id: b.id,
@@ -29,17 +30,17 @@ export async function getStorefrontBranchesAction(): Promise<StorefrontBranch[]>
     latitude: b.latitude != null ? Number(b.latitude) : null,
     longitude: b.longitude != null ? Number(b.longitude) : null,
   }));
-}
+}, "Couldn't load branches right now — please refresh and try again.");
 
 export interface StorefrontMenu {
   categories: { id: string; name: string }[];
   products: PosProduct[];
 }
 
-export async function getStorefrontMenuAction(branchId: string): Promise<StorefrontMenu> {
+export const getStorefrontMenuAction = withSafeErrors(async (branchId: string): Promise<StorefrontMenu> => {
   const [categories, products] = await Promise.all([listCategories(), listPosProducts(branchId)]);
   return { categories: categories.map((c) => ({ id: c.id, name: c.name })), products };
-}
+}, "Couldn't load the menu right now — please try again.");
 
 export interface StorefrontOrderSummary {
   id: string;
@@ -53,7 +54,7 @@ export interface StorefrontOrderSummary {
 }
 
 /** Rate-limited per IP — this is the one action a bot could hammer to spam-create orders/customers with no auth in front of it. */
-export async function placeStorefrontOrderAction(input: PlaceStorefrontOrderInput): Promise<StorefrontOrderSummary> {
+export const placeStorefrontOrderAction = withSafeErrors(async (input: PlaceStorefrontOrderInput): Promise<StorefrontOrderSummary> => {
   const ip = await getRequestIp();
   await enforceRateLimit(`storefront-order:${ip}`, { limit: 8, windowSeconds: 900 });
 
@@ -67,7 +68,7 @@ export async function placeStorefrontOrderAction(input: PlaceStorefrontOrderInpu
     taxTotal: Number(order.taxTotal),
     deliveryFee: Number(order.deliveryFee),
   };
-}
+}, "We couldn't place your order right now — please try again in a moment.");
 
 export interface StorefrontPaymentSummary {
   id: string;
@@ -78,10 +79,10 @@ export interface StorefrontPaymentSummary {
   redirectUrl: string | null;
 }
 
-export async function initiateStorefrontPaymentAction(input: {
+export const initiateStorefrontPaymentAction = withSafeErrors(async (input: {
   orderId: string;
   method: "CASH" | "MOBILE_MONEY" | "CARD";
-}): Promise<StorefrontPaymentSummary> {
+}): Promise<StorefrontPaymentSummary> => {
   const ip = await getRequestIp();
   await enforceRateLimit(`storefront-payment:${ip}`, { limit: 15, windowSeconds: 900 });
 
@@ -92,7 +93,7 @@ export async function initiateStorefrontPaymentAction(input: {
   });
   const metadata = payment.metadata as { redirectUrl?: string } | null;
   return { id: payment.id, provider: payment.provider, status: payment.status, redirectUrl: metadata?.redirectUrl ?? null };
-}
+}, "Couldn't start payment right now — please try again.");
 
 /**
  * DEV ONLY: stands in for the real Mobile Money gateway calling our webhook
@@ -100,7 +101,7 @@ export async function initiateStorefrontPaymentAction(input: {
  * MobileMoneyDevProvider and the identical dev-stub button in the internal
  * order desk's CheckoutFlow. No real gateway is wired up yet.
  */
-export async function simulateStorefrontPaymentAction(paymentId: string): Promise<{ status: string | null }> {
+export const simulateStorefrontPaymentAction = withSafeErrors(async (paymentId: string): Promise<{ status: string | null }> => {
   const ip = await getRequestIp();
   await enforceRateLimit(`storefront-payment-sim:${ip}`, { limit: 15, windowSeconds: 900 });
 
@@ -115,4 +116,4 @@ export async function simulateStorefrontPaymentAction(paymentId: string): Promis
 
   const order = await getOrderById(payment.orderId);
   return { status: order?.status ?? null };
-}
+}, "Couldn't confirm payment right now — please try again.");

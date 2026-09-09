@@ -1,4 +1,4 @@
-import { prisma } from "@/db/client";
+import { prisma, DEFAULT_TRANSACTION_OPTIONS } from "@/db/client";
 import { recordStockMovement } from "@/modules/inventory/services/stock.service";
 import { recipeItemsSchema, type RecipeItemsInput } from "@/modules/inventory/schemas/recipe.schema";
 
@@ -25,7 +25,7 @@ export async function setRecipeForProduct(productId: string, items: RecipeItemsI
       });
     }
     return tx.recipeItem.findMany({ where: { productId }, include: { ingredient: true } });
-  });
+  }, DEFAULT_TRANSACTION_OPTIONS);
 }
 
 /**

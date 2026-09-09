@@ -1,4 +1,4 @@
-import { prisma } from "@/db/client";
+import { prisma, DEFAULT_TRANSACTION_OPTIONS } from "@/db/client";
 import { Prisma, type Order, type OrderStatus } from "@prisma/client";
 import { canTransition, InvalidOrderTransitionError } from "@/modules/orders/services/order-state-machine";
 import { recordAuditLog } from "@/modules/audit/services/audit.service";
@@ -33,7 +33,7 @@ export async function getOrderByIdempotencyKey(idempotencyKey: string): Promise<
 
 export async function listOrdersForBranch(
   branchIds: "ALL" | string[],
-  params: { status?: OrderStatus; limit?: number } = {}
+  params: { status?: OrderStatus; limit?: number; offset?: number } = {}
 ) {
   return prisma.order.findMany({
     where: {
@@ -43,6 +43,7 @@ export async function listOrdersForBranch(
     include: { customer: true, branch: true, items: true, payments: { include: { refunds: true } } },
     orderBy: { createdAt: "desc" },
     take: params.limit ?? 50,
+    skip: params.offset ?? 0,
   });
 }
 
@@ -100,7 +101,7 @@ export async function transitionOrder(params: {
     });
 
     return updatedOrder;
-  });
+  }, DEFAULT_TRANSACTION_OPTIONS);
 
   // Publish after the transaction commits — a Redis hiccup must never roll
   // back a real order status change, and holding the DB transaction open

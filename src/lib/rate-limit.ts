@@ -1,7 +1,8 @@
 import { headers } from "next/headers";
 import { getRedisPublisher } from "@/lib/redis";
+import { UserFacingError } from "@/lib/errors";
 
-export class RateLimitError extends Error {
+export class RateLimitError extends UserFacingError {
   constructor(message = "Too many requests. Please try again in a few minutes.") {
     super(message);
     this.name = "RateLimitError";

@@ -1,5 +1,5 @@
 import { randomInt } from "node:crypto";
-import { prisma } from "@/db/client";
+import { prisma, DEFAULT_TRANSACTION_OPTIONS } from "@/db/client";
 import { Prisma } from "@prisma/client";
 import { generateOrderNumber } from "@/modules/orders/services/order-number.service";
 import { getOrderByIdempotencyKey, getOrderById, type OrderWithDetails } from "@/modules/orders/services/order.service";
@@ -7,29 +7,30 @@ import { recordAuditLog } from "@/modules/audit/services/audit.service";
 import { evaluatePromotionCode } from "@/modules/promotions/services/promotion.service";
 import { evaluatePointsRedemption, recordLoyaltyTransaction } from "@/modules/loyalty/services/loyalty.service";
 import { estimateDeliveryFare } from "@/modules/delivery/services/fare.service";
+import { UserFacingError } from "@/lib/errors";
 
-export class EmptyCartError extends Error {
+export class EmptyCartError extends UserFacingError {
   constructor() {
     super("Cannot check out an empty cart.");
     this.name = "EmptyCartError";
   }
 }
 
-export class ProductUnavailableError extends Error {
+export class ProductUnavailableError extends UserFacingError {
   constructor(productName: string) {
     super(`${productName} is not available at this branch right now.`);
     this.name = "ProductUnavailableError";
   }
 }
 
-export class MissingDeliveryAddressError extends Error {
+export class MissingDeliveryAddressError extends UserFacingError {
   constructor() {
     super("A delivery address is required for delivery orders.");
     this.name = "MissingDeliveryAddressError";
   }
 }
 
-export class InvalidDeliveryAddressError extends Error {
+export class InvalidDeliveryAddressError extends UserFacingError {
   constructor() {
     super("That delivery address does not belong to this customer.");
     this.name = "InvalidDeliveryAddressError";
@@ -264,7 +265,7 @@ export async function checkout(input: CheckoutInput): Promise<OrderWithDetails> 
     await tx.cart.update({ where: { id: cart.id }, data: { status: "CONVERTED" } });
 
     return order.id;
-  });
+  }, DEFAULT_TRANSACTION_OPTIONS);
 
   await recordAuditLog({
     actorUserId: input.placedByUserId ?? null,

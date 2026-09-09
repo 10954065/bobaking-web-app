@@ -1,4 +1,5 @@
 import type { OrderStatus } from "@prisma/client";
+import { UserFacingError } from "@/lib/errors";
 
 /**
  * Valid transitions out of each status. Not every order type uses every
@@ -39,7 +40,7 @@ export function isTerminalStatus(status: OrderStatus): boolean {
   return TRANSITIONS[status].length === 0;
 }
 
-export class InvalidOrderTransitionError extends Error {
+export class InvalidOrderTransitionError extends UserFacingError {
   constructor(from: OrderStatus, to: OrderStatus) {
     super(`Cannot transition order from ${from} to ${to}`);
     this.name = "InvalidOrderTransitionError";

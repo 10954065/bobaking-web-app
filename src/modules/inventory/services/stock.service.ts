@@ -1,4 +1,4 @@
-import { prisma } from "@/db/client";
+import { prisma, DEFAULT_TRANSACTION_OPTIONS } from "@/db/client";
 import type { StockMovementType } from "@prisma/client";
 import { adjustStockSchema, type AdjustStockInput } from "@/modules/inventory/schemas/stock.schema";
 
@@ -43,7 +43,7 @@ export async function recordStockMovement(input: RecordStockMovementInput) {
     });
 
     return { stock, movement };
-  });
+  }, DEFAULT_TRANSACTION_OPTIONS);
 }
 
 export async function adjustStock(params: {

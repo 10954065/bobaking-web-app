@@ -1,4 +1,4 @@
-import { prisma } from "@/db/client";
+import { prisma, DEFAULT_TRANSACTION_OPTIONS } from "@/db/client";
 import type { Prisma, LoyaltyTransactionType } from "@prisma/client";
 import { recordAuditLog } from "@/modules/audit/services/audit.service";
 import {
@@ -138,14 +138,16 @@ export async function awardPointsForOrder(orderId: string): Promise<void> {
   const points = Math.floor(Number(order.total) * Number(config.pointsPerCurrency));
   if (points <= 0) return;
 
-  await prisma.$transaction((tx) =>
-    recordLoyaltyTransaction(tx, {
-      customerId: order.customerId,
-      orderId: order.id,
-      type: "EARNED",
-      points,
-      reason: `Earned from order ${order.orderNumber}`,
-    })
+  await prisma.$transaction(
+    (tx) =>
+      recordLoyaltyTransaction(tx, {
+        customerId: order.customerId,
+        orderId: order.id,
+        type: "EARNED",
+        points,
+        reason: `Earned from order ${order.orderNumber}`,
+      }),
+    DEFAULT_TRANSACTION_OPTIONS
   );
 }
 

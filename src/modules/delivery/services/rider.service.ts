@@ -1,5 +1,6 @@
-import { prisma } from "@/db/client";
+import { prisma, DEFAULT_TRANSACTION_OPTIONS } from "@/db/client";
 import type { RiderStatus } from "@prisma/client";
+import { UserFacingError } from "@/lib/errors";
 import { hashPassword } from "@/modules/auth/services/password.service";
 import { assignRoleToUser } from "@/modules/users/services/user.service";
 import { ROLES } from "@/modules/roles/roles";
@@ -9,7 +10,7 @@ import { createRiderSchema, locationPingSchema, type CreateRiderInput, type Loca
 export async function createRider(input: CreateRiderInput) {
   const data = createRiderSchema.parse(input);
   if (!data.email && !data.phone) {
-    throw new Error("A rider requires at least an email or a phone number.");
+    throw new UserFacingError("A rider requires at least an email or a phone number.");
   }
 
   const riderRole = await prisma.role.findUniqueOrThrow({ where: { name: ROLES.RIDER } });
@@ -37,7 +38,7 @@ export async function createRider(input: CreateRiderInput) {
     });
 
     return created;
-  });
+  }, DEFAULT_TRANSACTION_OPTIONS);
 
   await assignRoleToUser({ userId: user.id, roleId: riderRole.id, branchId: data.branchId });
   return user;

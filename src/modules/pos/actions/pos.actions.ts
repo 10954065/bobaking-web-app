@@ -3,6 +3,7 @@
 import { prisma } from "@/db/client";
 import { getCurrentUserId } from "@/modules/auth/services/current-session.service";
 import { requirePermission, requireAnyPermission } from "@/modules/auth/services/authorization.service";
+import { UserFacingError, withSafeErrors } from "@/lib/errors";
 import {
   searchCustomers,
   createCustomer,
@@ -34,33 +35,33 @@ import { recordAuditLog } from "@/modules/audit/services/audit.service";
 
 async function requireUserId(): Promise<string> {
   const userId = await getCurrentUserId();
-  if (!userId) throw new Error("Not authenticated");
+  if (!userId) throw new UserFacingError("Your session has expired — please sign in again.");
   return userId;
 }
 
 async function loadCartOrThrow(cartId: string) {
   const cart = await getCartById(cartId);
-  if (!cart) throw new Error("Cart not found");
+  if (!cart) throw new UserFacingError("That cart could no longer be found — please start again.");
   return cart;
 }
 
-export async function searchCustomersAction(query: string) {
+export const searchCustomersAction = withSafeErrors(async (query: string) => {
   const userId = await requireUserId();
   await requireAnyPermission(userId, "customers", "read");
   return searchCustomers(query);
-}
+}, "Couldn't search customers right now — please try again.");
 
-export async function createCustomerAction(input: CreateCustomerInput) {
+export const createCustomerAction = withSafeErrors(async (input: CreateCustomerInput) => {
   const userId = await requireUserId();
   await requireAnyPermission(userId, "customers", "create");
   return createCustomer(input);
-}
+}, "Couldn't create that customer right now — please try again.");
 
-export async function createWalkInCustomerAction() {
+export const createWalkInCustomerAction = withSafeErrors(async () => {
   const userId = await requireUserId();
   await requireAnyPermission(userId, "customers", "create");
   return createWalkInCustomer();
-}
+}, "Couldn't start a walk-in order right now — please try again.");
 
 export interface PosCustomerAddress {
   id: string;
@@ -95,69 +96,69 @@ function toPosCustomerAddress(address: {
   };
 }
 
-export async function listCustomerAddressesAction(customerId: string): Promise<PosCustomerAddress[]> {
+export const listCustomerAddressesAction = withSafeErrors(async (customerId: string): Promise<PosCustomerAddress[]> => {
   const userId = await requireUserId();
   await requireAnyPermission(userId, "customers", "read");
   const addresses = await listCustomerAddresses(customerId);
   return addresses.map(toPosCustomerAddress);
-}
+}, "Couldn't load addresses right now — please try again.");
 
 /** Gated by customers.create (not update) — this creates a new address record, it never modifies the customer row itself. */
-export async function createCustomerAddressAction(
+export const createCustomerAddressAction = withSafeErrors(async (
   customerId: string,
   input: CreateCustomerAddressInput
-): Promise<PosCustomerAddress> {
+): Promise<PosCustomerAddress> => {
   const userId = await requireUserId();
   await requireAnyPermission(userId, "customers", "create");
   const address = await addCustomerAddress(customerId, input);
   return toPosCustomerAddress(address);
-}
+}, "Couldn't save that address right now — please try again.");
 
-export async function getOrCreateCartAction(params: {
+export const getOrCreateCartAction = withSafeErrors(async (params: {
   branchId: string;
   customerId: string;
   type: "DELIVERY" | "PICKUP" | "DINE_IN";
-}): Promise<PosCart> {
+}): Promise<PosCart> => {
   const userId = await requireUserId();
   await requirePermission(userId, "orders", "create", params.branchId);
   const cart = await getOrCreateActiveCart(params);
   return toPosCart(cart);
-}
+}, "Couldn't open a cart right now — please try again.");
 
-export async function getPosProductsAction(branchId: string) {
+export const getPosProductsAction = withSafeErrors(async (branchId: string) => {
   const userId = await requireUserId();
   await requirePermission(userId, "products", "read", branchId);
   return listPosProducts(branchId);
-}
+}, "Couldn't load products right now — please try again.");
 
-export async function addItemToCartAction(cartId: string, input: AddCartItemInput): Promise<PosCart> {
+export const addItemToCartAction = withSafeErrors(async (cartId: string, input: AddCartItemInput): Promise<PosCart> => {
   const userId = await requireUserId();
   const cart = await loadCartOrThrow(cartId);
   await requirePermission(userId, "orders", "create", cart.branchId);
 
   await addItemToCart(cartId, input);
   return toPosCart(await loadCartOrThrow(cartId));
-}
+}, "Couldn't add that item right now — please try again.");
 
-export async function updateCartItemQuantityAction(cartId: string, cartItemId: string, quantity: number): Promise<PosCart> {
+export const updateCartItemQuantityAction = withSafeErrors(async (cartId: string, cartItemId: string, quantity: number): Promise<PosCart> => {
   const userId = await requireUserId();
   const cart = await loadCartOrThrow(cartId);
   await requirePermission(userId, "orders", "create", cart.branchId);
 
   await updateCartItemQuantity(cartItemId, { quantity });
   return toPosCart(await loadCartOrThrow(cartId));
-}
+}, "Couldn't update that item right now — please try again.");
 
-export async function removeCartItemAction(cartId: string, cartItemId: string): Promise<PosCart> {
+export const removeCartItemAction = withSafeErrors(async (cartId: string, cartItemId: string): Promise<PosCart> => {
   const userId = await requireUserId();
   const cart = await loadCartOrThrow(cartId);
   await requirePermission(userId, "orders", "create", cart.branchId);
 
   await removeCartItem(cartItemId);
   return toPosCart(await loadCartOrThrow(cartId));
-}
+}, "Couldn't remove that item right now — please try again.");
 
-export async function checkoutAction(input: Omit<CheckoutInput, "placedByUserId">) {
+export const checkoutAction = withSafeErrors(async (input: Omit<CheckoutInput, "placedByUserId">) => {
   const userId = await requireUserId();
   const cart = await loadCartOrThrow(input.cartId);
   await requirePermission(userId, "orders", "create", cart.branchId);
@@ -173,9 +174,9 @@ export async function checkoutAction(input: Omit<CheckoutInput, "placedByUserId"
     deliveryFee: Number(order.deliveryFee),
     discountTotal: Number(order.discountTotal),
   };
-}
+}, "We couldn't place that order right now — please try again in a moment.");
 
-export async function initiatePaymentAction(input: { orderId: string; method: "CASH" | "MOBILE_MONEY" }) {
+export const initiatePaymentAction = withSafeErrors(async (input: { orderId: string; method: "CASH" | "MOBILE_MONEY" }) => {
   const userId = await requireUserId();
   const order = await prisma.order.findUniqueOrThrow({ where: { id: input.orderId } });
   await requirePermission(userId, "payments", "create", order.branchId);
@@ -188,9 +189,9 @@ export async function initiatePaymentAction(input: { orderId: string; method: "C
   });
 
   return { id: payment.id, provider: payment.provider, providerReference: payment.providerReference, status: payment.status };
-}
+}, "Couldn't start payment right now — please try again.");
 
-export async function confirmCashPaymentAction(paymentId: string) {
+export const confirmCashPaymentAction = withSafeErrors(async (paymentId: string) => {
   const userId = await requireUserId();
   const payment = await prisma.payment.findUniqueOrThrow({ where: { id: paymentId }, include: { order: true } });
   await requirePermission(userId, "payments", "create", payment.order.branchId);
@@ -198,7 +199,7 @@ export async function confirmCashPaymentAction(paymentId: string) {
   await confirmCashPayment(paymentId, userId);
   const order = await getOrderById(payment.orderId);
   return { status: order?.status ?? null };
-}
+}, "Couldn't confirm that payment right now — please try again.");
 
 /**
  * A POS-taken order has already been "accepted" by virtue of being placed
@@ -207,7 +208,7 @@ export async function confirmCashPaymentAction(paymentId: string) {
  * straight to the kitchen rather than leaving staff to click through two
  * more manual transitions.
  */
-export async function sendToKitchenAction(orderId: string) {
+export const sendToKitchenAction = withSafeErrors(async (orderId: string) => {
   const userId = await requireUserId();
   let order = await prisma.order.findUniqueOrThrow({ where: { id: orderId } });
   await requirePermission(userId, "orders", "update", order.branchId);
@@ -219,7 +220,7 @@ export async function sendToKitchenAction(orderId: string) {
   if (canTransition(order.status, "SENT_TO_KITCHEN")) {
     await transitionOrder({ orderId, toStatus: "SENT_TO_KITCHEN", actorUserId: userId });
   }
-}
+}, "Couldn't send that order to the kitchen right now — please try again.");
 
 /**
  * The branch's explicit "no" — a storefront order reaching CONFIRMED only
@@ -229,7 +230,7 @@ export async function sendToKitchenAction(orderId: string) {
  * never read as the order being accepted, and this is the other half of that
  * — a real path to "not accepted" alongside sendToKitchenAction's "accepted".
  */
-export async function rejectOrderAction(orderId: string, reason?: string) {
+export const rejectOrderAction = withSafeErrors(async (orderId: string, reason?: string) => {
   const userId = await requireUserId();
   const order = await prisma.order.findUniqueOrThrow({ where: { id: orderId } });
   await requirePermission(userId, "orders", "update", order.branchId);
@@ -260,13 +261,13 @@ export async function rejectOrderAction(orderId: string, reason?: string) {
       }).catch(() => {});
     });
   }
-}
+}, "Couldn't decline that order right now — please try again.");
 
 /**
  * A discretionary refund initiated by finance/admin (partial or full) — gated
  * on payments:refund, unlike the automatic one inside rejectOrderAction.
  */
-export async function refundOrderAction(paymentId: string, amount: number, reason?: string) {
+export const refundOrderAction = withSafeErrors(async (paymentId: string, amount: number, reason?: string) => {
   const userId = await requireUserId();
   const payment = await prisma.payment.findUniqueOrThrow({ where: { id: paymentId }, include: { order: true } });
   await requirePermission(userId, "payments", "refund", payment.order.branchId);
@@ -276,7 +277,7 @@ export async function refundOrderAction(paymentId: string, amount: number, reaso
   // client boundary — Prisma's Decimal (refund.amount) is a class instance,
   // not a plain object, and fails that check silently in the console.
   return { id: refund.id, status: refund.status, amount: Number(refund.amount) };
-}
+}, "Couldn't process that refund right now — please try again.");
 
 /**
  * DEV ONLY: stands in for the real Mobile Money gateway calling our webhook
@@ -286,7 +287,7 @@ export async function refundOrderAction(paymentId: string, amount: number, reaso
  * ships; it bypasses the one thing that actually matters (server-side
  * verification of a real payment).
  */
-export async function devSimulateMobileMoneySuccessAction(paymentId: string) {
+export const devSimulateMobileMoneySuccessAction = withSafeErrors(async (paymentId: string) => {
   const userId = await requireUserId();
   const payment = await prisma.payment.findUniqueOrThrow({ where: { id: paymentId }, include: { order: true } });
   await requirePermission(userId, "payments", "create", payment.order.branchId);
@@ -301,4 +302,4 @@ export async function devSimulateMobileMoneySuccessAction(paymentId: string) {
 
   const order = await getOrderById(payment.orderId);
   return { status: order?.status ?? null };
-}
+}, "Couldn't confirm payment right now — please try again.");

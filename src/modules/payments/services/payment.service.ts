@@ -1,6 +1,7 @@
 import { prisma } from "@/db/client";
 import { Prisma, type PaymentMethod } from "@prisma/client";
 import { env } from "@/lib/env";
+import { UserFacingError } from "@/lib/errors";
 import { CashPaymentProvider } from "@/modules/payments/providers/cash.provider";
 import { MobileMoneyDevProvider } from "@/modules/payments/providers/mobile-money-dev.provider";
 import { PaystackMobileMoneyProvider } from "@/modules/payments/providers/paystack.provider";
@@ -36,7 +37,7 @@ function getProvider(method: PaymentMethod): PaymentProvider {
       // PaystackMobileMoneyProvider's doc comment. No dev stand-in for card;
       // it simply isn't offered until a real gateway is configured.
       if (!env.PAYSTACK_SECRET_KEY) {
-        throw new Error("Card payments are not yet supported — no provider is wired up.");
+        throw new UserFacingError("Card payments aren't available yet — please choose another payment method.");
       }
       return paystackProvider;
   }
@@ -183,7 +184,7 @@ export async function refundPayment(input: RefundPaymentInput) {
   });
 
   if (payment.status !== "SUCCEEDED" && payment.status !== "PARTIALLY_REFUNDED") {
-    throw new Error(`Cannot refund a payment with status ${payment.status}.`);
+    throw new UserFacingError(`Cannot refund a payment with status ${payment.status}.`);
   }
 
   const alreadyRefunded = payment.refunds
@@ -193,7 +194,7 @@ export async function refundPayment(input: RefundPaymentInput) {
   const refundAmount = new Prisma.Decimal(data.amount);
 
   if (refundAmount.greaterThan(remaining)) {
-    throw new Error(`Refund amount (${refundAmount}) exceeds the remaining refundable balance (${remaining}).`);
+    throw new UserFacingError(`Refund amount (${refundAmount}) exceeds the remaining refundable balance (${remaining}).`);
   }
 
   const provider = getProvider(payment.method);

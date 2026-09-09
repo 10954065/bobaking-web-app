@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState, useTransition } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { Inbox, Receipt, Send, Banknote, Smartphone, Clock, CircleDollarSign, PlusCircle, XCircle } from "lucide-react";
+import { Inbox, Receipt, Send, Banknote, Smartphone, Clock, CircleDollarSign, PlusCircle, XCircle, AlertTriangle } from "lucide-react";
 import {
   listIncomingOrdersAction,
   listTodaysOrdersAction,
@@ -29,6 +29,7 @@ export function OrderDesk({ onNewOrder }: { onNewOrder: () => void }) {
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [decliningId, setDecliningId] = useState<string | null>(null);
   const [declineReason, setDeclineReason] = useState("");
+  const [actionError, setActionError] = useState<string | null>(null);
   const [, startTransition] = useTransition();
 
   const refetch = useCallback(() => {
@@ -46,32 +47,56 @@ export function OrderDesk({ onNewOrder }: { onNewOrder: () => void }) {
     return () => clearInterval(id);
   }, [refetch]);
 
+  // Every handler below follows the same shape: clear any previous error,
+  // run the action, and — whether it succeeds or throws — always clear
+  // pendingId in finally. Without that a transient failure (the same class
+  // of DB timeout this app has hit repeatedly) left the clicked button
+  // stuck disabled ("Sending…"/"Declining…") with no way to recover short
+  // of reloading the page, and the thrown error went completely unseen.
   function handleSendToKitchen(orderId: string) {
+    setActionError(null);
     setPendingId(orderId);
     startTransition(async () => {
-      await sendToKitchenAction(orderId);
-      refetch();
-      setPendingId(null);
+      try {
+        await sendToKitchenAction(orderId);
+        refetch();
+      } catch (e) {
+        setActionError(e instanceof Error ? e.message : "Couldn't send that order to the kitchen.");
+      } finally {
+        setPendingId(null);
+      }
     });
   }
 
   function handleConfirmCash(paymentId: string) {
+    setActionError(null);
     setPendingId(paymentId);
     startTransition(async () => {
-      await confirmCashPaymentAction(paymentId);
-      refetch();
-      setPendingId(null);
+      try {
+        await confirmCashPaymentAction(paymentId);
+        refetch();
+      } catch (e) {
+        setActionError(e instanceof Error ? e.message : "Couldn't confirm that cash payment.");
+      } finally {
+        setPendingId(null);
+      }
     });
   }
 
   function handleDecline(orderId: string) {
+    setActionError(null);
     setPendingId(orderId);
     startTransition(async () => {
-      await rejectOrderAction(orderId, declineReason);
-      refetch();
-      setPendingId(null);
-      setDecliningId(null);
-      setDeclineReason("");
+      try {
+        await rejectOrderAction(orderId, declineReason);
+        refetch();
+        setDecliningId(null);
+        setDeclineReason("");
+      } catch (e) {
+        setActionError(e instanceof Error ? e.message : "Couldn't decline that order.");
+      } finally {
+        setPendingId(null);
+      }
     });
   }
 
@@ -103,6 +128,16 @@ export function OrderDesk({ onNewOrder }: { onNewOrder: () => void }) {
           <PlusCircle size={15} /> New phone order
         </button>
       </div>
+
+      {actionError && (
+        <div className="mt-4 flex items-start gap-2.5 rounded-lg border border-red-900/60 bg-red-950/30 px-3.5 py-3 text-sm text-red-300">
+          <AlertTriangle size={16} className="mt-0.5 shrink-0" />
+          <p className="flex-1">{actionError}</p>
+          <button onClick={() => setActionError(null)} className="shrink-0 text-xs font-medium text-red-400 hover:text-red-200">
+            Dismiss
+          </button>
+        </div>
+      )}
 
       {tab === "incoming" && (
         <div className="mt-4 space-y-3">
