@@ -29,11 +29,20 @@ export const requestCustomerOtpAction = withSafeErrors(async (rawPhone: string):
   return requestOtp(phone);
 }, "Couldn't send a verification code right now. Please try again.");
 
+/**
+ * Per-phone limit matters more than it looks: it's the only cap on guesses
+ * against one target that can't be sidestepped by spraying requests across
+ * many source IPs (getRequestIp() is best-effort, not trustworthy for a hard
+ * limit — see its doc comment) or by firing a burst of concurrent requests
+ * (Redis INCR is atomic, so unlike the DB-side attempts counter this one
+ * can't be raced).
+ */
 export const verifyCustomerOtpAction = withSafeErrors(async (input: { phone: string; code: string }): Promise<CurrentCustomer> => {
   const { phone, code } = verifyOtpSchema.parse(input);
 
   const ip = await getRequestIp();
   await enforceRateLimit(`otp-verify:ip:${ip}`, { limit: 30, windowSeconds: 900 });
+  await enforceRateLimit(`otp-verify:phone:${phone}`, { limit: 10, windowSeconds: 900 });
 
   const { customer, sessionToken, expires } = await verifyOtp(phone, code);
   await setCustomerSessionCookie(sessionToken, expires);
