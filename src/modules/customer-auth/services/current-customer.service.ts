@@ -32,17 +32,7 @@ export async function getCustomerSessionToken(): Promise<string | null> {
   return cookieStore.get(CUSTOMER_SESSION_COOKIE)?.value ?? null;
 }
 
-/**
- * Resolves the signed-in customer from the session cookie, re-validated
- * against the database on every call (not just decoded) — the same
- * server-side-revocable pattern as the staff tracked-session, and the only
- * source placeStorefrontOrder trusts for identity; a client can no longer
- * just claim a phone number in the order payload (see storefront.actions.ts).
- */
-export async function getCurrentCustomer(): Promise<CurrentCustomer | null> {
-  const token = await getCustomerSessionToken();
-  if (!token) return null;
-
+async function resolveCustomerSession(token: string): Promise<CurrentCustomer | null> {
   const session = await prisma.customerSession.findUnique({
     where: { sessionToken: token },
     include: { customer: true },
@@ -59,4 +49,27 @@ export async function getCurrentCustomer(): Promise<CurrentCustomer | null> {
     phone: session.customer.phone,
     email: session.customer.email,
   };
+}
+
+/**
+ * Resolves the signed-in customer from the session cookie, re-validated
+ * against the database on every call (not just decoded) — the same
+ * server-side-revocable pattern as the staff tracked-session, and the only
+ * source placeStorefrontOrder trusts for identity; a client can no longer
+ * just claim a phone number in the order payload (see storefront.actions.ts).
+ */
+export async function getCurrentCustomer(): Promise<CurrentCustomer | null> {
+  const token = await getCustomerSessionToken();
+  if (!token) return null;
+  return resolveCustomerSession(token);
+}
+
+/**
+ * Same validation as getCurrentCustomer(), but resolves from an explicit
+ * session token instead of the browser cookie — the mobile app has no
+ * cookie jar, so it sends this same sessionToken back as a Bearer header
+ * (see src/lib/mobile-api.ts's bearerToken()).
+ */
+export async function getCustomerByBearerToken(token: string): Promise<CurrentCustomer | null> {
+  return resolveCustomerSession(token);
 }
