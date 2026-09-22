@@ -1,4 +1,8 @@
-const PRODUCTION_URL = "https://flicks-licks-delta.vercel.app";
+// TODO: placeholder until the real production domain is confirmed — swap in
+// the actual Boba King domain once it's decided (or rely on
+// VERCEL_PROJECT_PRODUCTION_URL below, which already resolves correctly once
+// the Vercel project is set up under its real name).
+const PRODUCTION_URL = "https://boba-king-gh.vercel.app";
 
 /**
  * The site's own absolute origin — needed anywhere metadata is resolved

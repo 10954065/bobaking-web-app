@@ -11,7 +11,7 @@ export default async function ResetPasswordPage({ params }: { params: Promise<{ 
           <span className="mb-4 flex size-12 items-center justify-center rounded-2xl bg-brand-red-600 text-white shadow-lg shadow-brand-red-900/30">
             <KeyRound size={22} strokeWidth={2.25} />
           </span>
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-red-500">Flicks &amp; Licks</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-red-500">Boba King</p>
           <h1 className="mt-2 text-2xl font-semibold text-stone-50">Choose a new password</h1>
         </div>
         <div className="rounded-2xl border border-stone-800 bg-stone-900/60 p-6 shadow-xl shadow-black/30">

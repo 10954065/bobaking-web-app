@@ -14,7 +14,7 @@ export default async function LoginPage({
       <div className="w-full max-w-sm animate-fade-slide-up">
         <div className="mb-8 flex flex-col items-center text-center">
           <Logo size={48} className="mb-4" />
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-red-light">Flicks &amp; Licks</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-red-light">Boba King</p>
           <h1 className="mt-2 text-2xl font-semibold text-stone-50">Staff sign in</h1>
           <p className="mt-1 text-sm text-stone-400">Restaurant operations platform</p>
         </div>

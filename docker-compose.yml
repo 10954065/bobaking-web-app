@@ -1,32 +1,32 @@
-name: flicks-licks
+name: boba-king
 
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: flicks-licks-postgres
+    container_name: boba-king-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_USER: flicks_dev
-      POSTGRES_PASSWORD: flicks_dev_password
-      POSTGRES_DB: flicks_licks_dev
+      POSTGRES_USER: bobaking_dev
+      POSTGRES_PASSWORD: bobaking_dev_password
+      POSTGRES_DB: bobaking_dev
     ports:
       - "5434:5432"
     volumes:
-      - flicks_licks_postgres_data:/var/lib/postgresql/data
+      - bobaking_postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U flicks_dev -d flicks_licks_dev"]
+      test: ["CMD-SHELL", "pg_isready -U bobaking_dev -d bobaking_dev"]
       interval: 5s
       timeout: 5s
       retries: 10
 
   redis:
     image: redis:7-alpine
-    container_name: flicks-licks-redis
+    container_name: boba-king-redis
     restart: unless-stopped
     ports:
       - "6382:6379"
     volumes:
-      - flicks_licks_redis_data:/data
+      - bobaking_redis_data:/data
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
@@ -34,5 +34,5 @@ services:
       retries: 10
 
 volumes:
-  flicks_licks_postgres_data:
-  flicks_licks_redis_data:
+  bobaking_postgres_data:
+  bobaking_redis_data:

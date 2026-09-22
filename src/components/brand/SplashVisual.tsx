@@ -63,7 +63,7 @@ export function SplashVisual({
   visible,
   reducedMotion,
   timings,
-  tagline = "The Suya Boss",
+  tagline = "Sip. Chill. Repeat.",
   onSkip,
 }: {
   visible: boolean;

@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 
 // Brand display faces for customer-facing surfaces (homepage, order flow,
 // tracking page) — an ultra-bold condensed headline face plus a rounded
-// bold face matching the real "Flicks & Licks" logo's hand-lettered
-// wordmark. Staff/admin surfaces keep plain Geist.
+// bold face matching the real "Boba King" logo's hand-lettered wordmark.
+// Staff/admin surfaces keep plain Geist.
 const anton = Anton({
   variable: "--font-anton",
   weight: "400",
@@ -29,8 +29,8 @@ const baloo = Baloo_2({
   subsets: ["latin"],
 });
 
-const SITE_TITLE = "Flicks & Licks — The Suya Boss";
-const SITE_DESCRIPTION = "Order delivery or pickup from four branches across Accra. Loaded fries, suya, shawarma and pizza, tracked live from our kitchen to your door.";
+const SITE_TITLE = "Boba King — Sip. Chill. Repeat.";
+const SITE_DESCRIPTION = "Order pickup or delivery from Boba King in Winneba. Milk tea, fruit tea, brown sugar boba and waffles, tracked live from our counter to you.";
 
 export const metadata: Metadata = {
   // Lets Next.js resolve the opengraph-image/twitter-image file conventions
@@ -44,7 +44,7 @@ export const metadata: Metadata = {
     title: SITE_TITLE,
     description: SITE_DESCRIPTION,
     url: "/",
-    siteName: "Flicks & Licks",
+    siteName: "Boba King",
     locale: "en_GH",
     type: "website",
   },

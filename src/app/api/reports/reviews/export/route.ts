@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
   const report = await getReviewsReport(branchIds, { from, to });
 
   const lines: string[] = [];
-  lines.push(`Flicks & Licks reviews, last ${rangeParam} days (${from.toISOString().slice(0, 10)} to ${to.toISOString().slice(0, 10)})`);
+  lines.push(`Boba King reviews, last ${rangeParam} days (${from.toISOString().slice(0, 10)} to ${to.toISOString().slice(0, 10)})`);
   lines.push(`Average rating,${report.avgRating ?? ""}`);
   lines.push("");
   lines.push("Rating distribution");
@@ -48,7 +48,7 @@ export async function GET(request: NextRequest) {
   return new Response(lines.join("\n"), {
     headers: {
       "Content-Type": "text/csv; charset=utf-8",
-      "Content-Disposition": `attachment; filename="flicks-and-licks-reviews-${rangeParam}d.csv"`,
+      "Content-Disposition": `attachment; filename="boba-king-reviews-${rangeParam}d.csv"`,
     },
   });
 }

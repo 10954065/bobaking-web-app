@@ -13,16 +13,16 @@ export const dynamic = "force-dynamic";
 // so price/photo always match the live menu. "Popular" is an editorial tag,
 // not derived from order data.
 const FEATURED_SLUGS = [
-  "loaded-fries-with-cheese",
-  "fully-loaded-shawarma",
-  "flicks-special-pizza",
-  "chicken-suya",
-  "flicks-and-licks-combo",
-  "super-loaded-plantain",
-  "assorted-jollof",
-  "cheesy-shawarma",
+  "taro-milk-tea",
+  "strawberry-matcha-latte",
+  "brown-sugar-boba-milk-tea",
+  "matcha-milk-tea",
+  "strawberry-milk-tea",
+  "loaded-waffle",
+  "waffle-milk-tea-combo",
+  "classic-waffle",
 ];
-const POPULAR_SLUGS = new Set(["loaded-fries-with-cheese", "fully-loaded-shawarma", "super-loaded-plantain"]);
+const POPULAR_SLUGS = new Set(["taro-milk-tea", "strawberry-matcha-latte", "brown-sugar-boba-milk-tea"]);
 
 export default async function Home() {
   const [branches, featuredProducts] = await Promise.all([

@@ -50,7 +50,7 @@ export function BranchStep({
       <motion.div initial={{ opacity: 0, scale: 0.85 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.4 }}>
         <Logo size={52} />
       </motion.div>
-      <p className="mt-4 text-xs font-semibold uppercase tracking-[0.3em] text-brand-cyan">Flicks &amp; Licks</p>
+      <p className="mt-4 text-xs font-semibold uppercase tracking-[0.3em] text-brand-cyan">Boba King</p>
       <h1 className="mt-2 font-display text-2xl uppercase tracking-tight text-stone-50 sm:text-3xl">How would you like your order?</h1>
       <p className="mt-1.5 text-sm text-stone-400">Choose delivery or pick a branch to collect from.</p>
 

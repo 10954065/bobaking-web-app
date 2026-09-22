@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { SplashVisual, useReducedMotionPreference, type SplashEntranceTimings } from "@/components/brand/SplashVisual";
 
-const SESSION_KEY = "flicks-splash-shown";
+const SESSION_KEY = "boba-king-splash-shown";
 
 /**
  * Choreography timeline (ms from mount) for the full first-visit splash.

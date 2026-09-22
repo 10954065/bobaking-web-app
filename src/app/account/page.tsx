@@ -26,7 +26,7 @@ export default async function AccountPage() {
         <div className="flex items-center gap-2.5">
           <Logo size={36} ring={false} />
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-brand-red-light">Flicks &amp; Licks</p>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-brand-red-light">Boba King</p>
             <h1 className="text-base font-semibold text-stone-50">My account</h1>
           </div>
         </div>

@@ -4,32 +4,36 @@
   --background: #ffffff;
   --foreground: #171717;
 
-  /* Flicks & Licks brand — matched against the real TikTok/storefront
-     identity (@flicks_n_licks): a saturated street-food red on near-black,
-     with a cyan ring accent lifted from the logo badge. Customer-facing
+  /* Boba King brand — matched against the real TikTok/logo identity
+     (@bobaking_gh): a warm caramel/terracotta (boba milk tea) on deep
+     brown-black, with a teal ring accent lifted from the logo's circle
+     backdrop and a crown gold for premium/promo accents. Customer-facing
      surfaces use these instead of the generic orange/stone palette used by
-     the staff/admin tools. */
-  --color-brand-red: #e42313;
-  --color-brand-red-dark: #b81a0d;
-  --color-brand-red-light: #ff5a45;
-  --color-brand-cyan: #2fd8d1;
-  --color-brand-ink: #120404;
-  --color-brand-cream: #fff4ec;
+     the staff/admin tools. Token names kept as `brand-red`/`brand-cyan` for
+     continuity with existing utility classes across the app — only the
+     values changed. */
+  --color-brand-red: #bb5e2c;
+  --color-brand-red-dark: #904922;
+  --color-brand-red-light: #d58e67;
+  --color-brand-cyan: #4fd6b7;
+  --color-brand-ink: #2a150a;
+  --color-brand-cream: #fce8d1;
+  --color-brand-gold: #f2a93c;
 
   /* Full shade scale so every former `orange-NNN` utility across the
      staff/admin surface (badges, hover states, dark-mode tints) maps
      1:1 to `brand-red-NNN` without guessing an equivalent shade. */
-  --color-brand-red-50: #fef2f0;
-  --color-brand-red-100: #fde1dc;
-  --color-brand-red-200: #fbc4ba;
-  --color-brand-red-300: #f89a8a;
-  --color-brand-red-400: #f26a53;
-  --color-brand-red-500: #e42313;
-  --color-brand-red-600: #c81c0e;
-  --color-brand-red-700: #a5170c;
-  --color-brand-red-800: #86140c;
-  --color-brand-red-900: #6f130d;
-  --color-brand-red-950: #3d0805;
+  --color-brand-red-50: #faf7f5;
+  --color-brand-red-100: #f4ebe6;
+  --color-brand-red-200: #ebd7cb;
+  --color-brand-red-300: #e1b8a3;
+  --color-brand-red-400: #d58e67;
+  --color-brand-red-500: #bb5e2c;
+  --color-brand-red-600: #af5727;
+  --color-brand-red-700: #904922;
+  --color-brand-red-800: #713b1d;
+  --color-brand-red-900: #5b311b;
+  --color-brand-red-950: #351f12;
 }
 
 @theme inline {
@@ -46,6 +50,7 @@
   --color-brand-cyan: var(--color-brand-cyan);
   --color-brand-ink: var(--color-brand-ink);
   --color-brand-cream: var(--color-brand-cream);
+  --color-brand-gold: var(--color-brand-gold);
 
   --color-brand-red-50: var(--color-brand-red-50);
   --color-brand-red-100: var(--color-brand-red-100);
@@ -169,7 +174,7 @@ body {
 .map-marker-rider {
   width: 30px;
   height: 30px;
-  background: #e42313;
+  background: #bb5e2c;
 }
 .map-marker-rider-arrow {
   width: 0;
@@ -182,7 +187,7 @@ body {
   position: absolute;
   inset: -8px;
   border-radius: 9999px;
-  background: rgba(228, 35, 19, 0.35);
+  background: rgba(187, 94, 44, 0.35);
   animation: map-marker-pulse 2s ease-out infinite;
 }
 @keyframes map-marker-pulse {

@@ -96,7 +96,7 @@ export function KitchenBoard({ branchId, branchName, branches, initialOrders }: 
         <div className="flex items-center gap-2.5">
           <Logo size={36} ring={false} />
           <div className="min-w-0">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-brand-red-500">Flicks &amp; Licks</p>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-brand-red-500">Boba King</p>
             <h1 className="truncate text-lg font-semibold sm:text-xl">Kitchen Display &middot; {branchName}</h1>
           </div>
         </div>

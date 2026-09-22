@@ -118,7 +118,7 @@ export async function notifyOrderStatus(order: Order): Promise<void> {
  */
 export async function sendOtpSms(phone: string, code: string): Promise<{ sent: boolean; isDevProvider: boolean; error?: string }> {
   const provider = getSmsProvider();
-  const body = `Your Flicks & Licks verification code is ${code}. It expires in 10 minutes.`;
+  const body = `Your Boba King verification code is ${code}. It expires in 10 minutes.`;
   const result = await provider.send(phone, body);
   return { sent: result.status === "SENT", isDevProvider: provider === devSmsProvider, error: result.error };
 }

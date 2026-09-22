@@ -9,13 +9,13 @@ import type { MetadataRoute } from "next";
 // actually added the site to their home screen.
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Flicks & Licks",
-    short_name: "Flicks & Licks",
-    description: "Order delivery or pickup from Flicks & Licks, the Suya Boss. Four branches across Accra.",
+    name: "Boba King",
+    short_name: "Boba King",
+    description: "Order pickup or delivery from Boba King — milk tea, fruit tea, brown sugar boba and waffles in Winneba, near UEW.",
     start_url: "/",
     display: "standalone",
-    background_color: "#120404",
-    theme_color: "#e42313",
+    background_color: "#2a150a",
+    theme_color: "#bb5e2c",
     icons: [
       { src: "/icon.png", sizes: "64x64", type: "image/png" },
       { src: "/apple-icon.png", sizes: "180x180", type: "image/png" },

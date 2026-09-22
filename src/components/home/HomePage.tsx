@@ -14,7 +14,7 @@ type Dish = { id: string; name: string; price: number; image: string | null; tag
 
 const MotionLink = motion.create(Link);
 
-const MARQUEE_ITEMS = ["MILE 7 T-JUNCTION", "ACHIMOTA", "EAST LEGON", "DANSOMAN", "THE SUYA BOSS", "OPEN DAILY 10AM – 11PM"];
+const MARQUEE_ITEMS = ["WINNEBA · UEW NORTH CAMPUS", "MILK TEA", "FRUIT TEA", "BROWN SUGAR BOBA", "SIP · CHILL · REPEAT", "OPEN DAILY 11AM – 9PM"];
 
 function formatPrice(n: number): string {
   return Number.isInteger(n) ? `GH₵${n}` : `GH₵${n.toFixed(2)}`;
@@ -83,7 +83,7 @@ export function HomePage({ branches, dishes }: { branches: Branch[]; dishes: Dis
               transition={{ delay: 0.15, duration: 0.4 }}
               className="mt-5 text-xs font-semibold uppercase tracking-[0.4em] text-brand-cyan"
             >
-              The Suya Boss
+              Sip. Chill. Repeat.
             </motion.p>
 
             <motion.h1
@@ -105,7 +105,7 @@ export function HomePage({ branches, dishes }: { branches: Branch[]; dishes: Dis
               transition={{ delay: 0.4, duration: 0.4 }}
               className="mt-5 max-w-sm text-sm text-brand-cream/70 sm:text-base"
             >
-              Delivery or pickup from Mile 7, Achimota, East Legon and Dansoman. Loaded fries, suya, shawarma and pizza, tracked live from our kitchen to your door.
+              Pickup or delivery from our shop near UEW North Campus in Winneba. Milk tea, fruit tea, brown sugar boba and waffles, tracked live from our counter to you.
             </motion.p>
 
             <motion.div
@@ -130,14 +130,14 @@ export function HomePage({ branches, dishes }: { branches: Branch[]; dishes: Dis
             transition={{ delay: 0.2, duration: 0.6, ease: "easeOut" }}
             className="relative mx-auto grid w-full max-w-md grid-cols-2 gap-3"
           >
-            <div className="relative col-span-2 aspect-[16/10] overflow-hidden rounded-3xl">
-              <Image src="/images/menu/flicks-special-pizza.jpg" alt="Flicks Special Pizza" fill sizes="(min-width: 1024px) 400px, 90vw" className="object-cover" priority />
+            <div className="relative col-span-2 flex aspect-[16/10] items-center justify-center overflow-hidden rounded-3xl bg-gradient-to-br from-brand-red-700 via-brand-red to-brand-gold">
+              <Logo size={140} />
             </div>
-            <div className="relative aspect-square overflow-hidden rounded-2xl">
-              <Image src="/images/menu/chicken-suya.jpg" alt="Chicken Suya" fill sizes="(min-width: 768px) 220px, 45vw" className="object-cover" />
+            <div className="relative flex aspect-square items-center justify-center overflow-hidden rounded-2xl bg-brand-cyan/15">
+              <span className="font-display text-sm uppercase tracking-wide text-brand-cyan">Milk Tea</span>
             </div>
-            <div className="relative aspect-square overflow-hidden rounded-2xl">
-              <Image src="/images/menu/loaded-fries-cheese.jpg" alt="Loaded Fries with Cheese" fill sizes="(min-width: 768px) 220px, 45vw" className="object-cover" />
+            <div className="relative flex aspect-square items-center justify-center overflow-hidden rounded-2xl bg-brand-red/15">
+              <span className="font-display text-sm uppercase tracking-wide text-brand-red-light">Fruit Tea</span>
             </div>
           </motion.div>
         </div>
@@ -230,7 +230,7 @@ export function HomePage({ branches, dishes }: { branches: Branch[]; dishes: Dis
             transition={{ duration: 0.4 }}
             className="font-display text-2xl uppercase tracking-tight text-brand-cream sm:text-3xl"
           >
-            4 branches and counting
+Find us in Winneba
           </motion.h2>
           <div className="mt-6 grid gap-3 sm:grid-cols-2 md:gap-4">
             {rankedBranches.map((branch, index) => (
@@ -270,9 +270,9 @@ export function HomePage({ branches, dishes }: { branches: Branch[]; dishes: Dis
         <div className="mx-auto flex max-w-5xl flex-col items-center gap-4 text-center sm:flex-row sm:justify-between sm:text-left">
           <LogoLockup size={32} />
           <div className="flex flex-col gap-1 text-xs text-brand-cream/60 sm:items-end">
-            <span>Mon to Sun, 10am to 11pm</span>
-            <span>0302 208 054 &middot; 0242 438 720</span>
-            <span>Delivery and pickup, four branches across Accra</span>
+            <span>Open daily, 11am to 9pm</span>
+            <span>0248 978 606 &middot; WhatsApp 0593 422 400</span>
+            <span>Pickup and delivery &middot; Yeenua Street, near UEW, Winneba</span>
           </div>
         </div>
       </footer>

@@ -53,7 +53,7 @@ const QUICK_TRANSITION_HOLD_MS = 1450;
 // used to resume exactly where they left off on mount. Session-scoped
 // rather than localStorage: a cart shouldn't resurface days later against
 // stale prices.
-const CART_STORAGE_KEY = "flicks-cart-v1";
+const CART_STORAGE_KEY = "boba-king-cart-v1";
 
 type PersistedCartState = {
   branchId: string;

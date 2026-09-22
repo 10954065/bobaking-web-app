@@ -38,9 +38,9 @@ export class PaystackMobileMoneyProvider implements PaymentProvider {
   readonly name = "paystack";
 
   async createIntent(params: CreatePaymentIntentParams): Promise<PaymentIntentResult> {
-    const email = (params.metadata?.email as string | undefined) || `order-${params.orderId}@guest.flicksandlicks.local`;
+    const email = (params.metadata?.email as string | undefined) || `order-${params.orderId}@guest.bobaking.local`;
     const trackingToken = params.metadata?.trackingToken as string | undefined;
-    const reference = `flicks-${params.orderId}-${Date.now()}`;
+    const reference = `bobaking-${params.orderId}-${Date.now()}`;
 
     const response = await fetch(`${API_BASE}/transaction/initialize`, {
       method: "POST",

@@ -19,42 +19,48 @@ async function seedGeography() {
     create: { name: "Ghana", isoCode: "GH", currency: "GHS" },
   });
 
-  const greaterAccra = await prisma.region.upsert({
-    where: { countryId_name: { countryId: ghana.id, name: "Greater Accra" } },
+  const centralRegion = await prisma.region.upsert({
+    where: { countryId_name: { countryId: ghana.id, name: "Central Region" } },
     update: {},
-    create: { name: "Greater Accra", countryId: ghana.id },
+    create: { name: "Central Region", countryId: ghana.id },
   });
 
-  const accra = await prisma.city.upsert({
-    where: { regionId_name: { regionId: greaterAccra.id, name: "Accra" } },
+  const winneba = await prisma.city.upsert({
+    where: { regionId_name: { regionId: centralRegion.id, name: "Winneba" } },
     update: {},
-    create: { name: "Accra", regionId: greaterAccra.id },
+    create: { name: "Winneba", regionId: centralRegion.id },
   });
 
-  return { ghana, greaterAccra, accra };
+  return { ghana, centralRegion, winneba };
 }
 
 async function seedBranches(cityId: string) {
-  const branchSeeds = [
-    { name: "Mile 7 T-Junction", slug: "mile-7", address: "Mile 7 T-Junction, Accra", latitude: 5.62, longitude: -0.235 },
-    { name: "Kingsby Achimota", slug: "achimota", address: "Achimota, Accra", latitude: 5.618, longitude: -0.23 },
-    { name: "East Legon", slug: "east-legon", address: "East Legon, Accra", latitude: 5.6494, longitude: -0.1531 },
-    { name: "Dansoman", slug: "dansoman", address: "Dansoman, Accra", latitude: 5.54, longitude: -0.26 },
-  ];
+  const branch = await prisma.branch.upsert({
+    where: { slug: "winneba-uew" },
+    update: { defaultDeliveryFee: 8, latitude: 5.3512, longitude: -0.6228 },
+    create: {
+      name: "Boba King — Winneba (UEW)",
+      slug: "winneba-uew",
+      address: "Yeenua Street, near UEW North Campus, Winneba",
+      cityId,
+      status: "ACTIVE",
+      phone: "0248978606",
+      defaultDeliveryFee: 8,
+      latitude: 5.3512,
+      longitude: -0.6228,
+      openingHours: {
+        mon: { open: "11:00", close: "21:00" },
+        tue: { open: "11:00", close: "21:00" },
+        wed: { open: "11:00", close: "21:00" },
+        thu: { open: "11:00", close: "21:00" },
+        fri: { open: "11:00", close: "22:00" },
+        sat: { open: "11:00", close: "22:00" },
+        sun: { open: "12:00", close: "21:00" },
+      },
+    },
+  });
 
-  const branches = [];
-  for (const seed of branchSeeds) {
-    // update: also backfills defaultDeliveryFee/coordinates on branches seeded
-    // before those fields existed — an empty update object here would
-    // silently leave pre-existing rows at the columns' schema defaults forever.
-    const branch = await prisma.branch.upsert({
-      where: { slug: seed.slug },
-      update: { defaultDeliveryFee: 12, latitude: seed.latitude, longitude: seed.longitude },
-      create: { ...seed, cityId, status: "ACTIVE", defaultDeliveryFee: 12 },
-    });
-    branches.push(branch);
-  }
-  return branches;
+  return [branch];
 }
 
 /**
@@ -123,20 +129,14 @@ async function seedRoles(allPermissions: Awaited<ReturnType<typeof seedPermissio
   return roleMap;
 }
 
-async function seedCatalog(branches: Awaited<ReturnType<typeof seedBranches>>) {
-  const mile7 = branches.find((b) => b.slug === "mile-7")!;
-  const eastLegon = branches.find((b) => b.slug === "east-legon")!;
-
+async function seedCatalog() {
   const categorySeeds = [
-    { name: "Pizzas", slug: "pizzas", sortOrder: 1 },
-    { name: "Fries", slug: "fries", sortOrder: 2 },
-    { name: "Suyas", slug: "suyas", sortOrder: 3 },
-    { name: "Rice", slug: "rice", sortOrder: 4 },
-    { name: "Wraps", slug: "wraps", sortOrder: 5 },
-    { name: "Drinks", slug: "drinks", sortOrder: 6 },
-    { name: "Combos", slug: "combos", sortOrder: 7 },
-    { name: "Sides", slug: "sides", sortOrder: 8 },
-    { name: "Extras", slug: "extras", sortOrder: 9 },
+    { name: "Milk Tea", slug: "milk-tea", sortOrder: 1 },
+    { name: "Fruit Tea", slug: "fruit-tea", sortOrder: 2 },
+    { name: "Brown Sugar Series", slug: "brown-sugar", sortOrder: 3 },
+    { name: "Specialty Lattes", slug: "specialty-lattes", sortOrder: 4 },
+    { name: "Waffles", slug: "waffles", sortOrder: 5 },
+    { name: "Combos", slug: "combos", sortOrder: 6 },
   ];
 
   const categories: Record<string, { id: string }> = {};
@@ -148,20 +148,76 @@ async function seedCatalog(branches: Awaited<ReturnType<typeof seedBranches>>) {
     });
   }
 
+  // Prices and item names are anchored to what @bobaking_gh has actually
+  // posted (Taro 65, Matcha 45, Strawberry 45, Strawberry Matcha Latte 105);
+  // everything else fills out a realistic full boba-shop menu around those
+  // confirmed anchors until a full official price list replaces it.
   const productSeeds = [
-    { name: "Loaded Fries", slug: "loaded-fries", category: "fries", basePrice: 45, station: "fries" },
-    { name: "Classic Fries", slug: "classic-fries", category: "fries", basePrice: 25, station: "fries" },
-    { name: "Chicken Suya", slug: "chicken-suya", category: "suyas", basePrice: 35, station: "grill" },
-    { name: "Beef Suya", slug: "beef-suya", category: "suyas", basePrice: 40, station: "grill" },
-    { name: "Cheesy Shawarma", slug: "cheesy-shawarma", category: "wraps", basePrice: 50, station: "shawarma" },
-    { name: "Chicken Shawarma", slug: "chicken-shawarma", category: "wraps", basePrice: 45, station: "shawarma" },
-    { name: "Jollof Rice with Chicken", slug: "jollof-rice-chicken", category: "rice", basePrice: 55, station: "rice" },
-    { name: "Fried Rice with Beef", slug: "fried-rice-beef", category: "rice", basePrice: 60, station: "rice" },
-    { name: "Pepperoni Pizza (Medium)", slug: "pepperoni-pizza-medium", category: "pizzas", basePrice: 85, station: "pizza" },
-    { name: "Chicken Pizza (Medium)", slug: "chicken-pizza-medium", category: "pizzas", basePrice: 90, station: "pizza" },
-    { name: "Fresh Juice", slug: "fresh-juice", category: "drinks", basePrice: 20, station: "drinks" },
-    { name: "Soft Drink", slug: "soft-drink", category: "drinks", basePrice: 15, station: "drinks" },
-    { name: "Flicks Combo", slug: "flicks-combo", category: "combos", basePrice: 90, station: "packing" },
+    { name: "Classic Milk Tea", slug: "classic-milk-tea", category: "milk-tea", basePrice: 35, station: "tea-bar" },
+    { name: "Taro Milk Tea", slug: "taro-milk-tea", category: "milk-tea", basePrice: 65, station: "tea-bar" },
+    { name: "Matcha Milk Tea", slug: "matcha-milk-tea", category: "milk-tea", basePrice: 45, station: "tea-bar" },
+    { name: "Strawberry Milk Tea", slug: "strawberry-milk-tea", category: "milk-tea", basePrice: 45, station: "tea-bar" },
+    { name: "Blueberry Milk Tea", slug: "blueberry-milk-tea", category: "milk-tea", basePrice: 45, station: "tea-bar" },
+    {
+      name: "Mango Milk Tea x Biscoff x Caramel",
+      slug: "mango-biscoff-milk-tea",
+      category: "milk-tea",
+      basePrice: 50,
+      station: "tea-bar",
+    },
+    { name: "Passion Fruit Tea", slug: "passion-fruit-tea", category: "fruit-tea", basePrice: 40, station: "tea-bar" },
+    { name: "Lychee Fruit Tea", slug: "lychee-fruit-tea", category: "fruit-tea", basePrice: 40, station: "tea-bar" },
+    { name: "Peach Fruit Tea", slug: "peach-fruit-tea", category: "fruit-tea", basePrice: 40, station: "tea-bar" },
+    { name: "Green Apple Fruit Tea", slug: "green-apple-fruit-tea", category: "fruit-tea", basePrice: 40, station: "tea-bar" },
+    {
+      name: "Brown Sugar Boba Milk Tea",
+      slug: "brown-sugar-boba-milk-tea",
+      category: "brown-sugar",
+      basePrice: 50,
+      station: "tea-bar",
+      description: "Rich brown sugar syrup, creamy milk tea, chewy boba pearls.",
+    },
+    {
+      name: "Brown Sugar Pearl Latte",
+      slug: "brown-sugar-pearl-latte",
+      category: "brown-sugar",
+      basePrice: 55,
+      station: "tea-bar",
+    },
+    {
+      name: "Strawberry Matcha Latte",
+      slug: "strawberry-matcha-latte",
+      category: "specialty-lattes",
+      basePrice: 105,
+      station: "tea-bar",
+      description: "A creamy blend of rich matcha, fresh strawberry puree, milk, and chewy boba pearls.",
+    },
+    { name: "Matcha Latte", slug: "matcha-latte", category: "specialty-lattes", basePrice: 55, station: "tea-bar" },
+    { name: "Taro Latte", slug: "taro-latte", category: "specialty-lattes", basePrice: 60, station: "tea-bar" },
+    { name: "Classic Waffle", slug: "classic-waffle", category: "waffles", basePrice: 30, station: "waffle-station" },
+    {
+      name: "Waffle with Ice Cream",
+      slug: "waffle-ice-cream",
+      category: "waffles",
+      basePrice: 45,
+      station: "waffle-station",
+    },
+    {
+      name: "Loaded Waffle",
+      slug: "loaded-waffle",
+      category: "waffles",
+      basePrice: 55,
+      station: "waffle-station",
+      description: "Fresh waffle with chocolate, caramel and your pick of toppings.",
+    },
+    {
+      name: "Waffle & Milk Tea Combo",
+      slug: "waffle-milk-tea-combo",
+      category: "combos",
+      basePrice: 70,
+      station: "packing",
+      description: "Any classic waffle paired with a premium milk tea of your choice.",
+    },
   ];
 
   const products: Record<string, { id: string }> = {};
@@ -175,77 +231,110 @@ async function seedCatalog(branches: Awaited<ReturnType<typeof seedBranches>>) {
         categoryId: categories[seed.category].id,
         basePrice: seed.basePrice,
         stationSlug: seed.station,
+        description: "description" in seed ? seed.description : undefined,
       },
     });
   }
 
-  // Demonstrates the branch-override mechanic: Mile 7 doesn't carry pizza yet,
-  // and East Legon charges a premium on the shawarma.
-  await prisma.productBranchOverride.upsert({
-    where: { productId_branchId: { productId: products["pepperoni-pizza-medium"].id, branchId: mile7.id } },
-    update: {},
-    create: { productId: products["pepperoni-pizza-medium"].id, branchId: mile7.id, isAvailable: false },
-  });
-  await prisma.productBranchOverride.upsert({
-    where: { productId_branchId: { productId: products["chicken-pizza-medium"].id, branchId: mile7.id } },
-    update: {},
-    create: { productId: products["chicken-pizza-medium"].id, branchId: mile7.id, isAvailable: false },
-  });
-  await prisma.productBranchOverride.upsert({
-    where: { productId_branchId: { productId: products["cheesy-shawarma"].id, branchId: eastLegon.id } },
-    update: {},
-    create: { productId: products["cheesy-shawarma"].id, branchId: eastLegon.id, price: 58 },
-  });
-
-  // Modifier groups shared across the fries/suya items.
-  const spiceLevel =
-    (await prisma.modifierGroup.findFirst({ where: { name: "Spice Level" } })) ??
+  // Modifier groups shared across the tea/latte menu, plus a smaller set for
+  // waffles — every boba order needs a sugar level, ice level and size call,
+  // with toppings optional on top.
+  const sugarLevel =
+    (await prisma.modifierGroup.findFirst({ where: { name: "Sugar Level" } })) ??
     (await prisma.modifierGroup.create({
-      data: { name: "Spice Level", selectionType: "SINGLE", isRequired: true, minSelect: 1, maxSelect: 1 },
+      data: { name: "Sugar Level", selectionType: "SINGLE", isRequired: true, minSelect: 1, maxSelect: 1 },
     }));
-  const extras =
-    (await prisma.modifierGroup.findFirst({ where: { name: "Extras" } })) ??
+  const iceLevel =
+    (await prisma.modifierGroup.findFirst({ where: { name: "Ice Level" } })) ??
     (await prisma.modifierGroup.create({
-      data: { name: "Extras", selectionType: "MULTIPLE", isRequired: false, minSelect: 0 },
+      data: { name: "Ice Level", selectionType: "SINGLE", isRequired: true, minSelect: 1, maxSelect: 1 },
+    }));
+  const size =
+    (await prisma.modifierGroup.findFirst({ where: { name: "Size" } })) ??
+    (await prisma.modifierGroup.create({
+      data: { name: "Size", selectionType: "SINGLE", isRequired: true, minSelect: 1, maxSelect: 1 },
+    }));
+  const toppings =
+    (await prisma.modifierGroup.findFirst({ where: { name: "Toppings" } })) ??
+    (await prisma.modifierGroup.create({
+      data: { name: "Toppings", selectionType: "MULTIPLE", isRequired: false, minSelect: 0 },
+    }));
+  const waffleToppings =
+    (await prisma.modifierGroup.findFirst({ where: { name: "Waffle Toppings" } })) ??
+    (await prisma.modifierGroup.create({
+      data: { name: "Waffle Toppings", selectionType: "MULTIPLE", isRequired: false, minSelect: 0 },
     }));
 
-  const spiceOptions = [
-    { name: "Mild", priceDelta: 0, sortOrder: 1 },
-    { name: "Medium", priceDelta: 0, sortOrder: 2 },
-    { name: "Hot", priceDelta: 0, sortOrder: 3 },
+  const optionSeeds: Array<{ group: typeof sugarLevel; name: string; priceDelta: number; sortOrder: number }> = [
+    { group: sugarLevel, name: "0% Sugar", priceDelta: 0, sortOrder: 1 },
+    { group: sugarLevel, name: "25% Sugar", priceDelta: 0, sortOrder: 2 },
+    { group: sugarLevel, name: "50% Sugar", priceDelta: 0, sortOrder: 3 },
+    { group: sugarLevel, name: "75% Sugar", priceDelta: 0, sortOrder: 4 },
+    { group: sugarLevel, name: "100% Sugar", priceDelta: 0, sortOrder: 5 },
+    { group: iceLevel, name: "No Ice", priceDelta: 0, sortOrder: 1 },
+    { group: iceLevel, name: "Less Ice", priceDelta: 0, sortOrder: 2 },
+    { group: iceLevel, name: "Normal Ice", priceDelta: 0, sortOrder: 3 },
+    { group: iceLevel, name: "Extra Ice", priceDelta: 0, sortOrder: 4 },
+    { group: size, name: "Regular", priceDelta: 0, sortOrder: 1 },
+    { group: size, name: "Large", priceDelta: 10, sortOrder: 2 },
+    { group: toppings, name: "Boba Pearls", priceDelta: 5, sortOrder: 1 },
+    { group: toppings, name: "Grass Jelly", priceDelta: 5, sortOrder: 2 },
+    { group: toppings, name: "Pudding", priceDelta: 5, sortOrder: 3 },
+    { group: toppings, name: "Cheese Foam", priceDelta: 8, sortOrder: 4 },
+    { group: toppings, name: "Lychee Jelly", priceDelta: 5, sortOrder: 5 },
+    { group: toppings, name: "Red Bean", priceDelta: 5, sortOrder: 6 },
+    { group: waffleToppings, name: "Chocolate Drizzle", priceDelta: 5, sortOrder: 1 },
+    { group: waffleToppings, name: "Caramel Drizzle", priceDelta: 5, sortOrder: 2 },
+    { group: waffleToppings, name: "Whipped Cream", priceDelta: 5, sortOrder: 3 },
+    { group: waffleToppings, name: "Ice Cream Scoop", priceDelta: 10, sortOrder: 4 },
+    { group: waffleToppings, name: "Biscoff Crumble", priceDelta: 8, sortOrder: 5 },
   ];
-  for (const opt of spiceOptions) {
+
+  for (const opt of optionSeeds) {
     const existing = await prisma.modifierOption.findFirst({
-      where: { modifierGroupId: spiceLevel.id, name: opt.name },
+      where: { modifierGroupId: opt.group.id, name: opt.name },
     });
     if (!existing) {
-      await prisma.modifierOption.create({ data: { ...opt, modifierGroupId: spiceLevel.id } });
+      await prisma.modifierOption.create({
+        data: { name: opt.name, priceDelta: opt.priceDelta, sortOrder: opt.sortOrder, modifierGroupId: opt.group.id },
+      });
     }
   }
 
-  const extraOptions = [
-    { name: "Extra Cheese", priceDelta: 10, sortOrder: 1 },
-    { name: "Extra Sauce", priceDelta: 5, sortOrder: 2 },
+  const drinkSlugs = [
+    "classic-milk-tea",
+    "taro-milk-tea",
+    "matcha-milk-tea",
+    "strawberry-milk-tea",
+    "blueberry-milk-tea",
+    "mango-biscoff-milk-tea",
+    "passion-fruit-tea",
+    "lychee-fruit-tea",
+    "peach-fruit-tea",
+    "green-apple-fruit-tea",
+    "brown-sugar-boba-milk-tea",
+    "brown-sugar-pearl-latte",
+    "strawberry-matcha-latte",
+    "matcha-latte",
+    "taro-latte",
   ];
-  for (const opt of extraOptions) {
-    const existing = await prisma.modifierOption.findFirst({
-      where: { modifierGroupId: extras.id, name: opt.name },
-    });
-    if (!existing) {
-      await prisma.modifierOption.create({ data: { ...opt, modifierGroupId: extras.id } });
+  for (const slug of drinkSlugs) {
+    const groups = [sugarLevel, iceLevel, size, toppings];
+    for (const [index, group] of groups.entries()) {
+      await prisma.productModifierGroup.upsert({
+        where: { productId_modifierGroupId: { productId: products[slug].id, modifierGroupId: group.id } },
+        update: {},
+        create: { productId: products[slug].id, modifierGroupId: group.id, sortOrder: index + 1 },
+      });
     }
   }
 
-  for (const slug of ["loaded-fries", "chicken-suya", "beef-suya"]) {
+  const waffleSlugs = ["classic-waffle", "waffle-ice-cream", "loaded-waffle"];
+  for (const slug of waffleSlugs) {
     await prisma.productModifierGroup.upsert({
-      where: { productId_modifierGroupId: { productId: products[slug].id, modifierGroupId: spiceLevel.id } },
+      where: { productId_modifierGroupId: { productId: products[slug].id, modifierGroupId: waffleToppings.id } },
       update: {},
-      create: { productId: products[slug].id, modifierGroupId: spiceLevel.id, sortOrder: 1 },
-    });
-    await prisma.productModifierGroup.upsert({
-      where: { productId_modifierGroupId: { productId: products[slug].id, modifierGroupId: extras.id } },
-      update: {},
-      create: { productId: products[slug].id, modifierGroupId: extras.id, sortOrder: 2 },
+      create: { productId: products[slug].id, modifierGroupId: waffleToppings.id, sortOrder: 1 },
     });
   }
 
@@ -255,45 +344,45 @@ async function seedCatalog(branches: Awaited<ReturnType<typeof seedBranches>>) {
 async function seedCustomers() {
   const customerSeeds = [
     {
-      email: "ama.owusu@dev.flicksandlicks.local",
+      email: "ama.owusu@dev.bobaking.local",
       firstName: "Ama",
       lastName: "Owusu",
       phone: "+233241000001",
       address: {
-        addressLine1: "12 Lagos Ave",
-        area: "East Legon",
-        city: "Accra",
+        addressLine1: "Yeenua Street",
+        area: "UEW North Campus",
+        city: "Winneba",
         isDefault: true,
-        latitude: 5.6521,
-        longitude: -0.1498,
+        latitude: 5.3524,
+        longitude: -0.6219,
       },
     },
     {
-      email: "kwame.mensah@dev.flicksandlicks.local",
+      email: "kwame.mensah@dev.bobaking.local",
       firstName: "Kwame",
       lastName: "Mensah",
       phone: "+233241000002",
       address: {
-        addressLine1: "5 Achimota Ring Road",
-        area: "Achimota",
-        city: "Accra",
+        addressLine1: "Winneba Township Road",
+        area: "Winneba Township",
+        city: "Winneba",
         isDefault: true,
-        latitude: 5.615,
-        longitude: -0.2265,
+        latitude: 5.3505,
+        longitude: -0.6255,
       },
     },
     {
-      email: "abena.boateng@dev.flicksandlicks.local",
+      email: "abena.boateng@dev.bobaking.local",
       firstName: "Abena",
       lastName: "Boateng",
       phone: "+233241000003",
       address: {
-        addressLine1: "34 Dansoman High Street",
-        area: "Dansoman",
-        city: "Accra",
+        addressLine1: "Trafalgar Square Road",
+        area: "Trafalgar Square",
+        city: "Winneba",
         isDefault: true,
-        latitude: 5.5375,
-        longitude: -0.2635,
+        latitude: 5.353,
+        longitude: -0.6212,
       },
     },
   ];
@@ -334,13 +423,9 @@ async function seedCustomers() {
 
 async function seedKitchenStations(branches: Awaited<ReturnType<typeof seedBranches>>) {
   const stationSeeds = [
-    { name: "Grill", slug: "grill", sortOrder: 1 },
-    { name: "Fries", slug: "fries", sortOrder: 2 },
-    { name: "Shawarma", slug: "shawarma", sortOrder: 3 },
-    { name: "Pizza", slug: "pizza", sortOrder: 4 },
-    { name: "Rice", slug: "rice", sortOrder: 5 },
-    { name: "Drinks", slug: "drinks", sortOrder: 6 },
-    { name: "Packing", slug: "packing", sortOrder: 7 },
+    { name: "Tea Bar", slug: "tea-bar", sortOrder: 1 },
+    { name: "Waffle Station", slug: "waffle-station", sortOrder: 2 },
+    { name: "Packing", slug: "packing", sortOrder: 3 },
   ];
 
   for (const branch of branches) {
@@ -356,14 +441,21 @@ async function seedKitchenStations(branches: Awaited<ReturnType<typeof seedBranc
 
 async function seedIngredients() {
   const ingredientSeeds = [
-    { name: "Chicken Breast", sku: "ING-CHICKEN", unit: "kg", reorderLevel: 5 },
-    { name: "Beef", sku: "ING-BEEF", unit: "kg", reorderLevel: 5 },
-    { name: "Potatoes", sku: "ING-POTATO", unit: "kg", reorderLevel: 10 },
-    { name: "Suya Spice Mix", sku: "ING-SUYASPICE", unit: "kg", reorderLevel: 2 },
-    { name: "Cooking Oil", sku: "ING-OIL", unit: "l", reorderLevel: 5 },
-    { name: "Jasmine Rice", sku: "ING-RICE", unit: "kg", reorderLevel: 15 },
-    { name: "Flatbread Wrap", sku: "ING-WRAP", unit: "pcs", reorderLevel: 20 },
-    { name: "Mozzarella Cheese", sku: "ING-CHEESE", unit: "kg", reorderLevel: 3 },
+    { name: "Black Tea", sku: "ING-BLACKTEA", unit: "l", reorderLevel: 5 },
+    { name: "Green Tea", sku: "ING-GREENTEA", unit: "l", reorderLevel: 5 },
+    { name: "Fresh Milk", sku: "ING-MILK", unit: "l", reorderLevel: 10 },
+    { name: "Tapioca Pearls (Boba)", sku: "ING-BOBA", unit: "kg", reorderLevel: 5 },
+    { name: "Brown Sugar Syrup", sku: "ING-BROWNSUGAR", unit: "l", reorderLevel: 3 },
+    { name: "Matcha Powder", sku: "ING-MATCHA", unit: "kg", reorderLevel: 1 },
+    { name: "Taro Powder", sku: "ING-TARO", unit: "kg", reorderLevel: 1 },
+    { name: "Strawberry Puree", sku: "ING-STRAWBERRY", unit: "l", reorderLevel: 2 },
+    { name: "Mango Puree", sku: "ING-MANGO", unit: "l", reorderLevel: 2 },
+    { name: "Blueberry Syrup", sku: "ING-BLUEBERRY", unit: "l", reorderLevel: 2 },
+    { name: "Passion Fruit Syrup", sku: "ING-PASSIONFRUIT", unit: "l", reorderLevel: 2 },
+    { name: "Waffle Batter Mix", sku: "ING-WAFFLE", unit: "kg", reorderLevel: 5 },
+    { name: "Whipped Cream", sku: "ING-CREAM", unit: "l", reorderLevel: 2 },
+    { name: "Biscoff Spread", sku: "ING-BISCOFF", unit: "kg", reorderLevel: 1 },
+    { name: "Caramel Sauce", sku: "ING-CARAMEL", unit: "l", reorderLevel: 2 },
   ];
 
   const ingredients: Record<string, { id: string }> = {};
@@ -382,20 +474,27 @@ async function seedRecipes(
   ingredients: Awaited<ReturnType<typeof seedIngredients>>
 ) {
   const recipeSeeds = [
-    { product: "chicken-suya", ingredient: "ING-CHICKEN", quantityPerUnit: 0.2 },
-    { product: "chicken-suya", ingredient: "ING-SUYASPICE", quantityPerUnit: 0.02 },
-    { product: "beef-suya", ingredient: "ING-BEEF", quantityPerUnit: 0.2 },
-    { product: "beef-suya", ingredient: "ING-SUYASPICE", quantityPerUnit: 0.02 },
-    { product: "loaded-fries", ingredient: "ING-POTATO", quantityPerUnit: 0.3 },
-    { product: "loaded-fries", ingredient: "ING-OIL", quantityPerUnit: 0.05 },
-    { product: "classic-fries", ingredient: "ING-POTATO", quantityPerUnit: 0.25 },
-    { product: "classic-fries", ingredient: "ING-OIL", quantityPerUnit: 0.04 },
-    { product: "jollof-rice-chicken", ingredient: "ING-RICE", quantityPerUnit: 0.25 },
-    { product: "jollof-rice-chicken", ingredient: "ING-CHICKEN", quantityPerUnit: 0.15 },
-    { product: "chicken-shawarma", ingredient: "ING-WRAP", quantityPerUnit: 1 },
-    { product: "chicken-shawarma", ingredient: "ING-CHICKEN", quantityPerUnit: 0.15 },
-    { product: "cheesy-shawarma", ingredient: "ING-WRAP", quantityPerUnit: 1 },
-    { product: "cheesy-shawarma", ingredient: "ING-CHEESE", quantityPerUnit: 0.08 },
+    { product: "classic-milk-tea", ingredient: "ING-BLACKTEA", quantityPerUnit: 0.15 },
+    { product: "classic-milk-tea", ingredient: "ING-MILK", quantityPerUnit: 0.2 },
+    { product: "taro-milk-tea", ingredient: "ING-TARO", quantityPerUnit: 0.03 },
+    { product: "taro-milk-tea", ingredient: "ING-MILK", quantityPerUnit: 0.2 },
+    { product: "taro-milk-tea", ingredient: "ING-BOBA", quantityPerUnit: 0.05 },
+    { product: "matcha-milk-tea", ingredient: "ING-MATCHA", quantityPerUnit: 0.02 },
+    { product: "matcha-milk-tea", ingredient: "ING-MILK", quantityPerUnit: 0.2 },
+    { product: "strawberry-milk-tea", ingredient: "ING-STRAWBERRY", quantityPerUnit: 0.1 },
+    { product: "strawberry-milk-tea", ingredient: "ING-MILK", quantityPerUnit: 0.2 },
+    { product: "brown-sugar-boba-milk-tea", ingredient: "ING-BROWNSUGAR", quantityPerUnit: 0.08 },
+    { product: "brown-sugar-boba-milk-tea", ingredient: "ING-MILK", quantityPerUnit: 0.2 },
+    { product: "brown-sugar-boba-milk-tea", ingredient: "ING-BOBA", quantityPerUnit: 0.08 },
+    { product: "strawberry-matcha-latte", ingredient: "ING-MATCHA", quantityPerUnit: 0.02 },
+    { product: "strawberry-matcha-latte", ingredient: "ING-STRAWBERRY", quantityPerUnit: 0.08 },
+    { product: "strawberry-matcha-latte", ingredient: "ING-MILK", quantityPerUnit: 0.22 },
+    { product: "classic-waffle", ingredient: "ING-WAFFLE", quantityPerUnit: 0.15 },
+    { product: "waffle-ice-cream", ingredient: "ING-WAFFLE", quantityPerUnit: 0.15 },
+    { product: "waffle-ice-cream", ingredient: "ING-CREAM", quantityPerUnit: 0.05 },
+    { product: "loaded-waffle", ingredient: "ING-WAFFLE", quantityPerUnit: 0.15 },
+    { product: "loaded-waffle", ingredient: "ING-CARAMEL", quantityPerUnit: 0.03 },
+    { product: "loaded-waffle", ingredient: "ING-BISCOFF", quantityPerUnit: 0.03 },
   ];
 
   for (const seed of recipeSeeds) {
@@ -411,8 +510,8 @@ async function seedRecipes(
 
 async function seedSuppliers() {
   const supplierSeeds = [
-    { name: "Accra Fresh Meats Ltd", phone: "+233201000010", email: "orders@accrafreshmeats.dev" },
-    { name: "Greater Accra Produce Co-op", phone: "+233201000020", email: "sales@gaproduce.dev" },
+    { name: "Accra Bubble Tea Supplies Co.", phone: "+233201000030", email: "orders@accrabubbletea.dev" },
+    { name: "Winneba Fresh Milk Depot", phone: "+233201000040", email: "sales@winnebamilk.dev" },
   ];
 
   const suppliers = [];
@@ -429,14 +528,21 @@ async function seedInitialStock(
   ingredients: Awaited<ReturnType<typeof seedIngredients>>
 ) {
   const openingQuantities: Record<string, number> = {
-    "ING-CHICKEN": 20,
-    "ING-BEEF": 15,
-    "ING-POTATO": 40,
-    "ING-SUYASPICE": 5,
-    "ING-OIL": 20,
-    "ING-RICE": 50,
-    "ING-WRAP": 100,
-    "ING-CHEESE": 10,
+    "ING-BLACKTEA": 20,
+    "ING-GREENTEA": 15,
+    "ING-MILK": 40,
+    "ING-BOBA": 15,
+    "ING-BROWNSUGAR": 10,
+    "ING-MATCHA": 3,
+    "ING-TARO": 3,
+    "ING-STRAWBERRY": 8,
+    "ING-MANGO": 8,
+    "ING-BLUEBERRY": 8,
+    "ING-PASSIONFRUIT": 8,
+    "ING-WAFFLE": 20,
+    "ING-CREAM": 8,
+    "ING-BISCOFF": 3,
+    "ING-CARAMEL": 8,
   };
 
   for (const branch of branches) {
@@ -458,31 +564,28 @@ async function seedInitialStock(
 }
 
 /**
- * areaMatch values are chosen to line up with seedCustomers' addresses below
- * (Ama Owusu -> East Legon, Kwame Mensah -> Achimota, Abena Boateng ->
- * Dansoman) so the dev flow demonstrates real zone matching end-to-end.
- * Mile 7 intentionally gets no zones, to also exercise the distance-based
- * fare fallback (fare.service.ts) — both Mile 7 and the seeded customer
- * addresses now carry coordinates, so a delivery order placed from Mile 7
- * prices via the Bolt/Yango-style base+per-km+per-minute model instead of
- * a configured zone. Branch.defaultDeliveryFee only kicks in as a final
- * floor/fallback when coordinates are missing entirely.
+ * areaMatch values are chosen to line up with seedCustomers' addresses above
+ * (Ama Owusu -> UEW North Campus, Kwame Mensah -> Winneba Township, Abena
+ * Boateng -> Trafalgar Square) so the dev flow demonstrates real zone
+ * matching end-to-end. Both the branch and the seeded customer addresses
+ * carry coordinates, so a delivery order placed outside a configured zone
+ * still prices via the Bolt/Yango-style base+per-km+per-minute distance
+ * fallback (fare.service.ts) rather than the flat Branch.defaultDeliveryFee.
  */
 async function seedDeliveryZones(branches: Awaited<ReturnType<typeof seedBranches>>) {
-  const zoneSeeds: Array<{ branchSlug: string; name: string; areaMatch: string; fee: number; estimatedMinutes: number }> = [
-    { branchSlug: "east-legon", name: "East Legon", areaMatch: "East Legon", fee: 10, estimatedMinutes: 25 },
-    { branchSlug: "east-legon", name: "Airport Residential", areaMatch: "Airport Residential", fee: 15, estimatedMinutes: 35 },
-    { branchSlug: "achimota", name: "Achimota", areaMatch: "Achimota", fee: 8, estimatedMinutes: 20 },
-    { branchSlug: "dansoman", name: "Dansoman", areaMatch: "Dansoman", fee: 8, estimatedMinutes: 20 },
+  const winneba = branches.find((b) => b.slug === "winneba-uew")!;
+  const zoneSeeds: Array<{ name: string; areaMatch: string; fee: number; estimatedMinutes: number }> = [
+    { name: "UEW North Campus", areaMatch: "UEW North Campus", fee: 5, estimatedMinutes: 10 },
+    { name: "Winneba Township", areaMatch: "Winneba Township", fee: 10, estimatedMinutes: 20 },
+    { name: "Trafalgar Square", areaMatch: "Trafalgar Square", fee: 8, estimatedMinutes: 15 },
   ];
 
   for (const seed of zoneSeeds) {
-    const branch = branches.find((b) => b.slug === seed.branchSlug)!;
     await prisma.deliveryZone.upsert({
-      where: { branchId_areaMatch: { branchId: branch.id, areaMatch: seed.areaMatch } },
+      where: { branchId_areaMatch: { branchId: winneba.id, areaMatch: seed.areaMatch } },
       update: {},
       create: {
-        branchId: branch.id,
+        branchId: winneba.id,
         name: seed.name,
         areaMatch: seed.areaMatch,
         fee: seed.fee,
@@ -492,41 +595,54 @@ async function seedDeliveryZones(branches: Awaited<ReturnType<typeof seedBranche
   }
 }
 
-async function seedRider(eastLegonBranchId: string) {
-  const email = "rider@dev.flicksandlicks.local";
+async function seedRider(branchId: string) {
+  const email = "rider@dev.bobaking.local";
   const existing = await prisma.user.findUnique({ where: { email } });
   if (existing) return existing;
 
   return createRider({
-    branchId: eastLegonBranchId,
+    branchId,
     firstName: "Kojo",
     lastName: "Boateng",
     email,
     phone: "+233241000099",
     password: DEV_PASSWORD,
     vehicleType: "MOTORBIKE",
-    plateNumber: "GR-1234-24",
+    plateNumber: "CR-1234-24",
   });
 }
 
 async function seedPromotions() {
   const promotionSeeds = [
     {
-      code: "WELCOME10",
+      code: "SIPWELCOME",
       name: "Welcome 10% off",
-      description: "10% off for new and returning customers, up to GHS 20.",
+      description: "10% off for new and returning customers, up to GHS 15.",
       discountType: "PERCENTAGE" as const,
       discountValue: 10,
-      maxDiscountAmount: 20,
+      maxDiscountAmount: 15,
       usageLimitPerCustomer: 1,
     },
     {
-      code: "FLAT5",
-      name: "GHS 5 off orders over GHS 30",
-      description: "Flat GHS 5 off any order of at least GHS 30.",
+      code: "FOLLOW10",
+      name: "GHS 10 off for following @bobaking_gh",
+      description: "Follow us on TikTok or Instagram and show us to get GHS 10 off your order.",
       discountType: "FIXED_AMOUNT" as const,
-      discountValue: 5,
-      minSubtotal: 30,
+      discountValue: 10,
+      usageLimitPerCustomer: 1,
+    },
+    {
+      // The real in-store "Buy 3, Get 1 Free" promo isn't a discount-code
+      // mechanic this schema models directly (PromotionDiscountType only
+      // covers PERCENTAGE/FIXED_AMOUNT) — approximated here as a fixed
+      // discount roughly equal to one average-priced drink, once the order
+      // is large enough to plausibly contain 3+ drinks.
+      code: "BUY3GET1",
+      name: "Buy 3 Get 1 Free (approximated)",
+      description: "Buy 3 drinks, get the value of 1 free — applied as a flat discount on qualifying orders.",
+      discountType: "FIXED_AMOUNT" as const,
+      discountValue: 45,
+      minSubtotal: 135,
       usageLimitPerCustomer: 5,
     },
   ];
@@ -543,28 +659,28 @@ async function seedPromotions() {
 }
 
 async function seedCampaign(promotions: Awaited<ReturnType<typeof seedPromotions>>) {
-  const existing = await prisma.campaign.findFirst({ where: { name: "New Customer Welcome" } });
+  const existing = await prisma.campaign.findFirst({ where: { name: "New Customer Sip" } });
   if (existing) return existing;
 
   return prisma.campaign.create({
     data: {
-      name: "New Customer Welcome",
+      name: "New Customer Sip",
       description: "Encourage first-time customers to place their first order with a 10% discount.",
       status: "ACTIVE",
       audience: "NEW_CUSTOMERS",
-      promotionId: promotions["WELCOME10"].id,
+      promotionId: promotions["SIPWELCOME"].id,
     },
   });
 }
 
-async function seedUsers(roleMap: Record<string, { id: string }>, eastLegonBranchId: string) {
+async function seedUsers(roleMap: Record<string, { id: string }>, branchId: string) {
   const passwordHash = await hashPassword(DEV_PASSWORD);
 
   const superAdminUser = await prisma.user.upsert({
-    where: { email: "super.admin@dev.flicksandlicks.local" },
+    where: { email: "super.admin@dev.bobaking.local" },
     update: {},
     create: {
-      email: "super.admin@dev.flicksandlicks.local",
+      email: "super.admin@dev.bobaking.local",
       passwordHash,
       firstName: "Super",
       lastName: "Admin",
@@ -575,54 +691,54 @@ async function seedUsers(roleMap: Record<string, { id: string }>, eastLegonBranc
   });
 
   const branchAdminUser = await prisma.user.upsert({
-    where: { email: "branch.admin@dev.flicksandlicks.local" },
+    where: { email: "branch.admin@dev.bobaking.local" },
     update: {},
     create: {
-      email: "branch.admin@dev.flicksandlicks.local",
+      email: "branch.admin@dev.bobaking.local",
       passwordHash,
       firstName: "Branch",
       lastName: "Admin",
-      name: "Branch Admin (East Legon)",
+      name: "Branch Admin (Winneba)",
       status: "ACTIVE",
       emailVerified: new Date(),
     },
   });
 
   const frontDeskUser = await prisma.user.upsert({
-    where: { email: "front.desk@dev.flicksandlicks.local" },
+    where: { email: "front.desk@dev.bobaking.local" },
     update: {},
     create: {
-      email: "front.desk@dev.flicksandlicks.local",
+      email: "front.desk@dev.bobaking.local",
       passwordHash,
       firstName: "Front",
       lastName: "Desk",
-      name: "Front Desk (East Legon)",
+      name: "Front Desk (Winneba)",
       status: "ACTIVE",
       emailVerified: new Date(),
     },
   });
 
   const kitchenStaffUser = await prisma.user.upsert({
-    where: { email: "kitchen.staff@dev.flicksandlicks.local" },
+    where: { email: "kitchen.staff@dev.bobaking.local" },
     update: {},
     create: {
-      email: "kitchen.staff@dev.flicksandlicks.local",
+      email: "kitchen.staff@dev.bobaking.local",
       passwordHash,
       firstName: "Kitchen",
       lastName: "Staff",
-      name: "Kitchen Staff (East Legon)",
+      name: "Kitchen Staff (Winneba)",
       status: "ACTIVE",
       emailVerified: new Date(),
     },
   });
 
   await assignRoleToUser({ userId: superAdminUser.id, roleId: roleMap[ROLES.SUPER_ADMIN].id, branchId: null });
-  await assignRoleToUser({ userId: branchAdminUser.id, roleId: roleMap[ROLES.ADMIN].id, branchId: eastLegonBranchId });
-  await assignRoleToUser({ userId: frontDeskUser.id, roleId: roleMap[ROLES.FRONT_DESK].id, branchId: eastLegonBranchId });
+  await assignRoleToUser({ userId: branchAdminUser.id, roleId: roleMap[ROLES.ADMIN].id, branchId });
+  await assignRoleToUser({ userId: frontDeskUser.id, roleId: roleMap[ROLES.FRONT_DESK].id, branchId });
   await assignRoleToUser({
     userId: kitchenStaffUser.id,
     roleId: roleMap[ROLES.KITCHEN_STAFF].id,
-    branchId: eastLegonBranchId,
+    branchId,
   });
 
   return { superAdminUser, branchAdminUser, frontDeskUser, kitchenStaffUser };
@@ -630,14 +746,14 @@ async function seedUsers(roleMap: Record<string, { id: string }>, eastLegonBranc
 
 async function main() {
   console.log("Seeding geography...");
-  const { accra } = await seedGeography();
+  const { winneba } = await seedGeography();
 
-  console.log("Seeding branches...");
-  const branches = await seedBranches(accra.id);
-  const eastLegon = branches.find((b) => b.slug === "east-legon")!;
+  console.log("Seeding branch...");
+  const branches = await seedBranches(winneba.id);
+  const branch = branches[0];
 
   console.log("Removing retired roles...");
-  await removeRetiredRole("INVENTORY_MANAGER", "inventory.manager@dev.flicksandlicks.local");
+  await removeRetiredRole("INVENTORY_MANAGER", "inventory.manager@dev.bobaking.local");
 
   console.log("Seeding permission catalog...");
   const permissions = await seedPermissions();
@@ -646,10 +762,10 @@ async function main() {
   const roleMap = await seedRoles(permissions);
 
   console.log("Seeding development users...");
-  const { superAdminUser, branchAdminUser, frontDeskUser, kitchenStaffUser } = await seedUsers(roleMap, eastLegon.id);
+  const { superAdminUser, branchAdminUser, frontDeskUser, kitchenStaffUser } = await seedUsers(roleMap, branch.id);
 
   console.log("Seeding catalog (categories, products, modifiers)...");
-  const { categories, products } = await seedCatalog(branches);
+  const { categories, products } = await seedCatalog();
 
   console.log("Seeding kitchen stations...");
   await seedKitchenStations(branches);
@@ -668,7 +784,7 @@ async function main() {
   await seedDeliveryZones(branches);
 
   console.log("Seeding rider...");
-  const rider = await seedRider(eastLegon.id);
+  const rider = await seedRider(branch.id);
 
   console.log("Seeding customers...");
   const customers = await seedCustomers();
@@ -678,7 +794,7 @@ async function main() {
   await seedCampaign(promotions);
 
   console.log("\nSeed complete.");
-  console.log(`Branches: ${branches.map((b) => b.name).join(", ")}`);
+  console.log(`Branch: ${branch.name}`);
   console.log(`Roles: ${Object.keys(roleMap).join(", ")}`);
   console.log(`Categories: ${Object.keys(categories).length}, Products: ${Object.keys(products).length}`);
   console.log(`Ingredients: ${Object.keys(ingredients).length}, Suppliers: ${suppliers.length}`);
@@ -686,10 +802,10 @@ async function main() {
   console.log(`Promotions: ${Object.keys(promotions).join(", ")}`);
   console.log("\nDev-only login credentials (never valid outside local/dev):");
   console.log(`  Super Admin — ${superAdminUser.email} / ${DEV_PASSWORD}`);
-  console.log(`  Branch Admin (East Legon) — ${branchAdminUser.email} / ${DEV_PASSWORD}`);
-  console.log(`  Front Desk (East Legon) — ${frontDeskUser.email} / ${DEV_PASSWORD}`);
-  console.log(`  Kitchen Staff (East Legon) — ${kitchenStaffUser.email} / ${DEV_PASSWORD}`);
-  console.log(`  Rider (East Legon) — ${rider.email} / ${DEV_PASSWORD}`);
+  console.log(`  Branch Admin (Winneba) — ${branchAdminUser.email} / ${DEV_PASSWORD}`);
+  console.log(`  Front Desk (Winneba) — ${frontDeskUser.email} / ${DEV_PASSWORD}`);
+  console.log(`  Kitchen Staff (Winneba) — ${kitchenStaffUser.email} / ${DEV_PASSWORD}`);
+  console.log(`  Rider (Winneba) — ${rider.email} / ${DEV_PASSWORD}`);
 }
 
 main()

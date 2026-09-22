@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
   const report = await getSupportTicketsReport(branchIds, { from, to });
 
   const lines: string[] = [];
-  lines.push(`Flicks & Licks support tickets, last ${rangeParam} days (${from.toISOString().slice(0, 10)} to ${to.toISOString().slice(0, 10)})`);
+  lines.push(`Boba King support tickets, last ${rangeParam} days (${from.toISOString().slice(0, 10)} to ${to.toISOString().slice(0, 10)})`);
   lines.push("");
   lines.push("By status");
   lines.push("Status,Count");
@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
   return new Response(lines.join("\n"), {
     headers: {
       "Content-Type": "text/csv; charset=utf-8",
-      "Content-Disposition": `attachment; filename="flicks-and-licks-support-tickets-${rangeParam}d.csv"`,
+      "Content-Disposition": `attachment; filename="boba-king-support-tickets-${rangeParam}d.csv"`,
     },
   });
 }

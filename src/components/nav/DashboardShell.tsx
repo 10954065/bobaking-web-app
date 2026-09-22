@@ -104,7 +104,7 @@ function SidebarContent({
         <Logo size={36} />
         {!collapsed && (
           <div className="min-w-0">
-            <p className="truncate text-xs font-semibold uppercase tracking-[0.2em] text-brand-red-light">Flicks &amp; Licks</p>
+            <p className="truncate text-xs font-semibold uppercase tracking-[0.2em] text-brand-red-light">Boba King</p>
             <p className="truncate text-sm font-medium text-stone-300">Operations</p>
           </div>
         )}
@@ -212,7 +212,7 @@ export function DashboardShell({ visibleHrefs, userName, roleLabel, branchLabel,
       <div className="fixed inset-x-0 top-0 z-30 flex items-center justify-between border-b border-stone-800 bg-stone-950/95 px-4 py-3 backdrop-blur lg:hidden">
         <div className="flex items-center gap-2">
           <Logo size={30} />
-          <p className="text-sm font-semibold text-stone-100">Flicks &amp; Licks</p>
+          <p className="text-sm font-semibold text-stone-100">Boba King</p>
         </div>
         <button
           onClick={() => setMobileOpen(true)}
