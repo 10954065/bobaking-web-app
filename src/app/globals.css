@@ -78,6 +78,23 @@ body {
   font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
 }
 
+/* Faint tactile noise over the dark customer-facing surfaces (homepage hero,
+   splash) — a cheap, static SVG turbulence filter baked into the data URI so
+   it costs nothing at runtime. Breaks up flat brand-ink fields without
+   reaching for gradients/blur, and at this opacity it's felt more than seen. */
+.bg-grain {
+  position: relative;
+}
+.bg-grain::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.05;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+}
+
 /* Slim, low-contrast scrollbars for sidebar / kanban-style scroll regions. */
 .scrollbar-thin {
   scrollbar-width: thin;

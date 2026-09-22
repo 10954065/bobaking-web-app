@@ -29,7 +29,7 @@ export default async function Home() {
     listBranches({ status: "ACTIVE" }),
     prisma.product.findMany({
       where: { slug: { in: FEATURED_SLUGS }, isActive: true },
-      select: { id: true, slug: true, name: true, basePrice: true, imageUrl: true },
+      select: { id: true, slug: true, name: true, basePrice: true, imageUrl: true, description: true },
     }),
   ]);
 
@@ -41,6 +41,7 @@ export default async function Home() {
       name: p.name,
       price: Number(p.basePrice),
       image: p.imageUrl,
+      description: p.description,
       tag: POPULAR_SLUGS.has(p.slug) ? "Popular" : undefined,
     }));
 

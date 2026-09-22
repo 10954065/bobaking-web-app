@@ -1,0 +1,190 @@
+{
+  "version": 1,
+  "project": {
+    "name": "boba-king",
+    "productType": null,
+    "stack": [
+      "nextjs",
+      "react",
+      "tailwind-v4"
+    ]
+  },
+  "sources": {
+    "tokens": [
+      "src/app/globals.css"
+    ],
+    "components": [],
+    "assets": [
+      "public/brand",
+      "public/images"
+    ],
+    "instructions": [
+      "AGENTS.md",
+      "CLAUDE.md"
+    ]
+  },
+  "design": {
+    "colorMode": "light-and-dark",
+    "colors": {
+      "--background": {
+        "value": "#0a0a0a",
+        "source": "src/app/globals.css"
+      },
+      "--foreground": {
+        "value": "#ededed",
+        "source": "src/app/globals.css"
+      },
+      "--color-brand-red": {
+        "value": "var(--color-brand-red)",
+        "source": "src/app/globals.css"
+      },
+      "--color-brand-red-dark": {
+        "value": "var(--color-brand-red-dark)",
+        "source": "src/app/globals.css"
+      },
+      "--color-brand-red-light": {
+        "value": "var(--color-brand-red-light)",
+        "source": "src/app/globals.css"
+      },
+      "--color-brand-cyan": {
+        "value": "var(--color-brand-cyan)",
+        "source": "src/app/globals.css"
+      },
+      "--color-brand-ink": {
+        "value": "var(--color-brand-ink)",
+        "source": "src/app/globals.css"
+      },
+      "--color-brand-cream": {
+        "value": "var(--color-brand-cream)",
+        "source": "src/app/globals.css"
+      },
+      "--color-brand-gold": {
+        "value": "var(--color-brand-gold)",
+        "source": "src/app/globals.css"
+      },
+      "--color-brand-red-50": {
+        "value": "var(--color-brand-red-50)",
+        "source": "src/app/globals.css"
+      },
+      "--color-brand-red-100": {
+        "value": "var(--color-brand-red-100)",
+        "source": "src/app/globals.css"
+      },
+      "--color-brand-red-200": {
+        "value": "var(--color-brand-red-200)",
+        "source": "src/app/globals.css"
+      },
+      "--color-brand-red-300": {
+        "value": "var(--color-brand-red-300)",
+        "source": "src/app/globals.css"
+      },
+      "--color-brand-red-400": {
+        "value": "var(--color-brand-red-400)",
+        "source": "src/app/globals.css"
+      },
+      "--color-brand-red-500": {
+        "value": "var(--color-brand-red-500)",
+        "source": "src/app/globals.css"
+      },
+      "--color-brand-red-600": {
+        "value": "var(--color-brand-red-600)",
+        "source": "src/app/globals.css"
+      },
+      "--color-brand-red-700": {
+        "value": "var(--color-brand-red-700)",
+        "source": "src/app/globals.css"
+      },
+      "--color-brand-red-800": {
+        "value": "var(--color-brand-red-800)",
+        "source": "src/app/globals.css"
+      },
+      "--color-brand-red-900": {
+        "value": "var(--color-brand-red-900)",
+        "source": "src/app/globals.css"
+      },
+      "--color-brand-red-950": {
+        "value": "var(--color-brand-red-950)",
+        "source": "src/app/globals.css"
+      },
+      "--color-background": {
+        "value": "var(--background)",
+        "source": "src/app/globals.css"
+      },
+      "--color-foreground": {
+        "value": "var(--foreground)",
+        "source": "src/app/globals.css"
+      }
+    },
+    "typography": {
+      "--font-sans": {
+        "value": "var(--font-geist-sans)",
+        "source": "src/app/globals.css"
+      },
+      "--font-mono": {
+        "value": "var(--font-geist-mono)",
+        "source": "src/app/globals.css"
+      },
+      "--font-display": {
+        "value": "var(--font-anton)",
+        "source": "src/app/globals.css"
+      },
+      "--font-script": {
+        "value": "var(--font-marker)",
+        "source": "src/app/globals.css"
+      }
+    },
+    "spacing": {},
+    "radius": {},
+    "shadows": {},
+    "motion": {},
+    "density": "unknown"
+  },
+  "components": {
+    "installed": [],
+    "preferredPrimitives": [],
+    "patterns": []
+  },
+  "constraints": {
+    "must": [],
+    "avoid": []
+  },
+  "decisions": [
+    {
+      "date": "2026-09-22",
+      "scope": "Homepage hero + menu + visit section",
+      "decision": "Bespoke illustrated cup/waffle glyph system (src/components/brand/DrinkGlyphs.tsx) instead of stock icons or missing product photos. Recolored per product using only existing brand tokens (cyan, gold, red/terracotta ramp) — tonal variation within one palette, never a new hue per flavor. Hero rewritten with asymmetric layout, floating promo/flavor badge chips, and copy tied specifically to the crown/king brand motif ('Crowned in boba', 'Visit the throne room') rather than generic food-delivery copy. Added a faint SVG-turbulence grain texture (.bg-grain) on dark hero/menu surfaces for tactile depth without gradients or glassmorphism. Single-branch 'Visit' section redesigned as one composed panel (address/hours/phone) rather than a multi-branch list pattern applied to one item.",
+      "rejected": "21st hosted search/generate (get_inspiration HTTP 401, no API key in this environment) and the ui-ux-pro-max generic 'Bakery/Cafe'-style design-system suggestion (green/pink 'Liquid Glass' — conflicted with the real brand's established terracotta/teal/gold identity and the explicit 'avoid glassmorphism, don't scatter colors' constraints)."
+    }
+  ],
+  "evidence": [
+    {
+      "fact": "design.colorMode:light-and-dark",
+      "source": "src/app/globals.css"
+    },
+    {
+      "fact": "design.tokens",
+      "source": "src/app/globals.css"
+    },
+    {
+      "fact": "project.instructions",
+      "source": "AGENTS.md"
+    },
+    {
+      "fact": "project.instructions",
+      "source": "CLAUDE.md"
+    },
+    {
+      "fact": "project.stack:nextjs",
+      "source": "package.json"
+    },
+    {
+      "fact": "project.stack:react",
+      "source": "package.json"
+    },
+    {
+      "fact": "project.stack:tailwind-v4",
+      "source": "package.json"
+    }
+  ],
+  "generatedAt": "2026-09-22T20:39:41.861Z"
+}
