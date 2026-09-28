@@ -35,9 +35,9 @@ function statusLabel(status: string): string {
 }
 
 function statusPillClass(status: string): string {
-  if (status === "REJECTED" || status === "CANCELLED" || status === "PAYMENT_FAILED") return "bg-red-950/40 text-red-300";
-  if (status === "DELIVERED" || status === "COMPLETED") return "bg-emerald-950/40 text-emerald-300";
-  return "bg-brand-red/15 text-brand-red-light";
+  if (status === "REJECTED" || status === "CANCELLED" || status === "PAYMENT_FAILED") return "bg-red-50 text-red-700";
+  if (status === "DELIVERED" || status === "COMPLETED") return "bg-emerald-50 text-emerald-700";
+  return "bg-brand-red/10 text-brand-red-700";
 }
 
 // Storefront checkout only ever creates DELIVERY/PICKUP orders (see
@@ -50,7 +50,7 @@ export default async function MyAccountPage() {
 
   if (!customer) {
     return (
-      <div className="min-h-screen bg-stone-950 text-stone-100">
+      <div className="min-h-screen bg-brand-cream text-brand-ink">
         <AccountAuthGate />
       </div>
     );
@@ -59,26 +59,26 @@ export default async function MyAccountPage() {
   const orders = await listOrdersForCustomer(customer.id, 20);
 
   return (
-    <div className="min-h-screen bg-stone-950 text-stone-100">
-      <header className="flex items-center justify-between border-b border-stone-800 px-4 py-3 sm:px-6">
+    <div className="min-h-screen bg-brand-cream text-brand-ink">
+      <header className="flex items-center justify-between border-b border-brand-ink/10 px-4 py-3 sm:px-6">
         <div className="flex items-center gap-2.5">
           <Logo size={36} ring={false} />
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-brand-red-light">Boba King</p>
-            <h1 className="text-base font-semibold text-stone-50">My account</h1>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-brand-red-700">Boba King</p>
+            <h1 className="text-base font-semibold text-brand-ink">My account</h1>
           </div>
         </div>
         <div className="flex items-center gap-2">
           <Link
             href="/order"
-            className="flex items-center gap-1.5 rounded-lg border border-stone-700 px-3 py-2 text-sm font-medium text-stone-200 transition-colors hover:bg-stone-800"
+            className="flex items-center gap-1.5 rounded-lg border border-brand-ink/12 px-3 py-2 text-sm font-medium text-brand-ink/75 transition-colors hover:bg-brand-ink/8"
           >
             <ArrowLeft size={15} /> Order
           </Link>
           <form action={signOutFromMyAccountAction}>
             <button
               type="submit"
-              className="rounded-lg border border-stone-700 px-3 py-2 text-sm font-medium text-stone-200 transition-colors hover:border-red-900 hover:bg-red-950/50 hover:text-red-300"
+              className="rounded-lg border border-brand-ink/12 px-3 py-2 text-sm font-medium text-brand-ink/75 transition-colors hover:border-red-300 hover:bg-red-50 hover:text-red-700"
             >
               Sign out
             </button>
@@ -87,26 +87,26 @@ export default async function MyAccountPage() {
       </header>
 
       <main className="mx-auto max-w-lg space-y-6 px-4 py-8 sm:px-6">
-        <section className="flex items-center gap-4 rounded-xl border border-stone-800 bg-stone-900 p-6">
-          <span className="flex size-14 shrink-0 items-center justify-center rounded-full bg-brand-red-950 text-brand-red-300">
+        <section className="flex items-center gap-4 rounded-xl border border-brand-ink/10 bg-white p-6">
+          <span className="flex size-14 shrink-0 items-center justify-center rounded-full bg-brand-red/10 text-brand-red-700">
             <UserRound size={24} />
           </span>
           <div className="min-w-0">
-            <p className="truncate text-lg font-semibold text-stone-50">
+            <p className="truncate text-lg font-semibold text-brand-ink">
               {customer.firstName || customer.lastName ? `${customer.firstName} ${customer.lastName}`.trim() : "Welcome"}
             </p>
-            <p className="truncate text-sm text-stone-400">{customer.phone}</p>
-            {customer.email && <p className="truncate text-sm text-stone-500">{customer.email}</p>}
+            <p className="truncate text-sm text-brand-ink/55">{customer.phone}</p>
+            {customer.email && <p className="truncate text-sm text-brand-ink/45">{customer.email}</p>}
           </div>
         </section>
 
         <section>
-          <h2 className="mb-3 text-sm font-semibold text-stone-400">Order history</h2>
+          <h2 className="mb-3 text-sm font-semibold text-brand-ink/55">Order history</h2>
 
           {orders.length === 0 ? (
-            <div className="rounded-xl border border-stone-800 bg-stone-900 p-6 text-center text-sm text-stone-400">
+            <div className="rounded-xl border border-brand-ink/10 bg-white p-6 text-center text-sm text-brand-ink/55">
               No orders yet.{" "}
-              <Link href="/order" className="font-medium text-brand-red-light hover:underline">
+              <Link href="/order" className="font-medium text-brand-red-700 hover:underline">
                 Start an order
               </Link>
               .
@@ -114,11 +114,11 @@ export default async function MyAccountPage() {
           ) : (
             <ul className="space-y-3">
               {orders.map((order) => (
-                <li key={order.id} className="rounded-xl border border-stone-800 bg-stone-900 p-4">
+                <li key={order.id} className="rounded-xl border border-brand-ink/10 bg-white p-4">
                   <Link href={`/track/${order.trackingToken}`} className="flex items-center justify-between gap-3">
                     <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold text-stone-50">{order.orderNumber}</p>
-                      <p className="truncate text-xs text-stone-400">
+                      <p className="truncate text-sm font-semibold text-brand-ink">{order.orderNumber}</p>
+                      <p className="truncate text-xs text-brand-ink/55">
                         {order.branch.name} · {new Date(order.createdAt).toLocaleDateString()}
                       </p>
                     </div>
@@ -127,16 +127,16 @@ export default async function MyAccountPage() {
                     </span>
                   </Link>
 
-                  <p className="mt-2 truncate text-xs text-stone-500">
+                  <p className="mt-2 truncate text-xs text-brand-ink/45">
                     {order.items.map((item) => `${item.quantity}× ${item.productName}`).join(", ")}
                   </p>
 
-                  <div className="mt-3 flex items-center justify-between border-t border-stone-800 pt-3">
-                    <span className="text-sm font-semibold text-stone-100">GHS {Number(order.total).toFixed(2)}</span>
+                  <div className="mt-3 flex items-center justify-between border-t border-brand-ink/10 pt-3">
+                    <span className="text-sm font-semibold text-brand-ink">GHS {Number(order.total).toFixed(2)}</span>
                     {REORDERABLE_TYPES.has(order.type) && (
                       <Link
                         href={`/order?reorder=${order.id}`}
-                        className="flex items-center gap-1.5 rounded-lg border border-stone-700 px-3 py-1.5 text-xs font-medium text-stone-200 transition-colors hover:bg-stone-800"
+                        className="flex items-center gap-1.5 rounded-lg border border-brand-ink/12 px-3 py-1.5 text-xs font-medium text-brand-ink/75 transition-colors hover:bg-brand-ink/8"
                       >
                         <Repeat2 size={13} /> Reorder
                       </Link>

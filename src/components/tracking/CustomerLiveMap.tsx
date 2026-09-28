@@ -80,14 +80,14 @@ export function CustomerLiveMap({
 
   if (fitPoints.length === 0) {
     return (
-      <div className="flex h-64 items-center justify-center rounded-xl border border-stone-200 bg-stone-100 text-sm text-stone-500 dark:border-stone-800 dark:bg-stone-900 dark:text-stone-400">
+      <div className="flex h-64 items-center justify-center rounded-xl border border-brand-ink/10 bg-brand-cream text-sm text-brand-ink/55">
         Map isn&apos;t available for this delivery yet.
       </div>
     );
   }
 
   return (
-    <div className="overflow-hidden rounded-xl border border-stone-200 dark:border-stone-800">
+    <div className="overflow-hidden rounded-xl border border-brand-ink/10">
       <DeliveryMap fitPoints={fitPoints} fitKey={fitPoints.length} className="h-72 w-full sm:h-80">
         {branchCoordinates && <RestaurantMarker latitude={branchCoordinates.latitude} longitude={branchCoordinates.longitude} />}
         {customerCoordinates && <CustomerMarker latitude={customerCoordinates.latitude} longitude={customerCoordinates.longitude} />}
@@ -96,25 +96,25 @@ export function CustomerLiveMap({
         <MapControls />
       </DeliveryMap>
 
-      <div className="flex items-center justify-between gap-3 border-t border-stone-200 bg-white px-4 py-3 dark:border-stone-800 dark:bg-stone-900">
+      <div className="flex items-center justify-between gap-3 border-t border-brand-ink/10 bg-white px-4 py-3">
         <div className="min-w-0">
           {isNearby ? (
-            <p className="flex items-center gap-1.5 text-sm font-semibold text-emerald-600 dark:text-emerald-400">
+            <p className="flex items-center gap-1.5 text-sm font-semibold text-emerald-600">
               <Bike size={15} /> {riderFirstName ?? "Your rider"} is nearby
             </p>
           ) : route ? (
-            <p className="text-sm text-stone-700 dark:text-stone-300">
+            <p className="text-sm text-brand-ink/70">
               Estimated arrival{" "}
-              <span className="font-semibold text-stone-900 dark:text-stone-50">
+              <span className="font-semibold text-brand-ink">
                 {route.etaMinutesLow}–{route.etaMinutesHigh} min
               </span>{" "}
-              <span className="text-stone-400 dark:text-stone-500">· {route.distanceKm.toFixed(1)} km</span>
+              <span className="text-brand-ink/40">· {route.distanceKm.toFixed(1)} km</span>
             </p>
           ) : (
-            <p className="text-sm text-stone-500 dark:text-stone-400">Calculating route…</p>
+            <p className="text-sm text-brand-ink/55">Calculating route…</p>
           )}
           {location && (
-            <p className="mt-0.5 text-xs text-stone-400 dark:text-stone-500">
+            <p className="mt-0.5 text-xs text-brand-ink/40">
               {isStale ? `Location may be out of date. Last updated ${new Date(location.recordedAt).toLocaleTimeString()}` : "Live"}
             </p>
           )}
@@ -129,14 +129,14 @@ export function CustomerLiveMap({
 function ConnectionBadge({ connection }: { connection: "connecting" | "live" | "reconnecting" | "stopped" }) {
   if (connection === "live") {
     return (
-      <span className="flex shrink-0 items-center gap-1.5 rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
+      <span className="flex shrink-0 items-center gap-1.5 rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-800">
         <Radio size={11} className="animate-pulse" /> Live
       </span>
     );
   }
   if (connection === "reconnecting" || connection === "connecting") {
     return (
-      <span className="flex shrink-0 items-center gap-1.5 rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-800 dark:bg-amber-950 dark:text-amber-300">
+      <span className="flex shrink-0 items-center gap-1.5 rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-800">
         <WifiOff size={11} /> Reconnecting…
       </span>
     );
