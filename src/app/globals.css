@@ -95,6 +95,26 @@ body {
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
 }
 
+/* Dotted texture for the homepage hero's cream copy panel — matches the
+   dot-grid technique on the food-delivery reference layout, done as a native
+   radial-gradient tile instead of an image so it stays crisp at any size. */
+.bg-dotted {
+  background-image: radial-gradient(circle at 1px 1px, rgba(144, 73, 34, 0.16) 1.5px, transparent 1.5px);
+  background-size: 28px 28px;
+}
+
+/* The rounded "bite" that lets the hero's cream copy panel bleed into the
+   adjacent color panel, in place of a hard vertical seam between them. */
+.hero-wave-cap {
+  position: absolute;
+  top: 0;
+  right: -64px;
+  width: 128px;
+  height: 100%;
+  border-radius: 0 999px 999px 0;
+  z-index: 1;
+}
+
 /* Slim, low-contrast scrollbars for sidebar / kanban-style scroll regions. */
 .scrollbar-thin {
   scrollbar-width: thin;

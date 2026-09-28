@@ -68,16 +68,32 @@ export function Logo({ size = 56, ring = false, className = "" }: LogoProps) {
   );
 }
 
-/** Horizontal lockup — badge plus a wordmark, for headers/nav bars. */
-export function LogoLockup({ size = 40, className = "" }: { size?: number; className?: string }) {
+/** Horizontal lockup — badge plus a wordmark, for headers/nav bars.
+ * `tone="cream"` (default) is for dark surfaces; `tone="ink"` swaps the
+ * wordmark/tagline colors for use on light surfaces. */
+export function LogoLockup({
+  size = 40,
+  className = "",
+  tone = "cream",
+}: {
+  size?: number;
+  className?: string;
+  tone?: "cream" | "ink";
+}) {
   return (
     <span className={`inline-flex items-center gap-2.5 ${className}`}>
       <Logo size={size} />
       <span className="flex flex-col leading-none">
-        <span className="font-display text-[0.95em] uppercase tracking-wide text-brand-cream" style={{ fontSize: size * 0.34 }}>
+        <span
+          className={`font-display text-[0.95em] uppercase tracking-wide ${tone === "ink" ? "text-brand-ink" : "text-brand-cream"}`}
+          style={{ fontSize: size * 0.34 }}
+        >
           Boba King
         </span>
-        <span className="text-[0.6em] font-semibold uppercase tracking-[0.3em] text-brand-cyan" style={{ fontSize: size * 0.19 }}>
+        <span
+          className={`text-[0.6em] font-semibold uppercase tracking-[0.3em] ${tone === "ink" ? "text-brand-red-700" : "text-brand-cyan"}`}
+          style={{ fontSize: size * 0.19 }}
+        >
           Sip &middot; Chill &middot; Repeat
         </span>
       </span>
