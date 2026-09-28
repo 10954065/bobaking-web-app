@@ -65,44 +65,44 @@ export function PaymentStep({
     <div className="mx-auto w-full max-w-lg px-4 py-10 text-center">
       {stage === "method" && (
         <>
-          <h1 className="font-display text-2xl uppercase tracking-tight text-stone-50">Order {order.orderNumber} placed</h1>
-          <p className="mt-1 text-sm text-stone-400">Total: GHS {order.total.toFixed(2)}</p>
-          {error && <p className="mt-4 rounded-lg bg-red-950/40 px-3 py-2 text-sm text-red-300">{error}</p>}
-          <p className="mt-6 text-left text-sm font-medium text-stone-300">Choose a payment method</p>
+          <h1 className="font-display text-2xl uppercase tracking-tight text-brand-ink">Order {order.orderNumber} placed</h1>
+          <p className="mt-1 text-sm text-brand-ink/55">Total: GHS {order.total.toFixed(2)}</p>
+          {error && <p className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
+          <p className="mt-6 text-left text-sm font-medium text-brand-ink/70">Choose a payment method</p>
           <div className="mt-3 space-y-2.5">
             <button
               onClick={() => handlePay("MOBILE_MONEY")}
               disabled={isPending}
-              className="flex w-full items-center gap-3 rounded-xl border border-stone-700 px-4 py-3.5 text-left transition-colors hover:border-brand-red disabled:opacity-50"
+              className="flex w-full items-center gap-3 rounded-xl border border-brand-ink/12 bg-white px-4 py-3.5 text-left transition-colors hover:border-brand-red disabled:opacity-50"
             >
-              <Smartphone size={18} className="text-brand-red-light" />
+              <Smartphone size={18} className="text-brand-red" />
               <div>
-                <p className="text-sm font-semibold text-stone-100">Mobile Money</p>
-                <p className="text-xs text-stone-500">Pay now on your phone</p>
+                <p className="text-sm font-semibold text-brand-ink">Mobile Money</p>
+                <p className="text-xs text-brand-ink/45">Pay now on your phone</p>
               </div>
             </button>
             {cardPaymentsEnabled && (
               <button
                 onClick={() => handlePay("CARD")}
                 disabled={isPending}
-                className="flex w-full items-center gap-3 rounded-xl border border-stone-700 px-4 py-3.5 text-left transition-colors hover:border-brand-red disabled:opacity-50"
+                className="flex w-full items-center gap-3 rounded-xl border border-brand-ink/12 bg-white px-4 py-3.5 text-left transition-colors hover:border-brand-red disabled:opacity-50"
               >
-                <CreditCard size={18} className="text-brand-red-light" />
+                <CreditCard size={18} className="text-brand-red" />
                 <div>
-                  <p className="text-sm font-semibold text-stone-100">Card</p>
-                  <p className="text-xs text-stone-500">Pay by debit or credit card</p>
+                  <p className="text-sm font-semibold text-brand-ink">Card</p>
+                  <p className="text-xs text-brand-ink/45">Pay by debit or credit card</p>
                 </div>
               </button>
             )}
             <button
               onClick={() => handlePay("CASH")}
               disabled={isPending}
-              className="flex w-full items-center gap-3 rounded-xl border border-stone-700 px-4 py-3.5 text-left transition-colors hover:border-brand-red disabled:opacity-50"
+              className="flex w-full items-center gap-3 rounded-xl border border-brand-ink/12 bg-white px-4 py-3.5 text-left transition-colors hover:border-brand-red disabled:opacity-50"
             >
-              <Banknote size={18} className="text-brand-red-light" />
+              <Banknote size={18} className="text-brand-red" />
               <div>
-                <p className="text-sm font-semibold text-stone-100">Cash</p>
-                <p className="text-xs text-stone-500">Pay the rider or at the counter</p>
+                <p className="text-sm font-semibold text-brand-ink">Cash</p>
+                <p className="text-xs text-brand-ink/45">Pay the rider or at the counter</p>
               </div>
             </button>
           </div>
@@ -111,14 +111,14 @@ export function PaymentStep({
 
       {stage === "momo-pending" && (
         <>
-          <h1 className="font-display text-2xl uppercase tracking-tight text-stone-50">Complete payment on your phone</h1>
-          <p className="mt-2 text-sm text-stone-400">
+          <h1 className="font-display text-2xl uppercase tracking-tight text-brand-ink">Complete payment on your phone</h1>
+          <p className="mt-2 text-sm text-brand-ink/55">
             Approve the GHS {order.total.toFixed(2)} Mobile Money prompt to confirm your order.
           </p>
-          <p className="mt-5 rounded-lg border border-amber-900/60 bg-amber-950/30 px-3 py-2 text-xs text-amber-300">
+          <p className="mt-5 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
             DEV: no real Mobile Money gateway is connected yet. Use this button to simulate approving the prompt.
           </p>
-          {error && <p className="mt-3 rounded-lg bg-red-950/40 px-3 py-2 text-sm text-red-300">{error}</p>}
+          {error && <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
           <button
             onClick={handleSimulate}
             disabled={isPending}
@@ -131,19 +131,19 @@ export function PaymentStep({
 
       {stage === "redirecting" && (
         <>
-          <h1 className="font-display text-2xl uppercase tracking-tight text-stone-50">Taking you to checkout…</h1>
-          <p className="mt-2 text-sm text-stone-400">Complete the GHS {order.total.toFixed(2)} payment there, then you&apos;ll be brought back here.</p>
+          <h1 className="font-display text-2xl uppercase tracking-tight text-brand-ink">Taking you to checkout…</h1>
+          <p className="mt-2 text-sm text-brand-ink/55">Complete the GHS {order.total.toFixed(2)} payment there, then you&apos;ll be brought back here.</p>
         </>
       )}
 
       {stage === "done" && (
         <>
-          <CheckCircle2 size={40} className="mx-auto text-emerald-500" />
-          <h1 className="mt-3 font-display text-2xl uppercase tracking-tight text-stone-50">Order placed!</h1>
-          <p className="mt-1 text-sm text-stone-400">
+          <CheckCircle2 size={40} className="mx-auto text-emerald-600" />
+          <h1 className="mt-3 font-display text-2xl uppercase tracking-tight text-brand-ink">Order placed!</h1>
+          <p className="mt-1 text-sm text-brand-ink/55">
             We&apos;ve sent order {order.orderNumber} to the branch.
           </p>
-          <p className="mt-3 rounded-lg border border-amber-900/40 bg-amber-950/20 px-3 py-2 text-xs text-amber-300">
+          <p className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
             The branch hasn&apos;t accepted it yet. Payment alone doesn&apos;t confirm your order. Track its status below.
           </p>
           <button

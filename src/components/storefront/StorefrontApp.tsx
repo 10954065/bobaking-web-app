@@ -324,7 +324,7 @@ export function StorefrontApp({
 
   if (step === "branch") {
     return (
-      <div className="min-h-screen bg-stone-950 text-stone-100">
+      <div className="min-h-screen bg-brand-cream text-brand-ink">
         <SplashVisual visible={isMenuLoading} reducedMotion={reducedMotion} timings={QUICK_TRANSITION_TIMINGS} tagline="Finding your menu" />
         <BranchStep branches={branches} type={type} error={branchError ?? reorderError} onSelectType={setType} onContinue={handleBranchContinue} />
       </div>
@@ -333,7 +333,7 @@ export function StorefrontApp({
 
   if (step === "payment" && order) {
     return (
-      <div className="min-h-screen bg-stone-950 text-stone-100">
+      <div className="min-h-screen bg-brand-cream text-brand-ink">
         <PaymentStep order={order} cardPaymentsEnabled={cardPaymentsEnabled} onDone={() => router.push(`/track/${order.trackingToken}`)} />
       </div>
     );
@@ -344,7 +344,7 @@ export function StorefrontApp({
   // URL) — never render the checkout form without a verified customer behind it.
   if (step === "phone" || (step === "checkout" && !customer)) {
     return (
-      <div className="min-h-screen bg-stone-950 text-stone-100">
+      <div className="min-h-screen bg-brand-cream text-brand-ink">
         <PhoneAuthStep onVerified={handleVerified} onBack={goBack} />
       </div>
     );
@@ -352,7 +352,7 @@ export function StorefrontApp({
 
   if (step === "checkout" && customer) {
     return (
-      <div className="min-h-screen bg-stone-950 text-stone-100">
+      <div className="min-h-screen bg-brand-cream text-brand-ink">
         <CheckoutStep
           type={type}
           verifiedPhone={customer.phone}
@@ -372,27 +372,27 @@ export function StorefrontApp({
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-stone-950 text-stone-100">
+    <div className="flex min-h-screen flex-col bg-brand-cream text-brand-ink">
       <SplashVisual visible={checkoutTransition} reducedMotion={false} timings={QUICK_TRANSITION_TIMINGS} tagline="Almost there" />
 
-      <header className="sticky top-0 z-20 flex items-center gap-3 border-b border-stone-800 bg-stone-950/95 px-4 py-3 backdrop-blur">
+      <header className="sticky top-0 z-20 flex items-center gap-3 border-b border-brand-ink/10 bg-brand-cream/95 px-4 py-3 backdrop-blur">
         <button
           onClick={goBack}
-          className="flex size-9 shrink-0 items-center justify-center rounded-lg text-stone-400 transition-colors hover:bg-stone-800 hover:text-stone-100"
+          className="flex size-9 shrink-0 items-center justify-center rounded-lg text-brand-ink/55 transition-colors hover:bg-brand-ink/8 hover:text-brand-ink"
         >
           <ArrowLeft size={17} />
         </button>
         <Logo size={36} ring={false} />
         <div className="min-w-0 flex-1">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-brand-cyan">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-brand-red-700">
             {type === "DELIVERY" ? "Delivery" : "Pickup"}
           </p>
-          <h1 className="truncate text-base font-semibold leading-tight">{currentBranch?.name}</h1>
+          <h1 className="truncate text-base font-semibold leading-tight text-brand-ink">{currentBranch?.name}</h1>
         </div>
         {customer && (
           <Link
             href="/my-account"
-            className="flex size-9 shrink-0 items-center justify-center rounded-lg text-stone-400 transition-colors hover:bg-stone-800 hover:text-stone-100"
+            className="flex size-9 shrink-0 items-center justify-center rounded-lg text-brand-ink/55 transition-colors hover:bg-brand-ink/8 hover:text-brand-ink"
             title="My account"
           >
             <UserRound size={17} />
@@ -400,10 +400,12 @@ export function StorefrontApp({
         )}
       </header>
 
-      <div className="flex-1 pb-24">{menu && <ProductGrid categories={menu.categories} products={menu.products} onSelectProduct={setSelectedProduct} />}</div>
+      <div className="flex-1 pb-24">
+        {menu && <ProductGrid categories={menu.categories} products={menu.products} onSelectProduct={setSelectedProduct} variant="light" />}
+      </div>
 
       {selectedProduct && (
-        <ModifierModal product={selectedProduct} onCancel={() => setSelectedProduct(null)} onConfirm={handleConfirmItem} />
+        <ModifierModal product={selectedProduct} onCancel={() => setSelectedProduct(null)} onConfirm={handleConfirmItem} variant="light" />
       )}
 
       {cartCount > 0 && (
@@ -416,34 +418,34 @@ export function StorefrontApp({
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 16 }}
                   transition={{ duration: 0.2 }}
-                  className="mb-3 max-h-[50vh] overflow-y-auto rounded-2xl border border-stone-800 bg-stone-900 p-3 shadow-2xl"
+                  className="mb-3 max-h-[50vh] overflow-y-auto rounded-2xl border border-brand-ink/10 bg-white p-3 shadow-2xl"
                 >
                   <div className="mb-2 flex items-center justify-between px-1">
-                    <p className="text-sm font-semibold text-stone-200">Your order</p>
-                    <button onClick={() => setCartOpen(false)} className="rounded-lg p-1 text-stone-500 hover:text-stone-200">
+                    <p className="text-sm font-semibold text-brand-ink/80">Your order</p>
+                    <button onClick={() => setCartOpen(false)} className="rounded-lg p-1 text-brand-ink/40 hover:text-brand-ink">
                       <X size={16} />
                     </button>
                   </div>
                   <ul className="space-y-2">
                     {cart.map((item) => (
-                      <li key={item.key} className="flex items-center gap-2.5 rounded-xl bg-stone-800/50 p-2">
+                      <li key={item.key} className="flex items-center gap-2.5 rounded-xl bg-brand-cream/60 p-2">
                         <MenuImage src={item.imageUrl} alt={item.productName} className="size-12 shrink-0 rounded-lg" />
                         <div className="min-w-0 flex-1">
-                          <p className="truncate text-sm font-medium text-stone-100">{item.productName}</p>
-                          {item.modifiersLabel && <p className="truncate text-xs text-stone-500">{item.modifiersLabel}</p>}
-                          <p className="text-xs font-semibold text-brand-red-light">GHS {item.lineTotal.toFixed(2)}</p>
+                          <p className="truncate text-sm font-medium text-brand-ink">{item.productName}</p>
+                          {item.modifiersLabel && <p className="truncate text-xs text-brand-ink/45">{item.modifiersLabel}</p>}
+                          <p className="text-xs font-semibold text-brand-red-700">GHS {item.lineTotal.toFixed(2)}</p>
                         </div>
                         <div className="flex shrink-0 items-center gap-1.5">
                           <button
                             onClick={() => updateQuantity(item.key, item.quantity - 1)}
-                            className="flex size-7 items-center justify-center rounded-lg bg-stone-700 text-stone-100 hover:bg-stone-600"
+                            className="flex size-7 items-center justify-center rounded-lg bg-brand-ink/8 text-brand-ink hover:bg-brand-ink/15"
                           >
                             {item.quantity === 1 ? <Trash2 size={12} /> : <Minus size={12} />}
                           </button>
                           <span className="w-5 text-center text-sm font-medium">{item.quantity}</span>
                           <button
                             onClick={() => updateQuantity(item.key, item.quantity + 1)}
-                            className="flex size-7 items-center justify-center rounded-lg bg-stone-700 text-stone-100 hover:bg-stone-600"
+                            className="flex size-7 items-center justify-center rounded-lg bg-brand-ink/8 text-brand-ink hover:bg-brand-ink/15"
                           >
                             <Plus size={12} />
                           </button>
@@ -455,19 +457,19 @@ export function StorefrontApp({
               )}
             </AnimatePresence>
 
-            <div className="flex items-center gap-2 rounded-2xl border border-stone-800 bg-stone-900 p-2 shadow-2xl">
+            <div className="flex items-center gap-2 rounded-2xl border border-brand-ink/10 bg-white p-2 shadow-2xl">
               <button
                 onClick={() => setCartOpen((v) => !v)}
-                className="flex flex-1 items-center gap-2.5 rounded-xl px-3 py-2.5 text-left transition-colors hover:bg-stone-800"
+                className="flex flex-1 items-center gap-2.5 rounded-xl px-3 py-2.5 text-left transition-colors hover:bg-brand-cream/60"
               >
                 <span className="relative flex size-9 shrink-0 items-center justify-center rounded-lg bg-brand-red text-white">
                   <ShoppingBag size={16} />
-                  <span className="absolute -right-1.5 -top-1.5 flex size-5 items-center justify-center rounded-full bg-stone-950 text-[10px] font-bold text-brand-cyan ring-2 ring-stone-900">
+                  <span className="absolute -right-1.5 -top-1.5 flex size-5 items-center justify-center rounded-full bg-brand-gold text-[10px] font-bold text-brand-ink ring-2 ring-white">
                     {cartCount}
                   </span>
                 </span>
-                <span className="text-sm font-semibold text-stone-100">
-                  GHS {cartTotal.toFixed(2)} <ChevronUp size={12} className="inline text-stone-500" />
+                <span className="text-sm font-semibold text-brand-ink">
+                  GHS {cartTotal.toFixed(2)} <ChevronUp size={12} className="inline text-brand-ink/40" />
                 </span>
               </button>
               <button

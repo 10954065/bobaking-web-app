@@ -22,7 +22,7 @@ function IconField({
 }: React.InputHTMLAttributes<HTMLInputElement> & { icon: LucideIcon }) {
   return (
     <div className="relative flex-1">
-      <Icon size={15} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-500" />
+      <Icon size={15} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-brand-ink/40" />
       <input {...props} className={storefrontInputClass} />
     </div>
   );
@@ -88,20 +88,20 @@ export function CheckoutStep({
     <div className="mx-auto w-full max-w-4xl px-4 py-6 sm:py-10 lg:px-6">
       <button
         onClick={onBack}
-        className="flex items-center gap-1.5 text-sm font-medium text-stone-400 transition-colors hover:text-stone-100"
+        className="flex items-center gap-1.5 text-sm font-medium text-brand-ink/55 transition-colors hover:text-brand-ink"
       >
         <ArrowLeft size={15} /> Back to menu
       </button>
 
       <div className="mt-4 flex items-center gap-2.5">
-        <span className="h-6 w-1 rounded-full bg-brand-red shadow-[0_0_10px_rgba(228,35,19,0.6)]" />
-        <h1 className="font-display text-2xl uppercase tracking-tight text-stone-50">Your details</h1>
+        <span className="h-6 w-1 rounded-full bg-brand-red shadow-[0_0_10px_rgba(187,94,44,0.4)]" />
+        <h1 className="font-display text-2xl uppercase tracking-tight text-brand-ink">Your details</h1>
       </div>
-      <p className="mt-1 pl-3.5 text-sm text-stone-400">
+      <p className="mt-1 pl-3.5 text-sm text-brand-ink/55">
         {type === "DELIVERY" ? "So we know where to send your order." : "So the branch knows who's collecting."}
       </p>
 
-      {error && <p className="mt-4 rounded-lg bg-red-950/40 px-3 py-2 text-sm text-red-300">{error}</p>}
+      {error && <p className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_22rem] lg:items-start">
         {/* Every field carries autoComplete/inputMode so mobile keyboards and
@@ -123,11 +123,11 @@ export function CheckoutStep({
               autoComplete="family-name"
             />
           </div>
-          <div className="flex items-center justify-between rounded-xl border border-emerald-900/50 bg-emerald-950/20 py-3 pl-3.5 pr-3 text-sm">
-            <span className="flex items-center gap-2 text-emerald-300">
+          <div className="flex items-center justify-between rounded-xl border border-emerald-200 bg-emerald-50 py-3 pl-3.5 pr-3 text-sm">
+            <span className="flex items-center gap-2 text-emerald-700">
               <ShieldCheck size={15} /> {verifiedPhone}
             </span>
-            <button type="button" onClick={onChangeNumber} className="text-xs font-medium text-stone-400 underline hover:text-stone-200">
+            <button type="button" onClick={onChangeNumber} className="text-xs font-medium text-brand-ink/55 underline hover:text-brand-ink">
               Change number
             </button>
           </div>
@@ -142,8 +142,8 @@ export function CheckoutStep({
           />
 
           {type === "DELIVERY" && (
-            <div className="space-y-3 rounded-2xl border border-brand-cyan/15 bg-linear-to-b from-stone-900 to-stone-900/60 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]">
-              <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-brand-cyan">
+            <div className="space-y-3 rounded-2xl border border-brand-red/15 bg-brand-cream/50 p-4">
+              <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-brand-red-700">
                 <MapPin size={13} /> Delivery address
               </p>
               <IconField
@@ -177,8 +177,8 @@ export function CheckoutStep({
             in empty space, and lets the customer confirm their cart survived
             while they type — sticky on desktop, first thing reachable after
             the form on mobile. */}
-        <div className="rounded-2xl border border-stone-800 bg-stone-900/60 p-4 lg:sticky lg:top-6">
-          <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-stone-400">
+        <div className="rounded-2xl border border-brand-ink/10 bg-white p-4 lg:sticky lg:top-6">
+          <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-brand-ink/55">
             <ReceiptText size={13} /> Order summary
           </p>
 
@@ -187,19 +187,19 @@ export function CheckoutStep({
               <li key={item.key} className="flex items-center gap-2.5">
                 <MenuImage src={item.imageUrl} alt={item.productName} className="size-11 shrink-0 rounded-lg" />
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium text-stone-100">
+                  <p className="truncate text-sm font-medium text-brand-ink">
                     {item.quantity} × {item.productName}
                   </p>
-                  {item.modifiersLabel && <p className="truncate text-xs text-stone-500">{item.modifiersLabel}</p>}
+                  {item.modifiersLabel && <p className="truncate text-xs text-brand-ink/45">{item.modifiersLabel}</p>}
                 </div>
-                <p className="shrink-0 text-sm font-semibold text-brand-cyan">GHS {item.lineTotal.toFixed(2)}</p>
+                <p className="shrink-0 text-sm font-semibold text-brand-red-700">GHS {item.lineTotal.toFixed(2)}</p>
               </li>
             ))}
           </ul>
 
-          <div className="mt-3 flex items-center justify-between border-t border-stone-800 pt-3">
-            <span className="text-sm text-stone-400">Total</span>
-            <span className="text-lg font-bold text-stone-50">GHS {cartTotal.toFixed(2)}</span>
+          <div className="mt-3 flex items-center justify-between border-t border-brand-ink/10 pt-3">
+            <span className="text-sm text-brand-ink/55">Total</span>
+            <span className="text-lg font-bold text-brand-ink">GHS {cartTotal.toFixed(2)}</span>
           </div>
 
           <button

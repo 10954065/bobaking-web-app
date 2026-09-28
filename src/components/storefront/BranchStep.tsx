@@ -50,15 +50,15 @@ export function BranchStep({
       <motion.div initial={{ opacity: 0, scale: 0.85 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.4 }}>
         <Logo size={52} />
       </motion.div>
-      <p className="mt-4 text-xs font-semibold uppercase tracking-[0.3em] text-brand-cyan">Boba King</p>
-      <h1 className="mt-2 font-display text-2xl uppercase tracking-tight text-stone-50 sm:text-3xl">How would you like your order?</h1>
-      <p className="mt-1.5 text-sm text-stone-400">Choose delivery or pick a branch to collect from.</p>
+      <p className="mt-4 text-xs font-semibold uppercase tracking-[0.3em] text-brand-red-700">Boba King</p>
+      <h1 className="mt-2 font-display text-2xl uppercase tracking-tight text-brand-ink sm:text-3xl">How would you like your order?</h1>
+      <p className="mt-1.5 text-sm text-brand-ink/55">Choose delivery or pick a branch to collect from.</p>
 
       <div className="mt-6 grid grid-cols-2 gap-3">
         <button
           onClick={() => onSelectType("DELIVERY")}
           className={`flex flex-col items-center gap-2 rounded-2xl border py-6 transition-colors ${
-            type === "DELIVERY" ? "border-brand-red bg-brand-red/10 text-brand-red-light" : "border-stone-800 bg-stone-900 text-stone-400 hover:border-stone-700"
+            type === "DELIVERY" ? "border-brand-red bg-brand-red/10 text-brand-red" : "border-brand-ink/12 bg-white text-brand-ink/50 hover:border-brand-ink/25"
           }`}
         >
           <Bike size={24} />
@@ -67,7 +67,7 @@ export function BranchStep({
         <button
           onClick={() => onSelectType("PICKUP")}
           className={`flex flex-col items-center gap-2 rounded-2xl border py-6 transition-colors ${
-            type === "PICKUP" ? "border-brand-red bg-brand-red/10 text-brand-red-light" : "border-stone-800 bg-stone-900 text-stone-400 hover:border-stone-700"
+            type === "PICKUP" ? "border-brand-red bg-brand-red/10 text-brand-red" : "border-brand-ink/12 bg-white text-brand-ink/50 hover:border-brand-ink/25"
           }`}
         >
           <Store size={24} />
@@ -75,7 +75,7 @@ export function BranchStep({
         </button>
       </div>
 
-      <h2 className="mt-8 text-sm font-semibold text-stone-300">
+      <h2 className="mt-8 text-sm font-semibold text-brand-ink/70">
         {type === "DELIVERY" ? "Nearest branch to deliver from" : "Pick a branch to collect from"}
       </h2>
       <div className="mt-3 space-y-2.5">
@@ -88,22 +88,22 @@ export function BranchStep({
             whileTap={{ scale: 0.98 }}
             onClick={() => setSelectedBranchId(branch.id)}
             className={`flex w-full items-center gap-3 rounded-xl border px-4 py-3.5 text-left transition-colors ${
-              selectedBranchId === branch.id ? "border-brand-red bg-brand-red/10" : "border-stone-800 bg-stone-900 hover:border-stone-700"
+              selectedBranchId === branch.id ? "border-brand-red bg-brand-red/10" : "border-brand-ink/12 bg-white hover:border-brand-ink/25"
             }`}
           >
-            <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-stone-800 text-stone-400">
+            <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-brand-cream text-brand-ink/50">
               <MapPin size={16} />
             </span>
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
-                <p className="truncate text-sm font-semibold text-stone-100">{branch.name}</p>
+                <p className="truncate text-sm font-semibold text-brand-ink">{branch.name}</p>
                 {branch.id === closestId && (
-                  <span className="flex shrink-0 items-center gap-1 rounded-full bg-brand-cyan/15 px-2 py-0.5 text-[10px] font-semibold text-brand-cyan">
+                  <span className="flex shrink-0 items-center gap-1 rounded-full bg-brand-cyan/15 px-2 py-0.5 text-[10px] font-semibold text-brand-red-700">
                     <Navigation size={9} /> Closest
                   </span>
                 )}
               </div>
-              <p className="truncate text-xs text-stone-500">
+              <p className="truncate text-xs text-brand-ink/45">
                 {branch.address}
                 {branch.distanceKm != null && ` · ${branch.distanceKm.toFixed(1)} km away`}
               </p>
@@ -112,7 +112,7 @@ export function BranchStep({
         ))}
       </div>
 
-      {error && <p className="mt-4 rounded-lg bg-red-950/40 px-3 py-2 text-sm text-red-300">{error}</p>}
+      {error && <p className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
 
       <button
         onClick={() => selectedBranchId && onContinue(selectedBranchId)}

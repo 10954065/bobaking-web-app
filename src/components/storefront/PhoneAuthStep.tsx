@@ -61,26 +61,26 @@ export function PhoneAuthStep({ onVerified, onBack }: { onVerified: (customer: C
     <div className="mx-auto w-full max-w-lg px-4 py-10">
       <button
         onClick={stage === "code" ? () => setStage("phone") : onBack}
-        className="flex items-center gap-1.5 text-sm font-medium text-stone-400 transition-colors hover:text-stone-100"
+        className="flex items-center gap-1.5 text-sm font-medium text-brand-ink/55 transition-colors hover:text-brand-ink"
       >
         <ArrowLeft size={15} /> Back
       </button>
 
       <div className="mt-4 flex items-center gap-2.5">
-        <span className="h-6 w-1 rounded-full bg-brand-red shadow-[0_0_10px_rgba(228,35,19,0.6)]" />
-        <h1 className="font-display text-2xl uppercase tracking-tight text-stone-50">
+        <span className="h-6 w-1 rounded-full bg-brand-red shadow-[0_0_10px_rgba(187,94,44,0.4)]" />
+        <h1 className="font-display text-2xl uppercase tracking-tight text-brand-ink">
           {stage === "phone" ? "Verify your number" : "Enter the code"}
         </h1>
       </div>
-      <p className="mt-1 pl-3.5 text-sm text-stone-400">
+      <p className="mt-1 pl-3.5 text-sm text-brand-ink/55">
         {stage === "phone"
           ? "We'll text you a one-time code to confirm your order."
           : `We sent a 6-digit code to ${phone}.`}
       </p>
 
-      {error && <p className="mt-4 rounded-lg bg-red-950/40 px-3 py-2 text-sm text-red-300">{error}</p>}
+      {error && <p className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
       {devCode && (
-        <p className="mt-4 rounded-lg border border-amber-900/60 bg-amber-950/30 px-3 py-2 text-xs text-amber-300">
+        <p className="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
           DEV: no real SMS gateway is connected yet. Your code is <span className="font-mono font-bold">{devCode}</span>.
         </p>
       )}
@@ -88,7 +88,7 @@ export function PhoneAuthStep({ onVerified, onBack }: { onVerified: (customer: C
       {stage === "phone" ? (
         <div className="mt-6 space-y-3">
           <div className="flex items-center gap-2">
-            <span className="flex h-[46px] shrink-0 items-center rounded-xl border border-stone-700/80 bg-stone-900/70 px-3.5 text-sm font-medium text-stone-300">
+            <span className="flex h-[46px] shrink-0 items-center rounded-xl border border-brand-ink/12 bg-white px-3.5 text-sm font-medium text-brand-ink/70">
               +233
             </span>
             <input
@@ -112,7 +112,7 @@ export function PhoneAuthStep({ onVerified, onBack }: { onVerified: (customer: C
       ) : (
         <div className="mt-6 space-y-3">
           <div className="relative">
-            <ShieldCheck size={15} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-500" />
+            <ShieldCheck size={15} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-brand-ink/40" />
             <input
               value={code}
               onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
@@ -133,7 +133,7 @@ export function PhoneAuthStep({ onVerified, onBack }: { onVerified: (customer: C
           <button
             onClick={requestCode}
             disabled={!canResend || isPending}
-            className="w-full text-center text-sm font-medium text-stone-400 transition-colors hover:text-stone-100 disabled:opacity-40"
+            className="w-full text-center text-sm font-medium text-brand-ink/55 transition-colors hover:text-brand-ink disabled:opacity-40"
           >
             Resend code
           </button>
